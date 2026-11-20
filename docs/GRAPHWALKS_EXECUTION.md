@@ -165,3 +165,21 @@ answer lists or model responses. Historical runs remain auditable even
 after the plan's 24-hour authorization to issue *new* provider requests
 has expired. **Local hashing does not authenticate provider execution,
 model identity or actual invoices.**
+
+## Duplicate-record and budget-consistency controls
+
+The offline BFS scorer rejects duplicate task identifiers in either the
+reference index or recorded response log, even if the duplicate responses
+have different statuses. It also rejects missing or non-string task IDs.
+This prevents silent last-record-wins scoring, including accidental or
+selective substitution of a preferred completion.
+
+The token planner rejects a zero-token count for a nonempty input and
+rejects task counts larger than the verified cohort. Executable plans
+must match the recorded task count, cumulative maximum reservation,
+context-feasibility totals and non-comparable evidence status. A
+completed response lacking the provider's input and output token
+accounting is stored as an error, and the independent journal audit
+refuses legacy records marked successful without that accounting.
+These checks prevent locally inconsistent observations from appearing
+as valid completed model evaluations. They are not remote attestation.

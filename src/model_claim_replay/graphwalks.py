@@ -100,6 +100,12 @@ def score_recorded_bfs(
         raise ReplayError("Reference index bytes do not match --index-sha256")
     tasks = read_jsonl(task_index)
     results = read_jsonl(response_file)
+    for label, records in (("reference", tasks), ("response", results)):
+        identifiers = [row.get("id") for row in records]
+        if any(not isinstance(ident, str) or not ident for ident in identifiers):
+            raise ReplayError(f"{label.title()} records need nonempty string task IDs")
+        if len(set(identifiers)) != len(identifiers):
+            raise ReplayError(f"Duplicate {label} task ID in GraphWalks evidence")
     by_id = {row["id"]: row for row in results}
     task_ids = {row["id"] for row in tasks}
     unknown = set(by_id) - task_ids

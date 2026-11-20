@@ -138,6 +138,8 @@ def build_token_plan(
     index = read_jsonl(index_path)
     if len(prompts) != len(index):
         raise ReplayError("The complete source cohort must pass source-data verification before counting")
+    if max_tasks > len(index):
+        raise ReplayError("Requested task count exceeds the verified reference cohort")
     selected = index[:max_tasks]
     rows: list[dict[str, Any]] = []
     for item in selected:
@@ -146,6 +148,8 @@ def build_token_plan(
         if not isinstance(prompt, str) or sha256_bytes(prompt.encode("utf-8")) != item.get("prompt_sha256"):
             raise ReplayError("Task prompt is not bound to the verified BFS index")
         input_tokens = _tokens(count_tokens(prompt), description="input")
+        if input_tokens == 0:
+            raise ReplayError("Provider returned zero input tokens for a nonempty prompt")
         fits = input_tokens + max_output_tokens <= CONTEXT_LIMIT
         rows.append({
             "id": ident, "prompt_sha256": item["prompt_sha256"],
@@ -235,15 +239,28 @@ def _load_plan(plan_path: Path, index_path: Path, *, require_fresh: bool = True)
         raise ReplayError("A real-source run must bind the complete 200-task reference index")
     if plan.get("reference_task_count") != 200:
         raise ReplayError("Incorrect reference cohort size")
+    if plan.get("planned_count") != len(tasks) or plan.get("context_limit") != CONTEXT_LIMIT:
+        raise ReplayError("GraphWalks plan summary does not match the actual task cohort")
+    if plan.get("comparison_status") != "not_comparable":
+        raise ReplayError("GraphWalks plan must not claim publisher comparability")
     for task, reference in zip(tasks, index):
         if not isinstance(task, dict) or (task.get("id") != reference["id"] or
                 task.get("prompt_sha256") != reference["prompt_sha256"]):
             raise ReplayError("Non-prefix, reordered or altered plan task IDs")
         input_tokens = _tokens(task.get("input_tokens"), description="planned input")
+        if input_tokens == 0:
+            raise ReplayError("Plan contains a zero-token nonempty source prompt")
         if task.get("fits_context_with_output_allowance") is not (input_tokens + output_limit <= CONTEXT_LIMIT):
             raise ReplayError("Contradictory context feasibility flag")
         if task.get("maximum_reserved_cost_usd") != str(_usd(input_tokens, output_limit)):
             raise ReplayError("Contradictory per-task cost reservation")
+    expected_total = sum(
+        (Decimal(task["maximum_reserved_cost_usd"]) for task in tasks), Decimal(0)
+    )
+    expected_blocked = sum(not task["fits_context_with_output_allowance"] for task in tasks)
+    if (plan.get("maximum_reserved_cost_usd") != str(expected_total)
+            or plan.get("blocked_for_context") != expected_blocked):
+        raise ReplayError("GraphWalks plan total cost or context blockers are inconsistent")
     return plan
 
 
@@ -266,6 +283,11 @@ def _run_status(response: Any) -> tuple[str, str | None, dict[str, int | None]]:
         if value is not None:
             _tokens(value, description=key)
     if getattr(status, "value", status) == "completed" and isinstance(output, str):
+        # A completed task without provider input/output token accounting is
+        # not admissible as a fully recorded run result.
+        if (usage_values["total_input_tokens"] is None
+                or usage_values["total_output_tokens"] is None):
+            return "error", None, usage_values
         return "ok", output, usage_values
     return "error", None, usage_values
 

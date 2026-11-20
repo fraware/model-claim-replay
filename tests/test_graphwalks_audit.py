@@ -117,6 +117,13 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayError, "lacks valid text"):
             self.audit()
 
+    def test_completed_journal_missing_usage_is_rejected(self) -> None:
+        self.execute_fixture()
+        path = self.run_dir / "attempts" / "bfs-row-000000.result.json"
+        self.change_json(path, usage={})
+        with self.assertRaisesRegex(ReplayError, "lacks provider usage"):
+            self.audit()
+
     def test_invalid_usage_and_unexpected_artifacts_are_rejected(self) -> None:
         self.execute_fixture()
         path = self.run_dir / "attempts" / "bfs-row-000000.result.json"

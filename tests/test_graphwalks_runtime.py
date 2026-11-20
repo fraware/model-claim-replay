@@ -178,6 +178,42 @@ class RuntimeTests(unittest.TestCase):
         self.assertNotIn("Synthetic GraphWalks", json.dumps(plan))
         self.assertIn("not_comparable", json.dumps(plan))
 
+    def test_provider_zero_count_and_oversized_requested_cohort_are_refused(self):
+        with self.assertRaisesRegex(ReplayError, "zero input tokens"):
+            self._plan(max_tasks=1, count=lambda _: 0)
+        with self.assertRaisesRegex(ReplayError, "exceeds the verified reference cohort"):
+            self._plan(max_tasks=201)
+
+    def test_tampered_plan_aggregate_cannot_authorize_execution(self):
+        for key, bad_value in (
+            ("planned_count", 200),
+            ("maximum_reserved_cost_usd", "0"),
+            ("blocked_for_context", 200),
+            ("context_limit", 100),
+            ("comparison_status", "reproduced"),
+        ):
+            with self.subTest(key=key):
+                plan = self._plan(max_tasks=1)
+                plan[key] = bad_value
+                with self.assertRaises(ReplayError):
+                    self._run(plan, lambda *_: self.fail("No request with forged plan"))
+                (self.root / "plan.json").unlink()
+
+    def test_completed_generation_without_usage_is_not_a_scored_success(self):
+        plan = self._plan(max_tasks=1)
+        result = self._run(
+            plan,
+            lambda *_: SimpleNamespace(
+                status="completed", output_text="Final Answer: [node-0]", usage=None,
+            ),
+        )
+        self.assertEqual(result["successful_attempts"], 0)
+        stored = json.loads(
+            (self.root / "private-run" / "attempts" / "bfs-row-000000.result.json").read_text()
+        )
+        self.assertEqual(stored["status"], "error")
+        self.assertNotIn("output", stored)
+
     def test_context_overflow_is_marked_and_blocks_execution(self):
         plan = self._plan(max_tasks=2, count=lambda _: rt.CONTEXT_LIMIT, max_output_tokens=512)
         self.assertEqual(plan["blocked_for_context"], 2)
@@ -269,7 +305,11 @@ class RuntimeTests(unittest.TestCase):
         plan=self._plan(max_tasks=2)
         def generate(prompt, *_):
             index=int(prompt.split()[-1])
-            return SimpleNamespace(status="completed", output_text=f"Final Answer: [node-{index}]",usage=None)
+            return SimpleNamespace(
+                status="completed",
+                output_text=f"Final Answer: [node-{index}]",
+                usage=SimpleNamespace(total_input_tokens=100, total_output_tokens=12),
+            )
         self._run(plan, generate)
         responses=self.root/"recorded.jsonl"
         with patch.object(rt, "INDEX_SHA256", self.index_sha), patch.object(rt, "DATASET_SHA256", self.source_sha):

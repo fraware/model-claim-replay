@@ -127,6 +127,26 @@ class OfflineRecordedEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayError,"do not match"):
             self.score()
 
+    def test_duplicate_response_cannot_select_a_preferred_result(self):
+        self.write_responses([
+            {"id":"first","status":"error"},
+            {"id":"first","status":"ok","output":"Final Answer: [a, b]"},
+            {"id":"second","status":"ok","output":"Final Answer: []"},
+        ])
+        with self.assertRaisesRegex(ReplayError, "Duplicate response task ID"):
+            self.score()
+
+    def test_duplicate_reference_task_does_not_inflate_denominator(self):
+        self.tasks.append(dict(self.tasks[0]))
+        self.write_tasks()
+        with self.assertRaisesRegex(ReplayError, "Duplicate reference task ID"):
+            self.score()
+
+    def test_empty_or_nonstring_task_id_is_rejected(self):
+        self.write_responses([{"id":"","status":"ok","output":"Final Answer: []"}])
+        with self.assertRaisesRegex(ReplayError, "nonempty string task IDs"):
+            self.score()
+
     def test_response_with_unknown_task_is_refused(self):
         self.write_responses([{"id":"third","status":"ok","output":"Final Answer: []"}])
         with self.assertRaisesRegex(ReplayError,"IDs absent"):

@@ -111,6 +111,9 @@ def audit_graphwalks_run(plan_path: Path, index_path: Path, run_dir: Path) -> di
         if result["status"] == "ok":
             if not isinstance(result.get("output"), str) or result.get("error_type") is not None:
                 raise ReplayError(f"Successful response lacks valid text for {task_id}")
+            if (result["usage"].get("total_input_tokens") is None
+                    or result["usage"].get("total_output_tokens") is None):
+                raise ReplayError(f"Successful response lacks provider usage for {task_id}")
             complete += 1
         else:
             if "output" in result or result.get("error_type") is not None and not isinstance(result["error_type"], str):
