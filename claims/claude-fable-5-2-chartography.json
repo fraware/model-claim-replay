@@ -1,0 +1,40 @@
+{
+  "schema_version": "1",
+  "id": "claude-fable-5-2-chartography",
+  "title": "Claude Fable 5.2 on Chartography (no tools)",
+  "kind": "published",
+  "reported_score": 0.734,
+  "model": {
+    "name": "claude-fable-5-2",
+    "provider": "Anthropic"
+  },
+  "source": {
+    "publisher": "Anthropic",
+    "url": "https://www.anthropic.com/claude-fable-and-mythos-5-2",
+    "published": "2026-11-09",
+    "statement": "73.4% on Chartography (no tools), as reported by Anthropic."
+  },
+  "benchmark": {
+    "name": "Chartography",
+    "version": "unverified",
+    "expected_tasks": 100,
+    "dataset": null,
+    "sha256": null,
+    "availability": "access_and_license_unverified",
+    "repository": "https://github.com/surge-ai/chartography"
+  },
+  "protocol": {
+    "mode": "external",
+    "scoring": "third-party-model-judge",
+    "normalization": "none",
+    "harness": "Inspect AI; official implementation at surge-ai/chartography",
+    "epochs": "official protocol must be pinned",
+    "model_settings": "unverified"
+  },
+  "limitations": [
+    "No independently reproduced result is included.",
+    "Official published score must be checked against complete evaluator configuration and judge version.",
+    "Full dataset availability and redistribution permissions are not established.",
+    "This claim is intentionally blocked for portable-text execution."
+  ]
+}

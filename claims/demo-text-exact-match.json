@@ -1,0 +1,39 @@
+{
+  "schema_version": "1",
+  "id": "demo-text-exact-match",
+  "title": "Three synthetic exact-match tasks",
+  "kind": "synthetic",
+  "reported_score": 0.6666666666666666,
+  "model": {
+    "name": "fixture-model",
+    "provider": "fixture"
+  },
+  "source": {
+    "publisher": "Model Claim Replay",
+    "url": "https://github.com/fraware/model-claim-replay",
+    "published": "2026-11-20",
+    "note": "Deliberate local fixture, not a model vendor announcement."
+  },
+  "benchmark": {
+    "name": "Synthetic three-task validation fixture",
+    "version": "1",
+    "expected_tasks": 3,
+    "dataset": "examples/demo-tasks.jsonl",
+    "sha256": "fe64a275726885dec70b3609a356940c8b015ecd69db790f654b629f36e25095",
+    "availability": "bundled",
+    "license": "CC0-1.0"
+  },
+  "protocol": {
+    "mode": "portable-text",
+    "scoring": "exact-match",
+    "normalization": "strip",
+    "system_prompt": null,
+    "temperature": 0,
+    "max_tokens": 32
+  },
+  "limitations": [
+    "Entire benchmark is synthetic.",
+    "Imported responses are untrusted, for demonstrating integrity and scoring.",
+    "The fixture score must never be represented as an independent model evaluation."
+  ]
+}
