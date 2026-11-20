@@ -214,6 +214,41 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(stored["status"], "error")
         self.assertNotIn("output", stored)
 
+    def test_stratified_task_selection_prevents_short_context_only_pilot(self):
+        plan = self._plan(max_tasks=20)
+        task_ids = [task["id"] for task in plan["planned_tasks"]]
+        self.assertEqual(plan["selection_policy"], rt.SELECTION_POLICY)
+        self.assertEqual(plan["selection_counts"], {
+            "short_context": 10, "long_context": 10,
+        })
+        self.assertEqual(task_ids, [
+            *[f"bfs-row-{i:06d}" for i in range(0, 100, 10)],
+            *[f"bfs-row-{i:06d}" for i in range(100, 200, 10)],
+        ])
+        compact = self._plan(max_tasks=5)
+        self.assertEqual(compact["selection_counts"], {
+            "short_context": 3, "long_context": 2,
+        })
+        self.assertEqual(
+            [task["id"] for task in compact["planned_tasks"]],
+            ["bfs-row-000000", "bfs-row-000033", "bfs-row-000066",
+             "bfs-row-000100", "bfs-row-000150"],
+        )
+
+    def test_tampered_balanced_cohort_is_not_executable(self):
+        for modify in (
+            lambda plan: plan["planned_tasks"].__setitem__(
+                1, dict(plan["planned_tasks"][0])
+            ),
+            lambda plan: plan.__setitem__("selection_policy", "arbitrary"),
+            lambda plan: plan["selection_counts"].__setitem__("long_context", 0),
+        ):
+            plan = self._plan(max_tasks=2)
+            modify(plan)
+            with self.assertRaises(ReplayError):
+                self._run(plan, lambda *_: self.fail("Modified cohort sent to provider"))
+            (self.root / "plan.json").unlink()
+
     def test_context_overflow_is_marked_and_blocks_execution(self):
         plan = self._plan(max_tasks=2, count=lambda _: rt.CONTEXT_LIMIT, max_output_tokens=512)
         self.assertEqual(plan["blocked_for_context"], 2)

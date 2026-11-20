@@ -35,7 +35,8 @@ Add a repository Actions secret named `GEMINI_API_KEY` through
 **Settings → Secrets and variables → Actions → New repository secret**,
 then choose **Actions → GraphWalks Gemini token preflight → Run workflow**.
 The default counts **one** pinned BFS task. Other explicit choices count
-5, 20, or all 200 tasks.
+5, 20, or all 200 tasks. For multi-task preflights the selected records
+are deterministically balanced across the two public input-length bands.
 
 The workflow retrieves the exact public source file, recomputes its SHA-256,
 rebuilds the 200-task reference index, verifies its pinned digest, and sends
@@ -208,3 +209,34 @@ accounting is stored as an error, and the independent journal audit
 refuses legacy records marked successful without that accounting.
 These checks prevent locally inconsistent observations from appearing
 as valid completed model evaluations. They are not remote attestation.
+
+## Prespecified, balanced evaluation pilot
+
+The SHA-256-verified public GraphWalks BFS index contains 200 rows in
+**two context-length bands**, each with exactly 100 tasks. The first
+band's prompt texts contain 437,563–437,639 characters, while the second
+band contains 1,748,288–1,748,364 characters. These are not model token
+counts.
+
+The original prefix-based preflight drew all of the first 5 or 20 tasks
+from the shorter-context band, systematically omitting the longer
+problems. New plan schema `graphwalks-gemini-plan-v2` replaces that
+choice with a deterministic, **balanced source-order sampling policy**,
+`balanced_public_context_bands_v1`.
+
+For `N` tasks, the policy selects `ceil(N/2)` shorter and
+`floor(N/2)` longer tasks. Each band's positions are spread
+uniformly over its 100 source entries, using the fixed
+`floor(i * 100 / n)` rule for zero-based sample position `i`.
+For example, a 20-task diagnostic pilot contains 10 tasks from each
+band, while the full 200-task plan contains every original BFS task.
+The plan records the policy and per-band counts, which are revalidated
+before any paid request. A one-task connectivity preflight remains
+a short-context diagnostic.
+
+**Interpretation:** deterministic balancing reduces obvious coverage
+bias in diagnostic subsets, but does not establish that Google's
+publisher cohort is identical or that a small pilot estimates the
+reported 95.2% with sufficient precision. Previously generated v1
+plans require a new token-count preflight; they are not executable
+under the v2 contract.

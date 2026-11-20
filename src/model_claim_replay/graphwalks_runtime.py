@@ -30,7 +30,8 @@ FOREGROUND_OUTPUT_LIMIT = MAX_ONE_HOP_OUTPUT
 INPUT_USD_PER_M = Decimal("3.00")
 OUTPUT_USD_PER_M = Decimal("15.00")
 PRICE_SOURCE = "https://aistudio.google.com/docs/pricing"
-SCHEMA = "graphwalks-gemini-plan-v1"
+SCHEMA = "graphwalks-gemini-plan-v2"
+SELECTION_POLICY = "balanced_public_context_bands_v1"
 
 
 def sha256_file(path: Path) -> str:
@@ -120,6 +121,23 @@ def _tokens(value: Any, *, description: str) -> int:
     return value
 
 
+def _balanced_public_cohort(index: list[dict[str, Any]], count: int) -> list[dict[str, Any]]:
+    """Prespecify context-balanced tasks before model scores exist.
+
+    The independently verified 200-row BFS index contains 100 shorter
+    (~256K-token) problems followed by 100 longer (~1M-token) problems.
+    Within each band, evenly spaced rows are sampled deterministically.
+    Exact source bytes remain pinned by the caller's SHA-256 checks.
+    """
+    if len(index) != 200 or type(count) is not int or not 1 <= count <= 200:
+        raise ReplayError("Balanced GraphWalks selection needs 1-200 pinned BFS tasks")
+    n_short, n_long = (count + 1) // 2, count // 2
+    short, long = index[:100], index[100:]
+    def spread(band: list[dict[str, Any]], n: int) -> list[dict[str, Any]]:
+        return [band[(i * len(band)) // n] for i in range(n)] if n else []
+    return spread(short, n_short) + spread(long, n_long)
+
+
 def build_token_plan(
     index_path: Path, prompts: dict[str, str],
     *, count_tokens: Callable[[str], int], max_tasks: int,
@@ -140,7 +158,7 @@ def build_token_plan(
         raise ReplayError("The complete source cohort must pass source-data verification before counting")
     if max_tasks > len(index):
         raise ReplayError("Requested task count exceeds the verified reference cohort")
-    selected = index[:max_tasks]
+    selected = _balanced_public_cohort(index, max_tasks)
     rows: list[dict[str, Any]] = []
     for item in selected:
         ident = item["id"]
@@ -165,6 +183,11 @@ def build_token_plan(
         "parquet_sha256": expected_parquet_sha256,
         "index_sha256": expected_index_sha256,
         "reference_task_count": len(index),
+        "selection_policy": SELECTION_POLICY,
+        "selection_counts": {
+            "short_context": (len(rows) + 1) // 2,
+            "long_context": len(rows) // 2,
+        },
         "planned_tasks": rows,
         "planned_count": len(rows),
         "context_limit": CONTEXT_LIMIT,
@@ -241,12 +264,19 @@ def _load_plan(plan_path: Path, index_path: Path, *, require_fresh: bool = True)
         raise ReplayError("Incorrect reference cohort size")
     if plan.get("planned_count") != len(tasks) or plan.get("context_limit") != CONTEXT_LIMIT:
         raise ReplayError("GraphWalks plan summary does not match the actual task cohort")
+    if (plan.get("selection_policy") != SELECTION_POLICY
+            or plan.get("selection_counts") != {
+                "short_context": (len(tasks) + 1) // 2,
+                "long_context": len(tasks) // 2,
+            }):
+        raise ReplayError("GraphWalks plan does not use the approved balanced selection")
+    selected = _balanced_public_cohort(index, len(tasks))
     if plan.get("comparison_status") != "not_comparable":
         raise ReplayError("GraphWalks plan must not claim publisher comparability")
-    for task, reference in zip(tasks, index):
+    for task, reference in zip(tasks, selected):
         if not isinstance(task, dict) or (task.get("id") != reference["id"] or
                 task.get("prompt_sha256") != reference["prompt_sha256"]):
-            raise ReplayError("Non-prefix, reordered or altered plan task IDs")
+            raise ReplayError("Unexpected, reordered or altered balanced-plan task IDs")
         input_tokens = _tokens(task.get("input_tokens"), description="planned input")
         if input_tokens == 0:
             raise ReplayError("Plan contains a zero-token nonempty source prompt")

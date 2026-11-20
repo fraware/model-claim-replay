@@ -91,7 +91,7 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
 
     def test_missing_result_is_retained_as_unresolved(self) -> None:
         self.execute_fixture()
-        (self.run_dir / "attempts" / "bfs-row-000001.result.json").unlink()
+        (self.run_dir / "attempts" / "bfs-row-000100.result.json").unlink()
         audit = self.audit()
         self.assertEqual((audit["completed"], audit["unresolved"]), (1, 1))
         self.assertEqual(audit["attempted"], 2)
