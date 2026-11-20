@@ -128,4 +128,16 @@ python -m unittest discover -s tests -v
 python -m pip install -e .
 ```
 
+### Test the interactive website
+
+The static site includes two interactive, explicitly synthetic demonstrations: task-level score replay and a paired-run protocol gate (matched settings, changed judge, missing trial). Run browser-level desktop/mobile regression tests without publishing a site or calling an API:
+
+```bash
+python -m pip install playwright
+python -m playwright install chromium
+python scripts/visual_smoke.py --output-dir .runs/previews
+```
+
+This optional test covers interactive states, accessible button states, JavaScript exceptions and horizontal layout overflow. It does not assert that GitHub Pages is active or that a published claim has been reproduced.
+
 MIT-licensed source. **External benchmark datasets, models and evaluator implementations retain their original owners' terms** and are not redistributed by this repository.

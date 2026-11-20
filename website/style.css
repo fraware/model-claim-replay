@@ -4,3 +4,41 @@
 @media(max-width:750px){.wrap{padding:0 22px}.ribbon-inside span:last-child{display:none}.site-header{height:72px}.navigation>a:not(.github-link){display:none}.hero{grid-template-columns:1fr;gap:54px;min-height:0;padding-top:70px;padding-bottom:85px}.hero h1{font-size:clamp(48px,10vw,80px)}.hero-plate{max-width:540px;min-height:410px;box-shadow:10px 10px 0 #e1e5db}.manifesto{padding:80px 0}.manifesto-grid{grid-template-columns:1fr;gap:50px}.manifesto h2{margin:0}.work,.install{padding-top:80px;padding-bottom:85px}.work-header{display:block}.work-header>p{margin-top:20px}.lab-section{padding:80px 0}.lab-grid,.install-grid{grid-template-columns:1fr;gap:24px}.claim-row{grid-template-columns:30px 1fr;gap:15px}.claim-status{grid-column:2;justify-self:start}.detail-grid{grid-template-columns:1fr}.footer-inner{flex-wrap:wrap}.closing-inner{padding-top:80px;padding-bottom:85px}}
 @media(max-width:460px){.hero-actions{flex-direction:column}.hero-plate{min-height:360px}.plate-number{font-size:92px}.plate-kicker{margin-top:26px}.plate-bottom strong{font-size:12px}.claim-row h3{font-size:24px}.console-bar{font-size:9px;padding:14px}.console-body{padding:28px 18px}.task-prompt{font-size:27px}.console-footer{padding:15px}.score-value{font-size:78px}.install-terminal pre{font-size:10px}.footer-inner{display:block}.footer-inner>*{display:block;margin:15px 0}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+
+/* Comparison gate: a restrained interactive explanation of protocol matching. */
+.compare-section{padding:110px 0 118px;background:#f3f4eb;border-top:1px solid var(--line)}
+.compare-intro{display:flex;align-items:end;justify-content:space-between;gap:55px;margin-bottom:42px}
+.compare-intro h2{font:normal clamp(46px,5vw,76px)/1.05 var(--serif);letter-spacing:-.046em;margin:25px 0 0}
+.compare-intro p{font-size:16px;line-height:1.7;max-width:445px;color:#5c7062;margin:0}
+.compare-workspace{border:1px solid #c7d0c4;background:#fff}
+.scenario-heading{display:flex;justify-content:space-between;gap:15px;align-items:center;padding:21px 27px;border-bottom:1px solid var(--line);font:10px var(--mono);letter-spacing:.055em}
+.scenario-heading>span{color:#758579}
+.scenario-options{display:flex;gap:0;border-bottom:1px solid var(--line)}
+.scenario{background:#fff;border:0;border-right:1px solid var(--line);color:#687b6d;flex:1;padding:22px 25px;text-align:left;font-size:13px;transition:background .2s}
+.scenario:last-child{border-right:0}.scenario:hover{background:#f6f8f2}
+.scenario.active{background:#e9efe3;color:var(--ink);font-weight:700}
+.scenario-index{font:10px var(--mono);color:#78917d;margin-right:13px}
+.pair-board{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pair-model{min-width:0;padding:45px 34px 37px;border-bottom:1px solid var(--line)}
+.pair-model:first-child{border-right:1px solid var(--line)}
+.pair-model>span{font:10px var(--mono);color:#718677;letter-spacing:.065em}
+.pair-model>strong{display:block;font:normal 76px/1.4 var(--serif);letter-spacing:-.05em}
+.pair-model small{font:13px var(--mono);color:#779081;letter-spacing:0}
+.pair-track{height:7px;background:#e2e8db}.pair-track i{display:block;height:100%;background:#577f61;transition:width .3s}
+.pair-conclusion{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.58fr);gap:50px;padding:40px 34px}
+.conclusion-label{font:10px var(--mono);color:#53775c;letter-spacing:.08em}.conclusion-label.blocked{color:#a35e3e}
+.pair-conclusion>div:first-child>strong{display:block;font:normal clamp(31px,4vw,52px)/1.25 var(--serif);letter-spacing:-.035em;margin-top:15px}
+.pair-conclusion p{font-size:14px;line-height:1.75;max-width:540px;color:#65776b}
+.pair-checks{align-self:center;border-top:1px solid var(--line)}
+.pair-checks>div{display:flex;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid var(--line)}
+.pair-checks span{font:12px var(--mono);color:#728478}.pair-checks strong{font:10px var(--mono);text-align:right}
+.compare-foot{padding:22px 34px;border-top:1px solid var(--line);background:#f9faf5;display:flex;justify-content:space-between;align-items:center;gap:45px}
+.compare-foot p{font:11px/1.65 var(--mono);color:#718378;max-width:570px;margin:0}
+.compare-foot a{white-space:nowrap;font-size:12px;font-weight:700;border-bottom:1px solid var(--ink);padding-bottom:6px}
+@media(max-width:1000px){.compare-intro{gap:28px}.pair-conclusion{gap:30px}}
+@media(max-width:750px){.compare-section{padding:80px 0}.compare-intro{display:block}.compare-intro p{margin-top:22px}.scenario-heading{padding:18px 16px;flex-wrap:wrap}.scenario{padding:17px 13px;font-size:12px}.scenario-index{display:block;margin-bottom:9px}.pair-model{padding:28px 18px}.pair-model>strong{font-size:55px}.pair-conclusion{grid-template-columns:1fr;padding:27px 20px;gap:20px}.compare-foot{padding:21px 20px;display:block}.compare-foot a{display:inline-block;margin-top:18px}}
+@media(max-width:420px){.pair-model>span{font-size:9px}.pair-model>strong{font-size:44px}.pair-model small{font-size:10px}.scenario{font-size:11px;padding:17px 10px}.scenario-index{font-size:9px}}
+/* Prevent long terminal commands from determining the width of a grid track. */
+.install-grid>div{min-width:0}
+.install-terminal pre{max-width:100%;overflow-x:auto}
+@media(max-width:750px){.install-grid{grid-template-columns:minmax(0,1fr)}}
