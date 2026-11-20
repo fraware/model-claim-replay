@@ -29,6 +29,21 @@ The long-term product is a **living, versioned claim registry** plus reproducibl
 
 Neither headline has been independently reproduced. The GraphWalks record is research-stage metadata, not a claim that the existing Chartography-specific adapter supports it.
 
+## Score GraphWalks responses offline
+
+A dedicated `grade-graphwalks` CLI command follows the published GraphWalks final-line answer parser and node-set F1. It checks the supplied BFS reference-index SHA-256 and scores recorded model outputs **without making API calls**. Original dataset rows and prompt input fidelity still need separate verification, and the resulting report is never labeled a publisher reproduction.
+
+```bash
+claim-replay grade-graphwalks \
+  --index examples/graphwalks-demo-index.jsonl \
+  --responses examples/graphwalks-demo-responses.jsonl \
+  --index-sha256 b39f93f5828a11ba43a72bcd0e456a93933ef8a8155d206e19053b89801b57b4 \
+  --dataset-revision 0000000000000000000000000000000000000000 \
+  --out .runs/graphwalks-synthetic.json
+```
+
+Both records and the revision marker above are **synthetic**. The 5/6 F1 is a fixture result, not a model evaluation. For a real source-index format, correct score semantics and the pinned HF metadata snapshot, see [the GraphWalks dossier](docs/GRAPHWALKS.md).
+
 ## Try it now — fully offline
 
 Python 3.10+; no runtime dependencies and no API key needed for the bundled demonstration.

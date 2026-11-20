@@ -154,6 +154,16 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--limit", type=int, default=None)
     run.add_argument("--timeout", type=float, default=45.0)
     run.add_argument("--out", required=True, type=Path)
+    graphwalks = sub.add_parser("grade-graphwalks", help="Offline grading of recorded GraphWalks BFS responses")
+    graphwalks.add_argument("--index", required=True, type=Path,
+                            help="Locally prepared BFS answer-node reference index (not the full source Parquet)")
+    graphwalks.add_argument("--responses", required=True, type=Path,
+                            help="Locally recorded responses, one per task ID")
+    graphwalks.add_argument("--index-sha256", required=True,
+                            help="Exact SHA-256 of the reference-index JSONL file")
+    graphwalks.add_argument("--dataset-revision", required=True,
+                            help="40-character upstream dataset commit; user-declared and not independently authenticated")
+    graphwalks.add_argument("--out", required=True, type=Path, help="New JSON-only evidence report")
     import_inspect = sub.add_parser("import-inspect", help="Import scored results from an official Inspect AI log")
     import_inspect.add_argument("--claim", required=True, type=Path)
     import_inspect.add_argument("--log", required=True, type=Path, help="Inspect .eval or .json source log (never copied)")
@@ -234,6 +244,17 @@ def main(argv: list[str] | None = None) -> int:
             evaluate_records(claim, tasks, results, model=args.model, run_kind=kind)
             save_run(claim_path=args.claim, tasks_path=args.tasks, claim=claim, results=results, directory=args.out, model=args.model, run_kind=kind)
             print(f"Saved local evidence bundle: {args.out}")
+        elif args.command == "grade-graphwalks":
+            from .graphwalks import score_recorded_bfs, save_scoring_report
+            summary = score_recorded_bfs(
+                args.index, args.responses, expected_index_sha256=args.index_sha256,
+                dataset_revision=args.dataset_revision,
+            )
+            save_scoring_report(summary, args.out)
+            print(f"Scored {summary['graded']}/{summary['task_count']} local BFS responses; "
+                  f"full-cohort F1: {summary['mean_f1']}")
+            print("Comparison status: not_comparable; no original model execution attested")
+            print(f"Saved offline GraphWalks report: {args.out}")
         elif args.command == "import-inspect":
             from .inspect_evidence import import_inspect_bundle
             summary = import_inspect_bundle(args.claim, args.log, args.out)

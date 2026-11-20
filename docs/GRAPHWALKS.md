@@ -34,3 +34,52 @@ The data is not automatically equivalent to Google's evaluated population. We mu
 - [Google DeepMind evaluation methodology (PDF)](https://deepmind.google/models/evals-methodology/gemini-4-neon)
 - [OpenAI GraphWalks dataset and license](https://huggingface.co/datasets/openai/graphwalks)
 - [OpenAI dataset revision history](https://huggingface.co/datasets/openai/graphwalks/commits/main)
+
+## Pinned public data snapshot (metadata-only)
+
+The automated [GraphWalks source preflight](https://github.com/fraware/model-claim-replay/actions/runs/44744877596)
+fetched a public Hugging Face API metadata receipt on **20 November 2026 at 13:30 UTC**.
+It recorded dataset repository revision
+`be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7`, MIT license and:
+- `graphwalks_256k_to_1mil.parquet`: **296,903,814 bytes**, upstream LFS SHA-256
+  `537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911`
+- `graphwalks_128k_and_shorter.parquet`: **22,128,284 bytes**, upstream LFS SHA-256
+  `54036036c91d8e04bb2a5fcd9e36f8e2a852cacece5dfc2b1ee40e3a6182b516`
+
+These sizes and digests were *reported by the upstream API*, not recomputed
+from downloaded Parquet bytes. The receipt is downloadable as the
+`graphwalks-public-metadata` artifact from the linked CI run, retained for
+14 days. No selected 200-task cohort or Google-specific dataset revision has
+been established.
+
+## Offline F1 scorer
+
+The dataset's [MIT-licensed grading reference](https://huggingface.co/datasets/openai/graphwalks/blob/be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7/README.md)
+specifies a final-line `Final Answer: [...]` parser and set-overlap F1.
+The `grade-graphwalks` command implements this exact extraction and per-sample
+scoring convention. **It is an offline grader, not an inference runner.**
+
+Use a purpose-built *reference index* containing one JSONL object with
+`id`, `problem_type: "bfs"` and `answer_nodes: ["..."]` per task.
+The index must be explicitly hashed and prepared from an authorized source
+dataset with its independent revision record. Responses have the schema
+`{"id":"...","status":"ok","output":"Final Answer: [...]"}` or
+`{"id":"...","status":"error"}`. API errors/missing rows block the complete
+mean; malformed model text receives F1=0 according to the benchmark card.
+The output reports local scoring and SHA-256 commitments only, and never
+publishes raw prompts, gold answer nodes or model response content.
+
+**Synthetic, two-task demonstration** (the all-zero revision is a fixture
+marker, not a real dataset commit):
+
+```bash
+claim-replay grade-graphwalks \
+  --index examples/graphwalks-demo-index.jsonl \
+  --responses examples/graphwalks-demo-responses.jsonl \
+  --index-sha256 b39f93f5828a11ba43a72bcd0e456a93933ef8a8155d206e19053b89801b57b4 \
+  --dataset-revision 0000000000000000000000000000000000000000 \
+  --out .runs/graphwalks-synthetic.json
+```
+
+This demo produces F1 of 5/6 across two **synthetic** reference records.
+It does not reproduce Gemini 4 Neon's 95.2%.
