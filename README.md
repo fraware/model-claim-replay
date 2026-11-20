@@ -4,11 +4,11 @@
 
 **Published AI benchmark results deserve independently inspectable evidence.** Model Claim Replay is an open-source project to turn individual model-launch claims into reproducible experiments, with pinned inputs, declared execution protocols, independently rerunnable scoring, uncertainty, and shareable reports.
 
-[Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
+[Live website](https://fraware.github.io/model-claim-replay/) · [Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
 
 > **Project status — foundation, not a completed benchmark replication.** The CLI executes pinned *portable text* fixtures, imports scored Inspect AI logs from an official evaluation, verifies local evidence hashes, compares compatible runs on identical task/epoch pairs, and generates standalone HTML/JSON reports. The registered Chartography claim is a real published statement, **not** a completed reproduction. Dataset access, licensing, model settings, judge protocol, and budget still need to be resolved before real comparison is justified. No provider result is invented.
 
-**Website publishing:** A GitHub Pages deployment workflow is included. The repository owner must enable **Settings → Pages → Build and deployment → Source: GitHub Actions** once before the site has a public URL.
+**Live interactive website:** [fraware.github.io/model-claim-replay](https://fraware.github.io/model-claim-replay/), published automatically from `website/` through GitHub Pages. The web demonstrations use fixed synthetic data; real evaluation and report generation run locally.
 
 ## The ambition
 
@@ -27,6 +27,8 @@ The long-term product is a **living, versioned claim registry** plus reproducibl
 Python 3.10+; no runtime dependencies and no API key needed for the bundled demonstration.
 
 ```bash
+git clone https://github.com/fraware/model-claim-replay.git
+cd model-claim-replay
 python -m pip install -e .
 claim-replay list
 claim-replay inspect claims/claude-fable-5-2-chartography.json

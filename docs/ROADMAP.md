@@ -4,7 +4,7 @@
 - Open, source-anchored claim manifests and explicit blocked status.
 - Dependency-free Python CLI for portable text tasks and external response import.
 - SHA-256-bound local evidence bundles, task accounting, scoring and standalone HTML/JSON reports.
-- Automated tests and GitHub Actions CI, plus a static product website awaiting one-time GitHub Pages activation.
+- Automated tests and GitHub Actions CI, plus a deployed static website with interactive synthetic demonstrations, and desktop/mobile browser smoke checks.
 
 ## Milestone 1 — First independent claim reproduction (in progress)
 - Verify rights and access for an important, developer-relevant published benchmark.

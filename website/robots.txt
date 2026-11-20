@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://fraware.github.io/model-claim-replay/sitemap.xml
