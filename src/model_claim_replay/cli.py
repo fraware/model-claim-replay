@@ -182,8 +182,14 @@ def build_parser() -> argparse.ArgumentParser:
     exec_gw.add_argument("--out", required=True, type=Path)
     export_gw = sub.add_parser("export-graphwalks", help="Export private model answers for separate offline scoring")
     export_gw.add_argument("--plan", required=True, type=Path)
+    export_gw.add_argument("--index", required=True, type=Path, help="Pinned 200-task BFS reference index")
     export_gw.add_argument("--run-dir", required=True, type=Path)
     export_gw.add_argument("--out", required=True, type=Path)
+    audit_gw = sub.add_parser("audit-graphwalks", help="Audit a private GraphWalks run journal completely offline")
+    audit_gw.add_argument("--plan", required=True, type=Path)
+    audit_gw.add_argument("--index", required=True, type=Path)
+    audit_gw.add_argument("--run-dir", required=True, type=Path)
+    audit_gw.add_argument("--out", required=True, type=Path, help="New privacy-preserving audit report")
     import_inspect = sub.add_parser("import-inspect", help="Import scored results from an official Inspect AI log")
     import_inspect.add_argument("--claim", required=True, type=Path)
     import_inspect.add_argument("--log", required=True, type=Path, help="Inspect .eval or .json source log (never copied)")
@@ -347,8 +353,18 @@ def main(argv: list[str] | None = None) -> int:
             print("Responses remain private; incomplete requests are not automatically retried.")
         elif args.command == "export-graphwalks":
             from .graphwalks_runtime import export_private_responses
-            export_private_responses(args.plan, args.run_dir, args.out)
+            export_private_responses(args.plan, args.index, args.run_dir, args.out)
             print(f"Exported locally recorded responses to {args.out}; do not commit private raw outputs")
+        elif args.command == "audit-graphwalks":
+            from .graphwalks_audit import audit_graphwalks_run
+            from .graphwalks import save_scoring_report
+            audit = audit_graphwalks_run(args.plan, args.index, args.run_dir)
+            save_scoring_report(audit, args.out)
+            print(f"Audited {audit['attempted']} attempts; "
+                  f"{audit['completed']} complete, {audit['failed']} failed, "
+                  f"{audit['unresolved']} unresolved")
+            print("This checks self-reported local records, not provider execution or billing.")
+            print(f"Saved private-run audit: {args.out}")
         elif args.command == "grade-graphwalks":
             from .graphwalks import score_recorded_bfs, save_scoring_report
             summary = score_recorded_bfs(

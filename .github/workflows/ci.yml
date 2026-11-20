@@ -84,8 +84,11 @@ jobs:
         run: python -m unittest discover -s tests -p test_graphwalks_runtime.py -v
       - name: Exercise one-POST Interactions REST transport on loopback
         run: python -m unittest discover -s tests -p test_gemini_rest.py -v
+      - name: Audit synthetic GraphWalks journals and adversarial tampering
+        run: python -m unittest discover -s tests -p test_graphwalks_audit.py -v
       - name: Verify runtime CLI entry points without credentials
         run: |
           claim-replay plan-graphwalks --help
           claim-replay execute-graphwalks --help
           claim-replay export-graphwalks --help
+          claim-replay audit-graphwalks --help

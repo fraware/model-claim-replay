@@ -191,7 +191,7 @@ def save_plan(plan: dict[str, Any], path: Path) -> None:
         stream.write(canonical_json(plan) + b"\n")
 
 
-def _load_plan(plan_path: Path, index_path: Path) -> dict[str, Any]:
+def _load_plan(plan_path: Path, index_path: Path, *, require_fresh: bool = True) -> dict[str, Any]:
     plan = read_json(plan_path)
     if not isinstance(plan, dict) or plan.get("schema_version") != SCHEMA:
         raise ReplayError("Not a supported GraphWalks Gemini token plan")
@@ -214,8 +214,8 @@ def _load_plan(plan_path: Path, index_path: Path) -> dict[str, Any]:
     if created.tzinfo is None or created.utcoffset() is None:
         raise ReplayError("Token plan creation timestamp must be timezone-aware")
     now = dt.datetime.now(dt.timezone.utc)
-    if (created > now + dt.timedelta(minutes=5)
-            or now - created > dt.timedelta(hours=24)):
+    if require_fresh and (created > now + dt.timedelta(minutes=5)
+                          or now - created > dt.timedelta(hours=24)):
         raise ReplayError("Token plan is stale or future-dated; count tokens again")
     if plan.get("pricing") != {
         "input_usd_per_m": str(INPUT_USD_PER_M),
@@ -386,10 +386,13 @@ def execute_token_plan(
     }
 
 
-def export_private_responses(plan_path: Path, run_dir: Path, out: Path) -> None:
+def export_private_responses(plan_path: Path, index_path: Path, run_dir: Path, out: Path) -> None:
     """Export private responses for the separate source-faithful F1 scorer."""
     if out.exists():
         raise ReplayError("Response export already exists")
+    # Prevent export from bypassing the independent local evidence audit.
+    from .graphwalks_audit import audit_graphwalks_run
+    audit_graphwalks_run(plan_path, index_path, run_dir)
     plan = read_json(plan_path)
     meta = read_json(run_dir / "run.json")
     if meta.get("plan_sha256") != sha256_bytes(read_bytes(plan_path)):

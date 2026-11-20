@@ -64,6 +64,7 @@ The private run directory holds response text, limited provider usage metadata a
 ```bash
 claim-replay export-graphwalks \
   --plan .runs/private/graphwalks/one-task-plan.json \
+  --index .runs/private/graphwalks/graphwalks-bfs-reference-index.jsonl \
   --run-dir .runs/private/graphwalks/one-task-run \
   --out .runs/private/graphwalks/one-task-responses.jsonl
 claim-replay grade-graphwalks \
@@ -140,3 +141,27 @@ explicitly and the plan must match the documented standard $3/$15 per
 million-token pricing assumptions. Rebuild the plan if provider prices
 or evaluation configuration change. Actual invoices and account quotas
 remain under the provider's control.
+
+## Audit private execution evidence before exporting answers
+
+The new `claim-replay audit-graphwalks` command revalidates the local
+self-reported execution ledger completely offline: the plan and pinned
+200-task index, run manifest, unique task intents, matching response records,
+per-task maximum budget commitments, token-usage types and unexpected files.
+An interrupted request with an intent and no result remains explicitly
+`unresolved`, distinct from a failed request and a task never attempted.
+
+```bash
+claim-replay audit-graphwalks \
+  --plan .runs/private/graphwalks/one-task-plan.json \
+  --index .runs/private/graphwalks/graphwalks-bfs-reference-index.jsonl \
+  --run-dir .runs/private/graphwalks/one-task-run \
+  --out .runs/private/graphwalks/one-task-audit.json
+```
+
+Private response export now requires `--index` and runs this audit
+first. The audit contains per-file SHA-256 commitments without raw prompts,
+answer lists or model responses. Historical runs remain auditable even
+after the plan's 24-hour authorization to issue *new* provider requests
+has expired. **Local hashing does not authenticate provider execution,
+model identity or actual invoices.**
