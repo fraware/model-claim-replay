@@ -107,6 +107,21 @@ class OfflineRecordedEvidenceTests(unittest.TestCase):
         self.assertIsNone(report["mean_f1"])
         self.assertEqual(report["missing"],1)
 
+    def test_cli_scores_synthetic_fixture_and_writes_report(self):
+        from model_claim_replay.cli import main
+        self.write_responses([
+            {"id":"first","status":"ok","output":"Final Answer: [a]"},
+            {"id":"second","status":"ok","output":"Final Answer: []"},
+        ])
+        output=self.task_file.parent / "cli-report.json"
+        rc=main([
+            "grade-graphwalks", "--index", str(self.task_file),
+            "--responses", str(self.responses), "--index-sha256", self.hash,
+            "--dataset-revision", self.epoch, "--out", str(output),
+        ])
+        self.assertEqual(rc, 0)
+        self.assertAlmostEqual(json.loads(output.read_text())["mean_f1"], 5 / 6)
+
     def test_reference_digest_mismatch_blocks(self):
         self.hash="0"*64
         with self.assertRaisesRegex(ReplayError,"do not match"):
