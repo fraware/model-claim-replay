@@ -1,0 +1,37 @@
+name: GraphWalks verified dataset audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/graphwalks-data-audit.yml'
+      - 'scripts/graphwalks_data_audit.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Parquet reader
+        run: python -m pip install 'pyarrow>=18,<30'
+      - name: Validate source audit logic with offline tests
+        run: python -m unittest discover -s tests -p test_graphwalks_data_audit.py -v
+      - name: Retrieve and independently hash pinned MIT-licensed source file
+        run: |
+          python scripts/graphwalks_data_audit.py \
+            --revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 \
+            --sha256 537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911 \
+            --size-bytes 296903814 \
+            --out .runs/graphwalks-verified-source
+      - name: Upload verified reference index and manifest only
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphwalks-verified-bfs-index
+          path: .runs/graphwalks-verified-source/
+          if-no-files-found: error
+          retention-days: 14
