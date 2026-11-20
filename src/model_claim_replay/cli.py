@@ -158,6 +158,12 @@ def build_parser() -> argparse.ArgumentParser:
     import_inspect.add_argument("--claim", required=True, type=Path)
     import_inspect.add_argument("--log", required=True, type=Path, help="Inspect .eval or .json source log (never copied)")
     import_inspect.add_argument("--out", required=True, type=Path)
+    paired = sub.add_parser("compare-inspect", help="Paired audit of two Inspect evidence bundles")
+    paired.add_argument("--claim", required=True, type=Path)
+    paired.add_argument("--left", required=True, type=Path, help="First imported Inspect bundle")
+    paired.add_argument("--right", required=True, type=Path, help="Second imported Inspect bundle")
+    paired.add_argument("--format", choices=("json", "html"), default="json")
+    paired.add_argument("--output", type=Path, help="Write to file; JSON otherwise prints to stdout")
     verify = sub.add_parser("verify", help="Validate local run artifacts and recompute scoring")
     verify.add_argument("run_dir", type=Path)
     verify.add_argument("--claim", required=True, type=Path)
@@ -233,6 +239,18 @@ def main(argv: list[str] | None = None) -> int:
             summary = import_inspect_bundle(args.claim, args.log, args.out)
             print(f"Imported {summary['attempted']} scored task-epoch records into {args.out}")
             print(f"Comparison status: {summary['comparison_status']}; source log is self-reported")
+        elif args.command == "compare-inspect":
+            from .compare import compare_inspect_bundles, compare_report_html
+            result = compare_inspect_bundles(args.claim, args.left, args.right)
+            if args.format == "html" and args.output is None:
+                raise ReplayError("--output is required for HTML comparisons")
+            payload = (compare_report_html(result) if args.format == "html"
+                       else json.dumps(result, indent=2, ensure_ascii=False) + "\n")
+            if args.output is None:
+                print(payload, end="")
+            else:
+                args.output.write_text(payload, encoding="utf-8")
+                print(f"Wrote {args.output}")
         elif args.command in ("verify", "report"):
             from .inspect_evidence import inspect_report_html, verify_inspect_bundle
             bundle_metadata = read_json(args.run_dir / "run.json")

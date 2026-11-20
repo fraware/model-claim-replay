@@ -40,19 +40,19 @@ class RealInspectRuntimeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             logs = eval(chartography(), model="mockllm/model", log_dir=str(root / "logs"),
-                        display="none", log_samples=True, epochs=1)
+                        display="none", log_samples=True, epochs=3)
             self.assertEqual(len(logs), 1)
             self.assertEqual(logs[0].status, "success")
             log_path = Path(logs[0].location)
             self.assertTrue(log_path.is_file())
             out = root / "import"
             summary = import_inspect_bundle(ROOT / "claims/claude-fable-5-2-chartography.json", log_path, out)
-            self.assertEqual(summary["attempted"], 2)
-            self.assertEqual(summary["successes"], 2)
+            self.assertEqual(summary["attempted"], 6)
+            self.assertEqual(summary["successes"], 6)
             self.assertEqual(summary["comparison_status"], "not_comparable")
             verified = verify_inspect_bundle(ROOT / "claims/claude-fable-5-2-chartography.json", out,
                                              source_log=log_path)
-            self.assertEqual(verified["attempted"], 2)
+            self.assertEqual(verified["attempted"], 6)
             self.assertTrue(verified["source_log_checked"])
 
 

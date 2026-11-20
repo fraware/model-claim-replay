@@ -4,7 +4,7 @@
 
 ## Published statement
 
-Anthropic reports **Claude Fable 5.2, 73.4% on Chartography (no tools)**. This is a *publisher-reported number*. The original public announcement is [Anthropic's model-launch page](https://www.anthropic.com/claude-fable-and-mythos-5-2). The exact model snapshot, run parameters, dataset revision, sampling and judge settings for this figure have not been independently established.
+Anthropic reports **Claude Fable 5.2, 73.4% on Chartography (no tools)**. This is a *publisher-reported number*. The original public announcement is [Anthropic's model-launch page](https://www.anthropic.com/claude-fable-and-mythos-5-2). Anthropic's announcement identifies the result as **without tools**, using its **highest available effort**, with safeguards enabled unless otherwise noted. The exact model snapshot, run parameters, dataset revision, sampling and judge settings behind this figure have not been independently established.
 
 ## Original benchmark
 
@@ -54,6 +54,10 @@ claim-replay report .runs/chartography \
 
 The CLI exports only a task pseudonym, epoch, score and selected safe header fields. It **does not copy** charts, licensed prompts, gold answers, model responses or judge explanations. The original log is retained locally; publishing its digest does not publish or authenticate its contents.
 
+## Matched-run diagnostic comparison
+
+To compare separate locally generated official Inspect logs from two models, import each into its own directory and use `claim-replay compare-inspect --claim ... --left ... --right ... --format html --output ...`. The comparison refuses missing scores, mismatched chart IDs, different epoch grids, missing recorded judge/dataset settings or unclean/unpinned harness metadata. A successful comparison describes only the supplied paired evidence. It does not establish parity with Anthropic's reported 73.4% or authenticate the original API outputs.
+
 ## Decision gate
 
 A completed import establishes that a local Inspect log contained internally consistent task/epoch score records. **A comparable reproduction needs independently validated correspondence to the exact published protocol**. The report always declares `not_comparable` at this stage, even for a complete grid. A discrepancy measured under a modified judge, private data subset, different model snapshot or undocumented settings is diagnostic evidence, not a refutation of Anthropic's statement.
@@ -62,6 +66,6 @@ A completed import establishes that a local Inspect log contained internally con
 
 - Is access to the official full task set obtainable for independent evaluation, and what forms of result publication are permitted?
 - Which precise model ID, model snapshot, sampling settings and reasoning level produced 73.4%?
-- Did the publisher use the exact public ten-epoch, Gemini-judge benchmark configuration?
+- Did the publisher use the exact public ten-epoch, Gemini-judge benchmark configuration, or a distinct five-run or other internal protocol?
 - Can the benchmark author provide a dataset revision identifier and original evaluation provenance for comparison?
 - What financial budget and concurrent API quotas are needed for a full repeated experiment?

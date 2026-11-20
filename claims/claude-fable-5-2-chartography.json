@@ -34,7 +34,13 @@
     "reference_judge_model": "google/gemini-3.5-flash",
     "reference_dataset_repo": "surgeai/chartography",
     "reference_harness_commit": "3f1bf837232d3918c2cc35c6e2418c9e70d2a57b",
-    "reference_note": "These settings are documented by the benchmark author for its leaderboard, not verified as the exact configuration of the Anthropic-reported 73.4%."
+    "reference_note": "These settings are documented by the benchmark author for its leaderboard, not verified as the exact configuration of the Anthropic-reported 73.4%.",
+    "publisher_public_conditions": {
+      "tools": "none",
+      "effort": "highest_available",
+      "safeguards": "enabled_unless_otherwise_noted"
+    },
+    "publisher_public_conditions_source": "https://www.anthropic.com/claude-fable-and-mythos-5-2"
   },
   "limitations": [
     "No independently reproduced result is included.",
