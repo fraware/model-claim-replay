@@ -27,6 +27,31 @@ curl --fail --location --output .runs/private/graphwalks/graphwalks.parquet \
 
 Download and extract `graphwalks-bfs-reference-index.jsonl` from the verified GitHub Actions artifact linked above. Preserve its `manifest.json` separately. The `claim-replay` commands verify the index and dataset bytes without trusting filenames.
 
+## One-click, token-count-only GitHub preflight
+
+The repository includes a manually triggered
+[GraphWalks Gemini token preflight workflow](https://github.com/fraware/model-claim-replay/actions/workflows/graphwalks-token-preflight.yml).
+Add a repository Actions secret named `GEMINI_API_KEY` through
+**Settings → Secrets and variables → Actions → New repository secret**,
+then choose **Actions → GraphWalks Gemini token preflight → Run workflow**.
+The default counts **one** pinned BFS task. Other explicit choices count
+5, 20, or all 200 tasks.
+
+The workflow retrieves the exact public source file, recomputes its SHA-256,
+rebuilds the 200-task reference index, verifies its pinned digest, and sends
+the selected original prompts to the Gemini **token-count** endpoint.
+It performs **no model generation** and never invokes
+`execute-graphwalks`. It uploads only a JSON token-count and maximum-cost
+plan, retained for seven days; no source Parquet, reference answers,
+source prompt text or API keys are included in the uploaded artifact.
+
+**Security and limitation:** The secret is passed only to the token-count
+step. GitHub-hosted runners and the provider process the prompt text under
+their respective terms. The workflow does not claim that token counting
+has zero provider-side cost; it performs no inference request. API access,
+quotas, provider availability, and precise token accounting remain external.
+The repository cannot install an Actions secret on the owner's behalf.
+
 ## Stage 1: token counts only, no model generation
 
 The next command transmits **one real prompt** to Google's `count_tokens` endpoint, verifies the input count and records an output allowance. It does not request a model-generated response. A Gemini API key is necessary and any provider-side billing or rate limitations remain subject to Google's terms.

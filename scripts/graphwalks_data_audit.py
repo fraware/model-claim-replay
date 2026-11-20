@@ -149,6 +149,10 @@ def main() -> int:
     parser.add_argument("--sha256", required=True)
     parser.add_argument("--size-bytes", required=True, type=int)
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument(
+        "--retain-parquet", action="store_true",
+        help="Keep the SHA-256-verified public Parquet locally for token preflight; never upload it",
+    )
     args = parser.parse_args()
     try:
         validate_source(args.revision, args.sha256, args.size_bytes)
@@ -157,11 +161,19 @@ def main() -> int:
     if args.out.exists():
         parser.error("Refusing to overwrite a prior source audit")
     args.out.mkdir(parents=True, exist_ok=False)
-    with tempfile.TemporaryDirectory(prefix="mcr-long-context-") as temp:
-        temp_file = Path(temp) / FILENAME
-        download_checked_parquet(temp_file, revision=args.revision,
+    if args.retain_parquet:
+        # The retained file contains original benchmark prompts and gold answers.
+        # This option is intended only for private, ephemeral execution runners.
+        source_file = args.out / FILENAME
+        download_checked_parquet(source_file, revision=args.revision,
                                  sha256=args.sha256, expected_bytes=args.size_bytes)
-        tasks, stats = audit_parquet(temp_file)
+        tasks, stats = audit_parquet(source_file)
+    else:
+        with tempfile.TemporaryDirectory(prefix="mcr-long-context-") as temp:
+            source_file = Path(temp) / FILENAME
+            download_checked_parquet(source_file, revision=args.revision,
+                                     sha256=args.sha256, expected_bytes=args.size_bytes)
+            tasks, stats = audit_parquet(source_file)
     index_bytes = b"".join(json.dumps(t, sort_keys=True, separators=(",", ":"),
                                      ensure_ascii=False).encode("utf-8") + b"\n" for t in tasks)
     (args.out / "graphwalks-bfs-reference-index.jsonl").write_bytes(index_bytes)
