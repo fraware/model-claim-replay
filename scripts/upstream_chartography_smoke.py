@@ -91,7 +91,7 @@ def run_upstream_smoke(upstream: Path, artifacts_dir: Path | None = None) -> Non
                 encoding="utf-8",
             )
         print(
-            "Upstream Chartography smoke passed: 2 dummy tasks, 
+            "Upstream Chartography smoke passed: 2 dummy tasks, "
             f"scored={verified['assessed']}, unscored={verified['unscored']}, "
             "publisher comparison blocked."
         )
