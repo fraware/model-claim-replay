@@ -168,11 +168,11 @@ model identity or actual invoices.**
 
 ## Duplicate-record and budget-consistency controls
 
-The offline BFS scorer rejects duplicate task identifiers in either the
-reference index or recorded response log, even if the duplicate responses
-have different statuses. It also rejects missing or non-string task IDs.
-This prevents silent last-record-wins scoring, including accidental or
-selective substitution of a preferred completion.
+The shared JSONL reader already rejected duplicate or invalid task IDs
+before the scorer constructed its task-ID lookup. Additional adversarial
+tests now protect this existing trust boundary, including a duplicate
+error record followed by a preferred successful completion. This
+prevents last-record-wins scoring and selective response substitution.
 
 The token planner rejects a zero-token count for a nonempty input and
 rejects task counts larger than the verified cohort. Executable plans
