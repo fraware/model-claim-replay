@@ -117,6 +117,26 @@ class InspectEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayError, "disagrees"):
             _score_summary(self.claim, rows, header)
 
+    def test_all_unscored_aggregate_nan_has_no_observed_accuracy(self):
+        log = fixture_log()
+        for sample in log.samples:
+            sample.scores["golden_answer_scorer"].value = {"accuracy": math.nan}
+            sample.scores["golden_answer_scorer"].metadata = {"result": "unscored"}
+        log.results.scores[0].metrics["mean"].value = math.nan
+        rows, header = extract_inspect_records(log, self.claim)
+        summary = _score_summary(self.claim, rows, header)
+        self.assertIsNone(header["logged_mean"])
+        self.assertIsNone(summary["observed_score"])
+        self.assertEqual(summary["assessed"], 0)
+        self.assertEqual(summary["unscored"], 4)
+        self.assertEqual(summary["comparison_status"], "not_comparable")
+
+    def test_infinite_aggregate_refused_even_if_all_unscored(self):
+        log = fixture_log()
+        log.results.scores[0].metrics["mean"].value = math.inf
+        with self.assertRaisesRegex(ReplayError, "aggregate accuracy/mean is invalid"):
+            extract_inspect_records(log, self.claim)
+
     def test_incomplete_and_missing_header_never_compared(self):
         log = fixture_log()
         log.results.scores = []

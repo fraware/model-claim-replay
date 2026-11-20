@@ -116,6 +116,11 @@ def _header_metric(log: Any) -> float | None:
         raise ReplayError("Ambiguous Inspect aggregate: more than one named accuracy/mean score")
     metric = _as_dict(getattr(matches[0], "metrics", None)).get(SCORE_AGGREGATOR)
     value = getattr(metric, "value", None)
+    # Inspect can emit NaN for a run with no scored task-epochs (for example,
+    # a mock judge that never produces a parseable verdict). Preserve this as
+    # a missing aggregate; never turn it into a zero-accuracy model result.
+    if isinstance(value, float) and math.isnan(value):
+        return None
     if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value) or not 0 <= value <= 1:
         raise ReplayError("Inspect aggregate accuracy/mean is invalid")
     return float(value)

@@ -69,3 +69,20 @@ A completed import establishes that a local Inspect log contained internally con
 - Did the publisher use the exact public ten-epoch, Gemini-judge benchmark configuration, or a distinct five-run or other internal protocol?
 - Can the benchmark author provide a dataset revision identifier and original evaluation provenance for comparison?
 - What financial budget and concurrent API quotas are needed for a full repeated experiment?
+
+## CI verification of the official harness
+
+The repository also tests a **pinned checkout of Surge AI's actual Chartography
+implementation**, using the two public dummy tasks and Inspect's mock model for
+both generation and judging. The GitHub Actions job `chartography-upstream-smoke`
+invokes the benchmark's original `chartography` task and original scorer, imports
+the resulting real `.eval` log and verifies the exported score-only bundle.
+An unparseable mock-judge verdict is recorded as **unscored**, never as an
+incorrect answer, and an all-unscored run has **no observed accuracy**. This is a
+pipeline integration test, not a model comparison or a reproduction.
+
+A separate [Chartography Harbor-format sample release](https://huggingface.co/datasets/surgeai/Chartography-harbor)
+publishes two public tasks. Its dataset card explicitly states that the complete
+100-task set needs direct arrangements with Surge AI. Its stated CC BY 4.0
+coverage excludes third-party charts, and redistribution of those images is
+restricted. The repository does not mirror either dataset.
