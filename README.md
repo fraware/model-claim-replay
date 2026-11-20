@@ -25,9 +25,9 @@ The long-term product is a **living, versioned claim registry** plus reproducibl
 ## Published claims under investigation
 
 - **Claude Fable 5.2 / Chartography — 73.4% reported.** Official harness and an Inspect AI importer are operational; the complete private evaluation population and exact publisher conditions are unresolved. [Reproduction dossier](docs/CHARTOGRAPHY.md).
-- **Gemini 4 Neon / GraphWalks BFS — 95.2% F1 reported.** The 200-problem long-context result was published 18 November 2026. The [original dataset](https://huggingface.co/datasets/openai/graphwalks) is public under MIT, but the exact evaluated subset and scorer remain unpinned; 256K–1M input contexts pose significant cost. [Feasibility dossier](docs/GRAPHWALKS.md).
+- **Gemini 4 Neon / GraphWalks BFS — 95.2% F1 reported.** The 200-problem long-context result was published 18 November 2026. The [original dataset](https://huggingface.co/datasets/openai/graphwalks) is public under MIT, but the candidate long-context Parquet was independently SHA-256 verified, contains exactly 200 BFS tasks, and its published grader is implemented locally. Google's own data revision, task selection, API settings and substantial inference costs remain unresolved. [Feasibility dossier](docs/GRAPHWALKS.md).
 
-Neither headline has been independently reproduced. The GraphWalks record is research-stage metadata, not a claim that the existing Chartography-specific adapter supports it.
+Neither headline has been independently reproduced. [Our byte-verified 200-task BFS index](https://github.com/fraware/model-claim-replay/actions/runs/44746523023) is available as a reproducible CI artifact. The GraphWalks scorer is distinct from the Chartography Inspect importer. Neither component authenticates the model provider.
 
 ## Score GraphWalks responses offline
 

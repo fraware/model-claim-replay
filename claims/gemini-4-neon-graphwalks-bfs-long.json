@@ -18,15 +18,19 @@
   },
   "benchmark": {
     "name": "GraphWalks",
-    "version": "Official openai/graphwalks public dataset; revision and 200-problem selection not yet pinned",
+    "version": "Candidate public revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 SHA-256 verified; publisher revision unverified",
     "expected_tasks": 200,
     "dataset": "https://huggingface.co/datasets/openai/graphwalks",
     "sha256": null,
-    "availability": "public_dataset_mit_licensed_exact_revision_unpinned",
+    "availability": "source_bytes_verified_200_public_bfs_rows",
     "license": "MIT",
     "task_family": "BFS",
     "context_range_tokens": "256000_to_1000000",
-    "reference_population": "Google states 200 GraphWalks long-context problems; exact row IDs not independently established"
+    "reference_population": "Google states 200 GraphWalks long-context problems; exact row IDs not independently established",
+    "candidate_dataset_revision": "be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7",
+    "candidate_parquet_sha256": "537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911",
+    "candidate_reference_index_sha256": "250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee",
+    "candidate_bfs_task_count": 200
   },
   "protocol": {
     "mode": "external",
@@ -35,11 +39,13 @@
     "harness": "Source benchmark's grading semantics must be independently pinned",
     "model_settings": "Google reports highest available Gemini API thinking settings",
     "tools": "not specified in Google methodology",
-    "dataset_revision": "unverified",
+    "dataset_revision": "Candidate data revision independently verified; Google's exact source revision remains unknown",
     "model_api_alias": "unverified",
     "sampling_and_repeats": "Google describes pass@1 except otherwise noted and averages several trials for smaller evaluations; exact GraphWalks trial design not established",
     "reference_note": "Google reports self-computed results on 200 tasks. Full prompt formatting, truncation, output parsing, sampling parameters and data revision need verification.",
-    "publisher_public_conditions_source": "https://deepmind.google/models/evals-methodology/gemini-4-neon"
+    "publisher_public_conditions_source": "https://deepmind.google/models/evals-methodology/gemini-4-neon",
+    "local_grade": "source-authored GraphWalks final-answer parser and node-set F1, tested offline",
+    "documented_api_model_id": "gemini-4-neon"
   },
   "limitations": [
     "No independent Gemini 4 Neon inference or benchmark reproduction has been performed.",

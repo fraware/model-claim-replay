@@ -8,7 +8,7 @@ Google DeepMind's 18 November 2026 [Gemini 4 Neon model card](https://deepmind.g
 
 Unlike the private Chartography task population, the original [openai/graphwalks dataset](https://huggingface.co/datasets/openai/graphwalks) is published on Hugging Face with an **MIT** license. The task prompts represent graphs as edge lists and request node-set outputs. A public benchmark permits external dataset pinning, item accounting and deterministic local scoring without reverse engineering a private chart judge.
 
-The data is not automatically equivalent to Google's evaluated population. We must recover the exact **200 task identities**, benchmark revision, BFS-only selection, and ground-truth representation before any headline comparison. The public dataset has a documented [correction history](https://huggingface.co/datasets/openai/graphwalks/commit/0846d2b457dde704491be44cebd9d0d7409660b3). Evaluating a different revision could change the score.
+The data is not automatically equivalent to Google's evaluated population. We verified a public candidate revision containing **exactly 200 BFS task identities** and reference answers. We must still establish Google's actual dataset revision, source population and other conditions before a publisher-level comparison. The public dataset has a documented [correction history](https://huggingface.co/datasets/openai/graphwalks/commit/0846d2b457dde704491be44cebd9d0d7409660b3). Evaluating a different revision could change the score.
 
 ## Feasibility risks
 
@@ -26,7 +26,7 @@ The data is not automatically equivalent to Google's evaluated population. We mu
 4. Implement a separate GraphWalks adapter (do not route this claim through the Chartography Inspect importer), with deterministic output parsing, per-task traces and score verification.
 5. Run a declared, inexpensive integration pilot. Only consider a full 200-task comparison if the previous gates have passed, with results reported regardless of agreement.
 
-**Current status:** original publisher claim sourced, public data catalog and terms identified, 200-problem methodological description verified. No source dataset download, fixed selection, API call, or numerical reproduction has been completed.
+**Current status:** original claim sourced, all 296,903,814 bytes of the candidate long-context Parquet independently verified, 200 BFS task references extracted and the upstream grader tested offline. No model inference or publisher-equivalent reproduction has been completed.
 
 ## Source records
 
@@ -83,3 +83,57 @@ claim-replay grade-graphwalks \
 
 This demo produces F1 of 5/6 across two **synthetic** reference records.
 It does not reproduce Gemini 4 Neon's 95.2%.
+
+## Byte-verified long-context public cohort — 20 November 2026
+
+The [full data audit](https://github.com/fraware/model-claim-replay/actions/runs/44746523023)
+downloaded and SHA-256 verified the entire public MIT-licensed long-context
+Parquet at candidate commit `be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7`.
+The file is **296,903,814 bytes** with verified SHA-256
+`537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911`.
+
+Parsing the verified file returned **400 rows, consisting of 200 BFS and 200
+parent-node tasks**. The BFS-only index contains 200 unique source row IDs,
+SHA-256 hashes of each actual prompt, and original reference node lists.
+Its independently checked SHA-256 is
+`250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee`.
+The [workflow artifact](https://github.com/fraware/model-claim-replay/actions/runs/44746523023)
+contains the index and an audit manifest. Raw prompts are excluded.
+The source auditor reproduces this index from the pinned Parquet.
+
+The 200 BFS prompts range from **437,563 to 1,748,364 actual characters**.
+Each BFS record's `prompt_chars` field is **138 characters shorter** than
+the actual current prompt text. This systematic discrepancy was verified
+across all 200 rows; its cause remains unresolved. API usage estimates must
+use actual prompt bytes and model-specific tokenization.
+
+**Scope:** The public BFS count matches the 200 problems in Google's
+methodological description. We have not established that Google used this
+candidate revision or this exact population. No result from the model itself
+was measured.
+
+## Model API cost preflight
+
+Google's [developer pricing](https://ai.google.dev/gemini-api/docs/pricing)
+lists `gemini-4-neon` at **$3 per million standard input tokens** and
+**$15 per million output tokens**, including thinking tokens, as checked
+20 November 2026. The batch rate is $1.50 per million input and $7.50
+per million output tokens. Conditional on Google's stated 256K–1M token
+range, 200 inputs imply 51.2–200 million tokens, or roughly **$154–$600
+in standard input charges alone**. This is not a run quotation: exact
+token counts, outputs, retries and applicable provider limits are unmeasured.
+
+Use the archived index to score privately recorded model responses offline:
+
+```bash
+claim-replay grade-graphwalks \
+  --index graphwalks-bfs-reference-index.jsonl \
+  --responses /private/recorded-model-responses.jsonl \
+  --index-sha256 250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee \
+  --dataset-revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 \
+  --out /private/graphwalks-scored.json
+```
+
+The evaluator is source-faithful, yet it cannot verify the model inputs,
+provider identity, original publisher cohort, or execution conditions.
+All offline score reports are explicitly `not_comparable` to the 95.2% claim.
