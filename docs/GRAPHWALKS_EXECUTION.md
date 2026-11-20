@@ -98,3 +98,19 @@ by a dependency-free regression test. `store=False` disables persistent
 Interactions conversation state; it **does not independently establish**
 what provider-level data-retention or training policies apply.
 See [Google's Interactions API documentation](https://ai.google.dev/gemini-api/docs/get-started).
+
+## One-hop SDK contract and retry restrictions
+
+The upstream Google Python SDK (google-genai >=2.34) enables automatic
+continuation by default. A single interactions.create call can span several
+billable decoding segments. The adapter explicitly passes
+`automatic_continuation=False`. A `requires_continuation` result is treated
+as incomplete and excluded from scoring; no follow-up request is issued.
+
+Both count-token and generation clients explicitly set
+`HttpRetryOptions(attempts=1)` to disable automatic HTTP retries. This is a
+conservative per-request reservation, not a guarantee of the provider invoice.
+
+Long BFS answers may need continuation to complete. Prior to a headline
+reproduction, a separate budgeted continuation protocol needs to be matched
+to the publisher's experiment and validated independently.

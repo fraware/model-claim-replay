@@ -15,7 +15,7 @@ dependencies = []
 
 [project.optional-dependencies]
 inspect = ["inspect-ai>=0.3.244"]
-graphwalks = ["pyarrow>=18,<30", "google-genai>=2.0"]
+graphwalks = ["pyarrow>=18,<30", "google-genai>=2.34,<3"]
 
 [project.scripts]
 claim-replay = "model_claim_replay.cli:main"

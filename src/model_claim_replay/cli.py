@@ -274,7 +274,14 @@ def main(argv: list[str] | None = None) -> int:
                 from google import genai
             except ImportError as exc:
                 raise ReplayError("Install optional dependencies: pip install 'model-claim-replay[graphwalks]'") from exc
-            client = genai.Client(api_key=os.environ[args.api_key_env])
+            from google.genai import types
+            # A provider retry might duplicate a billable inference.
+            client = genai.Client(
+                api_key=os.environ[args.api_key_env],
+                http_options=types.HttpOptions(
+                    retry_options=types.HttpRetryOptions(attempts=1)
+                ),
+            )
             try:
                 def count(prompt: str) -> int:
                     try:
@@ -304,7 +311,14 @@ def main(argv: list[str] | None = None) -> int:
                 from google import genai
             except ImportError as exc:
                 raise ReplayError("Install optional dependencies: pip install 'model-claim-replay[graphwalks]'") from exc
-            client = genai.Client(api_key=os.environ[args.api_key_env])
+            from google.genai import types
+            # A provider retry might duplicate a billable inference.
+            client = genai.Client(
+                api_key=os.environ[args.api_key_env],
+                http_options=types.HttpOptions(
+                    retry_options=types.HttpRetryOptions(attempts=1)
+                ),
+            )
             try:
                 def count(prompt: str) -> int:
                     try:

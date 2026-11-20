@@ -268,6 +268,7 @@ def request_gemini_interaction(
         background=False,
         stream=False,
         store=False,
+        automatic_continuation=False,
     )
 
 

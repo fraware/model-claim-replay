@@ -88,12 +88,36 @@ class RuntimeTests(unittest.TestCase):
             "background": False,
             "stream": False,
             "store": False,
+            "automatic_continuation": False,
         })
         with self.assertRaises(ReplayError):
             rt.request_gemini_interaction(client, "p", "other-model", 16384, "xhigh")
         with self.assertRaises(ReplayError):
             rt.request_gemini_interaction(client, "p", rt.MODEL, True, "xhigh")
         self.assertEqual(len(calls), 1)
+
+    def test_continuation_required_does_not_become_scored_success(self):
+        # Explicit one-hop requests must never treat partial decodes as answers.
+        plan = self._plan(max_tasks=1)
+        report = self._run(
+            plan,
+            lambda *_: SimpleNamespace(
+                status="requires_continuation",
+                output_text="Final Answer: [node-0]",
+                continuation_token="PRIVATE_CONTINUATION_TOKEN",
+                usage=SimpleNamespace(total_input_tokens=100, total_output_tokens=512),
+            ),
+        )
+        self.assertEqual(report["new_requests"], 1)
+        self.assertEqual(report["successful_attempts"], 0)
+        result = json.loads(
+            (self.root / "private-run" / "attempts" / "bfs-row-000000.result.json").read_text()
+        )
+        self.assertEqual(result["status"], "error")
+        self.assertNotIn("output", result)
+        self.assertNotIn("PRIVATE_CONTINUATION_TOKEN", json.dumps(result))
+        again = self._run(plan, lambda *_: self.fail("Repeated a billable call"))
+        self.assertEqual(again["new_requests"], 0)
 
     def test_actual_pyarrow_parquet_roundtrip(self):
         try:
