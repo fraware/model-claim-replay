@@ -58,4 +58,14 @@ jobs:
           python -m pip install -e './model-claim-replay[inspect]'
           python -m pip install -e './upstream-chartography'
       - name: Run official two-dummy-task smoke and import its log
-        run: python model-claim-replay/scripts/upstream_chartography_smoke.py --upstream upstream-chartography
+        run: |
+          python model-claim-replay/scripts/upstream_chartography_smoke.py \
+            --upstream upstream-chartography \
+            --artifacts-dir model-claim-replay/.runs/chartography-smoke
+      - name: Upload score-only demonstration evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: chartography-mock-evidence
+          path: model-claim-replay/.runs/chartography-smoke
+          if-no-files-found: error
+          retention-days: 14

@@ -63,7 +63,7 @@ claim-replay report .runs/chartography \
   --output .runs/chartography.html
 ```
 
-The official-upstream CI smoke check runs the **real Chartography harness** on its two dummy tasks with mock generation and mock judging, preserving unscored results without reporting model accuracy. It never calls a paid model or evaluates the private 100-task benchmark.
+The official-upstream CI smoke check runs the **real Chartography harness** on its two dummy tasks with mock generation and mock judging, preserving unscored results without reporting model accuracy. It never calls a paid model or evaluates the private 100-task benchmark. Successful [GitHub CI runs](https://github.com/fraware/model-claim-replay/actions/workflows/ci.yml) now retain a 14-day downloadable score-only artifact with an offline report; original Inspect logs and task content are excluded.
 
 The importer rejects corrupted score types, duplicate task/epoch records, inconsistent original aggregate scores for complete reference grids, and incompatible task identities. It reports precise coverage and preserves *pseudonymous* task-level scores, source log SHA-256, recorded judge/dataset/model metadata and unresolved protocol differences. It does not export private charts, prompts, gold answers, raw responses or judge rationales. **A successful import is not an independent reproduction.** See the [Chartography reproduction dossier](docs/CHARTOGRAPHY.md) for upstream code revision, access constraints and full evaluation protocol.
 

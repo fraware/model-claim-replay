@@ -86,3 +86,12 @@ publishes two public tasks. Its dataset card explicitly states that the complete
 100-task set needs direct arrangements with Surge AI. Its stated CC BY 4.0
 coverage excludes third-party charts, and redistribution of those images is
 restricted. The repository does not mirror either dataset.
+
+### Inspect the automated score-only artifact
+
+Successful GitHub Actions runs publish an artifact named `chartography-mock-evidence`
+containing `run.json`, `results.jsonl`, `verified-summary.json`,
+`report.html` and `README.md`. The package is retained for 14 days.
+Download it from the [Tests workflow](https://github.com/fraware/model-claim-replay/actions/workflows/ci.yml).
+Only scoring metadata leave CI. The two-task mock test measures no real model
+and never constitutes reproduction of Anthropic's 73.4% claim.
