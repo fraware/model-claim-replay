@@ -67,6 +67,34 @@ class RuntimeTests(unittest.TestCase):
                 recount_tokens=lambda _: 100,
             )
 
+    def test_gemini_interaction_is_stateless_and_single_response(self):
+        calls = []
+        def fake_create(**kwargs):
+            calls.append(kwargs)
+            return SimpleNamespace(status="completed", output_text="Final Answer: [node-0]")
+        client = SimpleNamespace(interactions=SimpleNamespace(create=fake_create))
+        result = rt.request_gemini_interaction(
+            client, "Synthetic prompt", rt.MODEL, 16384, "xhigh",
+        )
+        self.assertEqual(result.status, "completed")
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0], {
+            "model": rt.MODEL,
+            "input": "Synthetic prompt",
+            "generation_config": {
+                "thinking_level": "xhigh",
+                "max_output_tokens": 16384,
+            },
+            "background": False,
+            "stream": False,
+            "store": False,
+        })
+        with self.assertRaises(ReplayError):
+            rt.request_gemini_interaction(client, "p", "other-model", 16384, "xhigh")
+        with self.assertRaises(ReplayError):
+            rt.request_gemini_interaction(client, "p", rt.MODEL, True, "xhigh")
+        self.assertEqual(len(calls), 1)
+
     def test_actual_pyarrow_parquet_roundtrip(self):
         try:
             import pyarrow as pa

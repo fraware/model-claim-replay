@@ -87,3 +87,14 @@ A single task is a **diagnostic pilot**, not a reproduction of the publisher's 9
 - [Gemini token-counting API](https://aistudio.google.com/docs/tokens)
 - [Gemini Interactions API](https://aistudio.google.com/api-reference/interactions-api)
 - [Current Gemini developer pricing](https://aistudio.google.com/docs/pricing)
+
+## Stateless provider request
+
+The paid adapter explicitly submits `store=False`, `stream=False` and
+`background=False` through Google's documented Interactions API.
+It requests one foreground response per task, without server-managed
+conversation continuity or an automatic retry. The combination is checked
+by a dependency-free regression test. `store=False` disables persistent
+Interactions conversation state; it **does not independently establish**
+what provider-level data-retention or training policies apply.
+See [Google's Interactions API documentation](https://ai.google.dev/gemini-api/docs/get-started).

@@ -246,6 +246,31 @@ def _run_status(response: Any) -> tuple[str, str | None, dict[str, int | None]]:
     return "error", None, usage_values
 
 
+def request_gemini_interaction(
+    client: Any, prompt: str, model: str, max_output_tokens: int, thinking_level: str,
+) -> Any:
+    """Create one stateless, foreground, nonstreaming Gemini interaction.
+
+    Disabling server-managed conversation state does not override Google's
+    platform data-retention or privacy terms. Each call is a separate task.
+    """
+    if model != MODEL or thinking_level not in ("low", "medium", "high", "xhigh"):
+        raise ReplayError("Unsupported model or thinking level")
+    if type(max_output_tokens) is not int or not 1 <= max_output_tokens <= FOREGROUND_OUTPUT_LIMIT:
+        raise ReplayError("Invalid Gemini output limit")
+    return client.interactions.create(
+        model=model,
+        input=prompt,
+        generation_config={
+            "thinking_level": thinking_level,
+            "max_output_tokens": max_output_tokens,
+        },
+        background=False,
+        stream=False,
+        store=False,
+    )
+
+
 def execute_token_plan(
     plan_path: Path, parquet_path: Path, index_path: Path, out: Path,
     *, generate: Callable[[str, str, int, str], Any],
