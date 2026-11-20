@@ -275,7 +275,8 @@ def main(argv: list[str] | None = None) -> int:
             except ImportError as exc:
                 raise ReplayError("Install optional dependencies: pip install 'model-claim-replay[graphwalks]'") from exc
             from google.genai import types
-            # A provider retry might duplicate a billable inference.
+            # The SDK handles token counting only. Billable generation uses
+            # a single, directly audited REST request without SDK retries.
             client = genai.Client(
                 api_key=os.environ[args.api_key_env],
                 http_options=types.HttpOptions(
@@ -302,7 +303,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Conservative maximum reserved USD: {plan['maximum_reserved_cost_usd']}")
             print("No model generation requested. Publisher comparison remains unverified.")
         elif args.command == "execute-graphwalks":
-            from .graphwalks_runtime import MODEL, execute_token_plan, request_gemini_interaction
+            from .graphwalks_runtime import MODEL, execute_token_plan
+            from .gemini_rest import single_interaction
             if not args.execute_paid:
                 raise ReplayError("Refusing billable requests: provide --execute-paid to authorize")
             if not os.getenv(args.api_key_env):
@@ -312,7 +314,8 @@ def main(argv: list[str] | None = None) -> int:
             except ImportError as exc:
                 raise ReplayError("Install optional dependencies: pip install 'model-claim-replay[graphwalks]'") from exc
             from google.genai import types
-            # A provider retry might duplicate a billable inference.
+            # The SDK handles token counting only. Billable generation uses
+            # a single, directly audited REST request without SDK retries.
             client = genai.Client(
                 api_key=os.environ[args.api_key_env],
                 http_options=types.HttpOptions(
@@ -326,7 +329,11 @@ def main(argv: list[str] | None = None) -> int:
                     except Exception as exc:
                         raise ReplayError(f"Gemini token recount failed ({type(exc).__name__})") from None
                 def generate(prompt: str, model: str, maximum: int, thinking: str) -> Any:
-                    return request_gemini_interaction(client, prompt, model, maximum, thinking)
+                    return single_interaction(
+                        prompt, api_key=os.environ[args.api_key_env],
+                        model=model, max_output_tokens=maximum,
+                        thinking_level=thinking,
+                    )
                 report = execute_token_plan(
                     args.plan, args.parquet, args.index, args.out,
                     generate=generate, recount_tokens=count,

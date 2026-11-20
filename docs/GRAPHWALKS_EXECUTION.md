@@ -14,7 +14,7 @@ The commands accept the **complete original** `graphwalks_256k_to_1mil.parquet` 
 | Original Parquet SHA-256 | `537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911` |
 | BFS index SHA-256 | `250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee` |
 | Model ID | `gemini-4-neon` |
-| API | Gemini Interactions API via official `google-genai` Python SDK |
+| API | Official SDK for countTokens; single-POST direct REST for paid Interactions |
 
 ## Install and download original data
 
@@ -40,7 +40,7 @@ claim-replay plan-graphwalks \
   --out .runs/private/graphwalks/one-task-plan.json
 ```
 
-The plan contains *provider-returned* input token counts, context feasibility, per-task maximum reserved charges at the documented **standard** pricing of $3/M input tokens and $15/M output tokens (including thinking), and exact source SHA-256 bindings. It contains no prompt text or correct answers. The model has a **shared 1,048,576-token input+reasoning+output context** and a foreground cap of **65,536 output tokens**. Any input whose counted tokens plus requested output allowance exceed the context limit is marked blocked. The preflight is strictly preliminary until the provider confirms the actual context allocation. Changing the model, thinking level, source bytes or output allowance invalidates the plan.
+The plan contains *provider-returned* input token counts, context feasibility, per-task maximum reserved charges at the documented **standard** pricing of $3/M input tokens and $15/M output tokens (including thinking), and exact source SHA-256 bindings. It contains no prompt text or correct answers. The model has a **shared 1,048,576-token input+reasoning+output context** and a **32,768-token single-hop nonstreaming output ceiling**. Longer responses need a separately budgeted continuation protocol. Any input whose counted tokens plus requested output allowance exceed the context limit is marked blocked. The preflight is strictly preliminary until the provider confirms the actual context allocation. Changing the model, thinking level, source bytes or output allowance invalidates the plan.
 
 ## Stage 2: explicit, sequential paid execution
 
@@ -55,7 +55,7 @@ claim-replay execute-graphwalks \
   --out .runs/private/graphwalks/one-task-run
 ```
 
-The runner recounts tokens immediately before each request, refuses an altered count, validates context headroom, and checks a **worst-case per-request cost reservation** before contacting Google. It creates a durable intent record *before* the billable request. Each task is attempted at most once by the runner. If the process is interrupted after sending a request, that attempt remains unresolved; rerunning the same command **does not resend it**. Network errors are recorded without assuming they were free. Unknown provider-side effects, taxes, caching charges, pricing changes, SDK behavior and financial account limits mean this is a **conservative application-side reservation, not a guarantee of the invoice amount**.
+The runner recounts tokens immediately before each request, refuses an altered count, validates context headroom, and checks a **worst-case per-request cost reservation** before contacting Google. It creates a durable intent record *before* the billable request. Each task is attempted at most once by the runner. If the process is interrupted after sending a request, that attempt remains unresolved; rerunning the same command **does not resend it**. Network errors are recorded without assuming they were free. Unknown provider-side effects, taxes, caching charges, pricing changes, network failures and financial account limits mean this is a **conservative application-side reservation, not a guarantee of the invoice amount**.
 
 The private run directory holds response text, limited provider usage metadata and request receipts. It never uploads that text automatically. It is excluded by `.gitignore` under `.runs/`. The runner deliberately does **not** enable provider tools, web search or code execution; it sends the exact original prompt as a single, stateless input with the declared thinking level. No automatic retries occur.
 
@@ -99,21 +99,37 @@ Interactions conversation state; it **does not independently establish**
 what provider-level data-retention or training policies apply.
 See [Google's Interactions API documentation](https://ai.google.dev/gemini-api/docs/get-started).
 
-## One-hop SDK contract and retry restrictions
+## One-hop REST generation and retry restrictions
 
-The upstream Google Python SDK (google-genai >=2.34) enables automatic
-continuation by default. A single interactions.create call can span several
-billable decoding segments. The adapter explicitly passes
-`automatic_continuation=False`. A `requires_continuation` result is treated
-as incomplete and excluded from scoring; no follow-up request is issued.
+Paid generation calls Google's official
+[`POST /v1beta/interactions`](https://aistudio.google.com/docs/get-started)
+endpoint directly using `http.client.HTTPSConnection` with verified TLS,
+the fixed Google hostname and `Api-Revision: 2026-05-20`. Each request
+sets `store=false`, `stream=false`, `background=false` and
+`service_tier=standard`. The `google-genai` SDK is retained **only for
+the non-generative `count_tokens` preflight and pre-execution recount**.
 
-Both count-token and generation clients explicitly set
-`HttpRetryOptions(attempts=1)` to disable automatic HTTP retries. This is a
-conservative per-request reservation, not a guarantee of the provider invoice.
+This addresses Google's
+[confirmed SDK retry defect](https://github.com/googleapis/python-genai/issues/3260).
+Although Google closed the issue on 5 November 2026, a fixed direct REST
+transport is independently auditable. There is no client-managed
+continuation, redirect-following, polling, or automatic retry. HTTP
+failures are recorded as potentially billable attempts under the durable
+journal. A single client-level POST does not guarantee server-side billing
+or account-level cost ceilings.
 
-Long BFS answers may need continuation to complete. Prior to a headline
-reproduction, a separate budgeted continuation protocol needs to be matched
-to the publisher's experiment and validated independently.
+The official REST response has `steps` containing a `model_output` with
+text content. The parser admits only one completed model-output step,
+the correct model identity, and valid token usage. Incomplete or
+`requires_continuation` responses are **unscored**. It never copies
+partial continuation tokens or reasoning signatures to public artifacts.
+One-hop nonstreaming output is limited to **32,768 tokens**.
+
+A loopback HTTP integration test verifies exact JSON fields, request
+headers, a single POST, 429 responses without retries, redirect rejection,
+usage accounting, malformed results and model-identity checks. It never
+calls the real provider and uses no API credentials. The provider's data
+retention and training policies are separate from `store=false`.
 
 ## Freshness and explicit pricing tier
 

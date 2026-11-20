@@ -69,36 +69,6 @@ class RuntimeTests(unittest.TestCase):
                 recount_tokens=lambda _: 100,
             )
 
-    def test_gemini_interaction_is_stateless_and_single_response(self):
-        calls = []
-        def fake_create(**kwargs):
-            calls.append(kwargs)
-            return SimpleNamespace(status="completed", output_text="Final Answer: [node-0]")
-        client = SimpleNamespace(interactions=SimpleNamespace(create=fake_create))
-        result = rt.request_gemini_interaction(
-            client, "Synthetic prompt", rt.MODEL, 16384, "xhigh",
-        )
-        self.assertEqual(result.status, "completed")
-        self.assertEqual(len(calls), 1)
-        self.assertEqual(calls[0], {
-            "model": rt.MODEL,
-            "input": "Synthetic prompt",
-            "generation_config": {
-                "thinking_level": "xhigh",
-                "max_output_tokens": 16384,
-            },
-            "background": False,
-            "stream": False,
-            "store": False,
-            "service_tier": "standard",
-            "automatic_continuation": False,
-        })
-        with self.assertRaises(ReplayError):
-            rt.request_gemini_interaction(client, "p", "other-model", 16384, "xhigh")
-        with self.assertRaises(ReplayError):
-            rt.request_gemini_interaction(client, "p", rt.MODEL, True, "xhigh")
-        self.assertEqual(len(calls), 1)
-
     def test_continuation_required_does_not_become_scored_success(self):
         # Explicit one-hop requests must never treat partial decodes as answers.
         plan = self._plan(max_tasks=1)
@@ -140,7 +110,7 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayError, "pricing differs"):
             self._run(plan, lambda *_: self.fail("Paid request sent with wrong tier"))
 
-    def test_official_google_sdk_supports_one_hop_contract(self):
+    def test_official_google_sdk_supports_token_counting(self):
         try:
             from google import genai
             from google.genai import types
@@ -153,9 +123,9 @@ class RuntimeTests(unittest.TestCase):
             ),
         )
         try:
-            signature = inspect.signature(client.interactions.create)
-            self.assertIn("automatic_continuation", signature.parameters)
-            self.assertIn("timeout", signature.parameters)
+            signature = inspect.signature(client.models.count_tokens)
+            self.assertIn("model", signature.parameters)
+            self.assertIn("contents", signature.parameters)
         finally:
             client.close()
 
@@ -215,7 +185,7 @@ class RuntimeTests(unittest.TestCase):
             self._run(plan, lambda *_: 1/0)
 
     def test_invalid_max_output_and_fake_counts_blocked(self):
-        for output in (True, 0, -1, 65537):
+        for output in (True, 0, -1, 32769, 65537):
             with self.subTest(output=output):
                 with self.assertRaises(ReplayError):
                     self._plan(max_output_tokens=output)

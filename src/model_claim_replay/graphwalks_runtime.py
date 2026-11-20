@@ -19,13 +19,14 @@ from pathlib import Path
 from typing import Any, Callable, Iterator
 
 from .core import ReplayError, canonical_json, read_bytes, read_json, read_jsonl, sha256_bytes
+from .gemini_rest import MAX_ONE_HOP_OUTPUT, ProviderStatusError
 
 DATASET_SHA256 = "537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911"
 INDEX_SHA256 = "250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee"
 DATASET_REVISION = "be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7"
 MODEL = "gemini-4-neon"
 CONTEXT_LIMIT = 1_048_576
-FOREGROUND_OUTPUT_LIMIT = 65_536
+FOREGROUND_OUTPUT_LIMIT = MAX_ONE_HOP_OUTPUT
 INPUT_USD_PER_M = Decimal("3.00")
 OUTPUT_USD_PER_M = Decimal("15.00")
 PRICE_SOURCE = "https://aistudio.google.com/docs/pricing"
@@ -269,33 +270,6 @@ def _run_status(response: Any) -> tuple[str, str | None, dict[str, int | None]]:
     return "error", None, usage_values
 
 
-def request_gemini_interaction(
-    client: Any, prompt: str, model: str, max_output_tokens: int, thinking_level: str,
-) -> Any:
-    """Create one stateless, foreground, nonstreaming Gemini interaction.
-
-    Disabling server-managed conversation state does not override Google's
-    platform data-retention or privacy terms. Each call is a separate task.
-    """
-    if model != MODEL or thinking_level not in ("low", "medium", "high", "xhigh"):
-        raise ReplayError("Unsupported model or thinking level")
-    if type(max_output_tokens) is not int or not 1 <= max_output_tokens <= FOREGROUND_OUTPUT_LIMIT:
-        raise ReplayError("Invalid Gemini output limit")
-    return client.interactions.create(
-        model=model,
-        input=prompt,
-        generation_config={
-            "thinking_level": thinking_level,
-            "max_output_tokens": max_output_tokens,
-        },
-        background=False,
-        stream=False,
-        store=False,
-        service_tier="standard",
-        automatic_continuation=False,
-    )
-
-
 def execute_token_plan(
     plan_path: Path, parquet_path: Path, index_path: Path, out: Path,
     *, generate: Callable[[str, str, int, str], Any],
@@ -388,7 +362,9 @@ def execute_token_plan(
             status, output, usage = "error", None, {}
             # Never repeat a failed or uncertain request automatically. The
             # provider may already have billed the attempt.
-            error_type = type(exc).__name__
+            error_type = (f"ProviderHTTP_{exc.status_code}"
+                          if isinstance(exc, ProviderStatusError)
+                          else type(exc).__name__)
         else:
             error_type = None
         data: dict[str, Any] = {"id": ident, "status": status, "usage": usage,
