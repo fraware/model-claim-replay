@@ -4,7 +4,7 @@ Model Claim Replay measures whether a *specific published numerical statement* c
 
 ## Claims and protocols
 
-A claim manifest records its publisher, exact source URL, model label, published value, benchmark identity, task count, scoring protocol, and known blockers. Published metrics need a verified original statement. A missing benchmark digest is a hard stop in the portable executor. Official third-party harnesses remain external; their invocation and output schema must be validated before an adapter is implemented.
+A claim manifest records its publisher, exact source URL, model label, published value, benchmark identity, task count, scoring protocol, and known blockers. Published metrics need a verified original statement. A missing benchmark digest is a hard stop in the portable executor. Official third-party harnesses remain external. The Chartography adapter reads real Inspect AI logs through its documented Log API, preserves the upstream scorer’s output and recomputes binary task-epoch means; it does not implement the original judge.
 
 Portable task files are exact bytes of UTF-8 JSONL with one `id`, `prompt` and `expected` per task. The manifest specifies SHA-256 of the entire file, task count and normalization. Exact match is an intentionally narrow metric. The CLI does not silently coerce it into model-graded correctness or a judge-derived score.
 
@@ -33,3 +33,13 @@ Model aliases and hosted APIs are mutable. The portable adapter records the requ
 ## Publication rule
 
 Do not publish a discrepancy headline without the complete declared population or a predeclared defensible sampling design, a matched evaluator, coverage accounting, raw outputs, source citations and appropriate uncertainty. Label every synthetic test and partial run. If reproduction is blocked, publish the blocker as a blocker, never as evidence of failure by the model provider.
+
+## External benchmark evidence (`inspect-v1`)
+
+An imported Inspect AI log uses a separate evidence schema from the portable exact-match runner. Import checks the successful evaluation status, `chartography` task identity, individual sample and epoch identity, binary `golden_answer_scorer` accuracy values, contradictory scorer metadata and duplicate task/epoch pairs. For a *complete, fully graded and balanced* task-epoch grid, its recomputed mean must equal the explicitly named original Inspect `accuracy/mean` aggregate (within `1e-8`). Incomplete and unscored runs retain explicit coverage accounting and never qualify as comparable.
+
+For repeated evaluations, the reporter provides an exploratory *task-cluster* bootstrap only on a fully graded and complete grid, resampling the distinct tasks and averaging their epoch outcomes. Because the Chartography task set was curated, this interval is not a population-confidence guarantee or a test of a discrepancy against a publisher. Model/judge variability and selected task composition demand separate analysis.
+
+The source log stays on disk. Only SHA-256 of the source log bytes, the manifest hash, scored outcomes, pseudonymous task identifiers and selected non-sensitive header metadata are exported. Task digests are pseudonyms, not anonymous identifiers secure against guessing. Importing a log, including a hash-verified log, remains **self-reported evidence**. An optional `--source-log` check verifies that the local original log still matches its recorded digest; it does not establish provider identity or judge correctness. The score exporter is purposefully not a replacement for retaining the original private log for an authorized audit.
+
+Until the publisher's precise version, dataset revision, model identity, judge parameters, repeat protocol and rights conditions are documented and independently matched, the external report is always `not_comparable`. The published 73.4% figure is never overwritten by observed local values. See [CHARTOGRAPHY.md](CHARTOGRAPHY.md).

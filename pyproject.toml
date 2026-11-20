@@ -13,6 +13,9 @@ authors = [{name = "Model Claim Replay contributors"}]
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = []
 
+[project.optional-dependencies]
+inspect = ["inspect-ai>=0.3.244"]
+
 [project.scripts]
 claim-replay = "model_claim_replay.cli:main"
 

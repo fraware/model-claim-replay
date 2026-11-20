@@ -16,11 +16,11 @@
   },
   "benchmark": {
     "name": "Chartography",
-    "version": "unverified",
+    "version": "official source commit 3f1bf837232d3918c2cc35c6e2418c9e70d2a57b (harness; not dataset)",
     "expected_tasks": 100,
     "dataset": null,
     "sha256": null,
-    "availability": "access_and_license_unverified",
+    "availability": "full_100_task_dataset_unauthorized_at_research_time",
     "repository": "https://github.com/surge-ai/chartography"
   },
   "protocol": {
@@ -29,12 +29,18 @@
     "normalization": "none",
     "harness": "Inspect AI; official implementation at surge-ai/chartography",
     "epochs": "official protocol must be pinned",
-    "model_settings": "unverified"
+    "model_settings": "unverified",
+    "reference_epochs": 10,
+    "reference_judge_model": "google/gemini-3.5-flash",
+    "reference_dataset_repo": "surgeai/chartography",
+    "reference_harness_commit": "3f1bf837232d3918c2cc35c6e2418c9e70d2a57b",
+    "reference_note": "These settings are documented by the benchmark author for its leaderboard, not verified as the exact configuration of the Anthropic-reported 73.4%."
   },
   "limitations": [
     "No independently reproduced result is included.",
     "Official published score must be checked against complete evaluator configuration and judge version.",
     "Full dataset availability and redistribution permissions are not established.",
-    "This claim is intentionally blocked for portable-text execution."
+    "This claim is intentionally blocked for portable-text execution.",
+    "Inspect log import verifies internal score accounting but never establishes equivalence to Anthropic’s undisclosed exact evaluation configuration."
   ]
 }

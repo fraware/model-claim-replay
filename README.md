@@ -4,9 +4,9 @@
 
 **Published AI benchmark results deserve independently inspectable evidence.** Model Claim Replay is an open-source project to turn individual model-launch claims into reproducible experiments, with pinned inputs, declared execution protocols, independently rerunnable scoring, uncertainty, and shareable reports.
 
-[Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
+[Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
 
-> **Project status — foundation, not a completed benchmark replication.** The CLI executes pinned *portable text* fixtures, imports external response files, verifies content hashes, computes exact-match results, and generates standalone HTML/JSON reports. The registered Chartography claim is a real published statement, **not** a completed reproduction. Dataset access, licensing, model settings, judge protocol, and budget still need to be resolved before real comparison is justified. No provider result is invented.
+> **Project status — foundation, not a completed benchmark replication.** The CLI executes pinned *portable text* fixtures, imports scored Inspect AI logs from an official evaluation, verifies local evidence hashes, and generates standalone HTML/JSON reports. The registered Chartography claim is a real published statement, **not** a completed reproduction. Dataset access, licensing, model settings, judge protocol, and budget still need to be resolved before real comparison is justified. No provider result is invented.
 
 **Website publishing:** A GitHub Pages deployment workflow is included. The repository owner must enable **Settings → Pages → Build and deployment → Source: GitHub Actions** once before the site has a public URL.
 
@@ -43,6 +43,25 @@ claim-replay report .runs/demo \
 ```
 
 Open `.runs/demo.html` in any browser. The **2/3 score is synthetic**, and the output is explicitly marked self-reported. The report never presents the fixture as independent evidence of a real model's performance.
+
+## Import an official Inspect AI evaluation log
+
+The new `import-inspect` command uses [Inspect's public Log API](https://inspect.aisi.org.uk/eval-logs.html) to read `.eval` or `.json` benchmark logs. Only a narrow Chartography score importer is implemented at present. The original benchmark scorer is **never replaced**, and no full dataset content is bundled.
+
+```bash
+python -m pip install -e '.[inspect]'
+claim-replay import-inspect \
+  --claim claims/claude-fable-5-2-chartography.json \
+  --log /path/to/official-run.eval --out .runs/chartography
+claim-replay verify .runs/chartography \
+  --claim claims/claude-fable-5-2-chartography.json \
+  --source-log /path/to/official-run.eval
+claim-replay report .runs/chartography \
+  --claim claims/claude-fable-5-2-chartography.json \
+  --output .runs/chartography.html
+```
+
+The importer rejects corrupted score types, duplicate task/epoch records, inconsistent original aggregate scores, and incompatible task identities. It reports precise coverage and preserves *pseudonymous* task-level scores, source log SHA-256, recorded judge/dataset/model metadata and unresolved protocol differences. It does not export private charts, prompts, gold answers, raw responses or judge rationales. **A successful import is not an independent reproduction.** See the [Chartography reproduction dossier](docs/CHARTOGRAPHY.md) for upstream code revision, access constraints and full evaluation protocol.
 
 ### Call a real model using the portable runner
 

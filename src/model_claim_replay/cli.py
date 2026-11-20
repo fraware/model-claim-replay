@@ -16,7 +16,7 @@ from typing import Any
 
 from .core import (
     ReplayError, canonical_json, evaluate_records, load_claim, read_bytes,
-    read_jsonl, sha256_bytes, task_data, verify_bundle, write_jsonl,
+    read_json, read_jsonl, sha256_bytes, task_data, verify_bundle, write_jsonl,
 )
 
 
@@ -154,14 +154,20 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--limit", type=int, default=None)
     run.add_argument("--timeout", type=float, default=45.0)
     run.add_argument("--out", required=True, type=Path)
+    import_inspect = sub.add_parser("import-inspect", help="Import scored results from an official Inspect AI log")
+    import_inspect.add_argument("--claim", required=True, type=Path)
+    import_inspect.add_argument("--log", required=True, type=Path, help="Inspect .eval or .json source log (never copied)")
+    import_inspect.add_argument("--out", required=True, type=Path)
     verify = sub.add_parser("verify", help="Validate local run artifacts and recompute scoring")
     verify.add_argument("run_dir", type=Path)
     verify.add_argument("--claim", required=True, type=Path)
-    verify.add_argument("--tasks", required=True, type=Path)
+    verify.add_argument("--tasks", type=Path, help="Required for portable-text runs")
+    verify.add_argument("--source-log", type=Path, help="Optionally rehash an original Inspect log")
     report = sub.add_parser("report", help="Write offline HTML or JSON evidence report")
     report.add_argument("run_dir", type=Path)
     report.add_argument("--claim", required=True, type=Path)
-    report.add_argument("--tasks", required=True, type=Path)
+    report.add_argument("--tasks", type=Path, help="Required for portable-text runs")
+    report.add_argument("--source-log", type=Path, help="Optionally rehash an original Inspect log")
     report.add_argument("--format", choices=("html", "json"), default="html")
     report.add_argument("--output", required=True, type=Path)
     return p
@@ -222,14 +228,35 @@ def main(argv: list[str] | None = None) -> int:
             evaluate_records(claim, tasks, results, model=args.model, run_kind=kind)
             save_run(claim_path=args.claim, tasks_path=args.tasks, claim=claim, results=results, directory=args.out, model=args.model, run_kind=kind)
             print(f"Saved local evidence bundle: {args.out}")
-        elif args.command == "verify":
-            print(json.dumps(verify_bundle(args.claim, args.tasks, args.run_dir), indent=2))
-        elif args.command == "report":
-            summary = verify_bundle(args.claim, args.tasks, args.run_dir)
-            claim = load_claim(args.claim)
-            output = (_report_page(claim, summary) if args.format == "html" else json.dumps(summary, indent=2) + "\n")
-            args.output.write_text(output, encoding="utf-8")
-            print(f"Verified bundle and wrote {args.output}")
+        elif args.command == "import-inspect":
+            from .inspect_evidence import import_inspect_bundle
+            summary = import_inspect_bundle(args.claim, args.log, args.out)
+            print(f"Imported {summary['attempted']} scored task-epoch records into {args.out}")
+            print(f"Comparison status: {summary['comparison_status']}; source log is self-reported")
+        elif args.command in ("verify", "report"):
+            from .inspect_evidence import inspect_report_html, verify_inspect_bundle
+            bundle_metadata = read_json(args.run_dir / "run.json")
+            if not isinstance(bundle_metadata, dict):
+                raise ReplayError("Invalid run metadata")
+            is_inspect = bundle_metadata.get("schema_version") == "inspect-v1"
+            if is_inspect:
+                summary = verify_inspect_bundle(args.claim, args.run_dir, source_log=args.source_log)
+            else:
+                if args.tasks is None:
+                    raise ReplayError("--tasks is required to verify a portable-text run")
+                if args.source_log is not None:
+                    raise ReplayError("--source-log is valid only for Inspect evidence bundles")
+                summary = verify_bundle(args.claim, args.tasks, args.run_dir)
+            if args.command == "verify":
+                print(json.dumps(summary, indent=2))
+            else:
+                claim = load_claim(args.claim)
+                if args.format == "json":
+                    output = json.dumps(summary, indent=2) + "\n"
+                else:
+                    output = inspect_report_html(claim, summary) if is_inspect else _report_page(claim, summary)
+                args.output.write_text(output, encoding="utf-8")
+                print(f"Verified bundle and wrote {args.output}")
     except (ReplayError, OSError) as exc:
         print(f"claim-replay: {exc}", file=sys.stderr)
         return 2
