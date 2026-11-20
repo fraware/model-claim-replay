@@ -1,0 +1,31 @@
+name: GraphWalks source preflight
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/graphwalks_preflight.py'
+      - 'tests/test_graphwalks_preflight.py'
+      - '.github/workflows/graphwalks-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate metadata parser with offline fixtures
+        run: python -m unittest discover -s tests -p test_graphwalks_preflight.py -v
+      - name: Retrieve current public metadata only
+        run: python scripts/graphwalks_preflight.py --out .runs/graphwalks-metadata.json
+      - name: Upload source metadata receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphwalks-public-metadata
+          path: .runs/graphwalks-metadata.json
+          if-no-files-found: error
+          retention-days: 14
