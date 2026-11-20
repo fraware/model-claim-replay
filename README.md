@@ -4,7 +4,7 @@
 
 **Published AI benchmark results deserve independently inspectable evidence.** Model Claim Replay is an open-source project to turn individual model-launch claims into reproducible experiments, with pinned inputs, declared execution protocols, independently rerunnable scoring, uncertainty, and shareable reports.
 
-[Live website](https://fraware.github.io/model-claim-replay/) · [Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [GraphWalks research](docs/GRAPHWALKS.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
+[Live website](https://fraware.github.io/model-claim-replay/) · [Explore 200 verified GraphWalks tasks](https://fraware.github.io/model-claim-replay/graphwalks.html) · [Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [GraphWalks research](docs/GRAPHWALKS.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
 
 > **Project status — foundation, not a completed benchmark replication.** The CLI executes pinned *portable text* fixtures, imports scored Inspect AI logs from an official evaluation, verifies local evidence hashes, compares compatible runs on identical task/epoch pairs, and generates standalone HTML/JSON reports. The registered Chartography and Gemini 4 Neon / GraphWalks claims are real published statements, **not** completed reproductions. Dataset access, licensing, model settings, judge protocol, and budget still need to be resolved before real comparison is justified. No provider result is invented.
 
@@ -43,6 +43,10 @@ claim-replay grade-graphwalks \
 ```
 
 Both records and the revision marker above are **synthetic**. The 5/6 F1 is a fixture result, not a model evaluation. For a real source-index format, correct score semantics and the pinned HF metadata snapshot, see [the GraphWalks dossier](docs/GRAPHWALKS.md).
+
+## Explore the verified GraphWalks source data
+
+The [interactive 200-task GraphWalks audit](https://fraware.github.io/model-claim-replay/graphwalks.html) visualizes the complete SHA-256-verified candidate BFS cohort. Explore source row identities, input sizes and task-level prompt commitments without downloading the original large dataset, revealing raw benchmark prompts, or confusing publisher-reported performance with independent testing. The underlying static JSON is reproducibly generated from the pinned 200-task reference index by `scripts/publish_graphwalks_summary.py`.
 
 ## Run GraphWalks with explicit token and spending gates
 

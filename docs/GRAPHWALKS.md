@@ -147,3 +147,7 @@ API calls under a conservative budget reservation. The adapter records a durable
 intent before each request and never automatically retries interrupted requests.
 The original offline F1 grader remains separate. No Gemini inference has yet
 been executed, and exact equivalence to Google's 95.2% evaluation is unresolved.
+
+## Public evidence explorer
+
+The [interactive GraphWalks audit](https://fraware.github.io/model-claim-replay/graphwalks.html) displays all **200 SHA-256-verified candidate BFS items**, their source row IDs, prompt-character lengths, and SHA-256 commitments without exposing the underlying prompt or reference-node content. It is generated from the pinned index using `scripts/publish_graphwalks_summary.py` with an independently checked source-index digest. Its two equal-sized bands distinguish shorter and longer inputs by a **1,000,000-character threshold**, not by model tokens. The explorer is an inspectable source-data record and cannot be interpreted as a model performance measurement.

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore 200 independently verified GraphWalks BFS tasks. Inspect real data provenance, prompt lengths, and the unreproduced Gemini 4 Neon benchmark claim.">
+  <meta name="color-scheme" content="light">
+  <link rel="canonical" href="https://fraware.github.io/model-claim-replay/graphwalks.html">
+  <meta property="og:title" content="GraphWalks / 200 tasks, one claim — Model Claim Replay">
+  <meta property="og:description" content="200 public BFS tasks. Every source byte verified. The 95.2% model claim is still an open experiment.">
+  <title>GraphWalks — Model Claim Replay</title>
+  <link rel="stylesheet" href="./graphwalks.css">
+  <script src="./graphwalks.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#audit">Skip to source-data explorer</a>
+  <div class="topline"><span>PUBLIC EVIDENCE RECORD&nbsp; / &nbsp;002</span><span>20 NOV 2026 &nbsp;·&nbsp; SOURCE AUDIT</span></div>
+  <header class="masthead wrap">
+    <a class="brand" href="./index.html"><span class="brandmark">M<span>/</span>CR</span><span class="brandtext">MODEL CLAIM<br>REPLAY</span></a>
+    <nav aria-label="Page navigation"><a href="./index.html#claims">Claim registry</a><a href="#audit">Explore dataset</a><a href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
+  </header>
+  <main>
+    <section class="intro wrap">
+      <div class="eyebrow"><i aria-hidden="true"></i> GRAPHWALKS / GEMINI 4 NEON</div>
+      <div class="intro-grid"><div>
+        <h1>200 problems.<br><em>One claim.</em><br>Open evidence.</h1>
+        <p class="lede">Google reports 95.2% on long-context GraphWalks BFS. We independently verified the bytes of a public 200-task candidate dataset. The model result has not yet been reproduced.</p>
+      </div><div class="state-box"><span class="box-label">CURRENT EVIDENCE STATUS</span><span class="box-status"><span aria-hidden="true">○</span> Source verified</span><p>Data integrity is independently checked. The exact publisher dataset revision and model execution settings remain unconfirmed.</p><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS.md">Read the research dossier ↗</a></div></div>
+    </section>
+    <section class="score-band"><div class="wrap score-grid">
+      <div class="score"><span>01 / PUBLISHER-REPORTED</span><strong>95.2<small>% F1</small></strong><p>Gemini 4 Neon, reported by Google</p></div>
+      <div class="score unresolved"><span>02 / INDEPENDENT RESULT</span><strong>—</strong><p>No model inference run performed</p></div>
+      <div class="score"><span>03 / SOURCE TASKS VERIFIED</span><strong>200<small> / 200</small></strong><p>Public candidate BFS reference records</p></div>
+    </div></section>
+    <section class="work wrap" id="audit">
+      <div class="section-index"><span>THE SOURCE / 001</span><span>PINNED PUBLIC DATA</span></div>
+      <div class="section-heading"><h2>Inspect the 200 tasks.</h2><p>The chart encodes the length of each original prompt in <strong>characters</strong>. These are verified source fields, not model token counts or measured performance.</p></div>
+      <div class="inspector">
+        <div class="controls"><div class="filter-group" role="group" aria-label="Filter by input length">
+          <button class="filter active" type="button" data-filter="all" aria-pressed="true">All <span>200</span></button>
+          <button class="filter" type="button" data-filter="short" aria-pressed="false">Shorter <span>100</span></button>
+          <button class="filter" type="button" data-filter="long" aria-pressed="false">Longer <span>100</span></button>
+        </div><label class="search-wrap"><span>Find task</span><input type="search" id="task-search" placeholder="bfs-row-000100" autocomplete="off" spellcheck="false"></label></div>
+        <div class="legend"><span><i class="key short"></i> Below 1M characters</span><span><i class="key long"></i> At least 1M characters</span><span class="results" id="result-count" aria-live="polite">200 / 200 tasks</span></div>
+        <div class="task-matrix" id="task-matrix" role="group" aria-label="Select any indexed BFS task"><p class="loading">Loading the verified reference index…</p></div>
+        <div class="record" id="record" aria-live="polite"><div class="record-placeholder">Select one of the marks to inspect its source record.</div></div>
+      </div>
+      <div class="statistics" id="statistics"><div><span>MINIMUM PROMPT LENGTH</span><strong>437,563</strong><small>characters</small></div><div><span>MEDIAN PROMPT LENGTH</span><strong>1,092,964</strong><small>characters, rounded</small></div><div><span>MAXIMUM PROMPT LENGTH</span><strong>1,748,364</strong><small>characters</small></div></div>
+    </section>
+    <section class="provenance"><div class="wrap provenance-grid"><div><span class="section-index light">THE RECORD / 002</span><h2>Verifiable<br>down to the byte.</h2><p>Original Parquet bytes were downloaded and hashed independently in GitHub Actions. Task answers and original prompts are omitted from this public explorer. Its data is derived deterministically from the verified source index.</p></div><div class="receipt">
+      <div class="receipt-row"><span>ORIGINAL DATASET</span><strong>openai/graphwalks</strong></div>
+      <div class="receipt-row"><span>PARQUET SOURCE REVISION</span><code>be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7</code></div>
+      <div class="receipt-row"><span>PARQUET SHA-256 (VERIFIED)</span><code>537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911</code></div>
+      <div class="receipt-row"><span>200-TASK REFERENCE INDEX SHA-256</span><code>250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee</code></div>
+      <div class="receipt-links"><a href="https://github.com/fraware/model-claim-replay/actions/runs/44746523023">Verified GitHub Actions run ↗</a><a href="https://huggingface.co/datasets/openai/graphwalks">Original MIT-licensed dataset ↗</a></div>
+    </div></div></section>
+    <section class="next wrap"><div class="section-index"><span>THE NEXT EXPERIMENT / 003</span><span>GENERATIVE MODEL TEST PENDING</span></div><h2>Source access is solved.<br><em>Execution is next.</em></h2><div class="next-grid"><p>The repository now includes a budget-controlled Gemini 4 Neon runner with actual token-count checks, explicit financial authorization, one-attempt-only execution, and a separate offline grader. The published 95.2% remains an unverified claim until a matched inference experiment produces real evidence.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
+  </main>
+  <footer><div class="wrap footer"><strong>MODEL CLAIM REPLAY</strong><span>Real source data. No synthetic benchmark scores on this page.</span><a href="./index.html">Back to registry ↑</a></div></footer>
+</body>
+</html>
