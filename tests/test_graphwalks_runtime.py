@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import hashlib
+import datetime as dt
+import inspect
 import json
 import tempfile
 import unittest
@@ -88,6 +90,7 @@ class RuntimeTests(unittest.TestCase):
             "background": False,
             "stream": False,
             "store": False,
+            "service_tier": "standard",
             "automatic_continuation": False,
         })
         with self.assertRaises(ReplayError):
@@ -118,6 +121,43 @@ class RuntimeTests(unittest.TestCase):
         self.assertNotIn("PRIVATE_CONTINUATION_TOKEN", json.dumps(result))
         again = self._run(plan, lambda *_: self.fail("Repeated a billable call"))
         self.assertEqual(again["new_requests"], 0)
+
+    def test_budget_plan_expiration_blocks_paid_execution(self):
+        for created in (
+            (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=2)).isoformat(),
+            (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=2)).isoformat(),
+        ):
+            with self.subTest(created=created):
+                plan = self._plan(max_tasks=1)
+                plan["created_utc"] = created
+                with self.assertRaisesRegex(ReplayError, "stale or future-dated"):
+                    self._run(plan, lambda *_: self.fail("Paid request sent with expired plan"))
+                (self.root / "plan.json").unlink()
+
+    def test_invalid_plan_pricing_blocks_paid_execution(self):
+        plan = self._plan(max_tasks=1)
+        plan["pricing"]["tier"] = "priority"
+        with self.assertRaisesRegex(ReplayError, "pricing differs"):
+            self._run(plan, lambda *_: self.fail("Paid request sent with wrong tier"))
+
+    def test_official_google_sdk_supports_one_hop_contract(self):
+        try:
+            from google import genai
+            from google.genai import types
+        except ImportError:
+            self.skipTest("Optional Google SDK is absent")
+        client = genai.Client(
+            api_key="offline-contract-test-key",
+            http_options=types.HttpOptions(
+                retry_options=types.HttpRetryOptions(attempts=1)
+            ),
+        )
+        try:
+            signature = inspect.signature(client.interactions.create)
+            self.assertIn("automatic_continuation", signature.parameters)
+            self.assertIn("timeout", signature.parameters)
+        finally:
+            client.close()
 
     def test_actual_pyarrow_parquet_roundtrip(self):
         try:

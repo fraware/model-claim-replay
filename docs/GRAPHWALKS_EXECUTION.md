@@ -114,3 +114,13 @@ conservative per-request reservation, not a guarantee of the provider invoice.
 Long BFS answers may need continuation to complete. Prior to a headline
 reproduction, a separate budgeted continuation protocol needs to be matched
 to the publisher's experiment and validated independently.
+
+## Freshness and explicit pricing tier
+
+The execution planner records a timezone-aware UTC creation timestamp.
+An execution plan more than 24 hours old, or more than five minutes
+future-dated, is rejected. The paid request sets `service_tier='standard'`
+explicitly and the plan must match the documented standard $3/$15 per
+million-token pricing assumptions. Rebuild the plan if provider prices
+or evaluation configuration change. Actual invoices and account quotas
+remain under the provider's control.

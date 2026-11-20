@@ -167,6 +167,7 @@ def build_token_plan(
                     "output_usd_per_m": str(OUTPUT_USD_PER_M),
                     "as_of": "2026-11-20", "source": PRICE_SOURCE,
                     "tier": "standard", "currency": "USD"},
+        "created_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
         "maximum_reserved_cost_usd": str(sum(
             (Decimal(x["maximum_reserved_cost_usd"]) for x in rows), Decimal(0))),
         "blocked_for_context": sum(not row["fits_context_with_output_allowance"] for row in rows),
@@ -200,6 +201,28 @@ def _load_plan(plan_path: Path, index_path: Path) -> dict[str, Any]:
     _ensure_hash(index_path, INDEX_SHA256, label="BFS index")
     if plan.get("thinking_level") not in ("low", "medium", "high", "xhigh"):
         raise ReplayError("Unknown or absent model thinking configuration")
+    # Token counts and provider pricing are time-sensitive. Refuse stale
+    # approvals instead of silently reusing a potentially obsolete quote.
+    created_utc = plan.get("created_utc")
+    if not isinstance(created_utc, str):
+        raise ReplayError("Token plan lacks a creation timestamp")
+    try:
+        created = dt.datetime.fromisoformat(created_utc)
+    except ValueError as exc:
+        raise ReplayError("Token plan creation timestamp is invalid") from exc
+    if created.tzinfo is None or created.utcoffset() is None:
+        raise ReplayError("Token plan creation timestamp must be timezone-aware")
+    now = dt.datetime.now(dt.timezone.utc)
+    if (created > now + dt.timedelta(minutes=5)
+            or now - created > dt.timedelta(hours=24)):
+        raise ReplayError("Token plan is stale or future-dated; count tokens again")
+    if plan.get("pricing") != {
+        "input_usd_per_m": str(INPUT_USD_PER_M),
+        "output_usd_per_m": str(OUTPUT_USD_PER_M),
+        "as_of": "2026-11-20", "source": PRICE_SOURCE,
+        "tier": "standard", "currency": "USD",
+    }:
+        raise ReplayError("Plan pricing differs from the published reference rate")
     output_limit = plan.get("max_output_tokens")
     if type(output_limit) is not int or not 1 <= output_limit <= FOREGROUND_OUTPUT_LIMIT:
         raise ReplayError("Invalid configured output ceiling")
@@ -268,6 +291,7 @@ def request_gemini_interaction(
         background=False,
         stream=False,
         store=False,
+        service_tier="standard",
         automatic_continuation=False,
     )
 
