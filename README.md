@@ -4,9 +4,9 @@
 
 **Published AI benchmark results deserve independently inspectable evidence.** Model Claim Replay is an open-source project to turn individual model-launch claims into reproducible experiments, with pinned inputs, declared execution protocols, independently rerunnable scoring, uncertainty, and shareable reports.
 
-[Live website](https://fraware.github.io/model-claim-replay/) · [Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
+[Live website](https://fraware.github.io/model-claim-replay/) · [Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [GraphWalks research](docs/GRAPHWALKS.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
 
-> **Project status — foundation, not a completed benchmark replication.** The CLI executes pinned *portable text* fixtures, imports scored Inspect AI logs from an official evaluation, verifies local evidence hashes, compares compatible runs on identical task/epoch pairs, and generates standalone HTML/JSON reports. The registered Chartography claim is a real published statement, **not** a completed reproduction. Dataset access, licensing, model settings, judge protocol, and budget still need to be resolved before real comparison is justified. No provider result is invented.
+> **Project status — foundation, not a completed benchmark replication.** The CLI executes pinned *portable text* fixtures, imports scored Inspect AI logs from an official evaluation, verifies local evidence hashes, compares compatible runs on identical task/epoch pairs, and generates standalone HTML/JSON reports. The registered Chartography and Gemini 4 Neon / GraphWalks claims are real published statements, **not** completed reproductions. Dataset access, licensing, model settings, judge protocol, and budget still need to be resolved before real comparison is justified. No provider result is invented.
 
 **Live interactive website:** [fraware.github.io/model-claim-replay](https://fraware.github.io/model-claim-replay/), published automatically from `website/` through GitHub Pages. The web demonstrations use fixed synthetic data; real evaluation and report generation run locally.
 
@@ -21,6 +21,13 @@ A public claim should lead to a public experiment. We aim to make the following 
 5. **Publish a defensible report.** Say precisely what was reproduced, what differed, what remains untestable, and how others can rerun the experiment.
 
 The long-term product is a **living, versioned claim registry** plus reproducible evaluation recipes and shareable evidence reports. We do not intend to replace Inspect AI, NeMo Evaluator, or Promptfoo. Those are execution engines; Model Claim Replay is the source-to-evidence workflow around an individual public claim.
+
+## Published claims under investigation
+
+- **Claude Fable 5.2 / Chartography — 73.4% reported.** Official harness and an Inspect AI importer are operational; the complete private evaluation population and exact publisher conditions are unresolved. [Reproduction dossier](docs/CHARTOGRAPHY.md).
+- **Gemini 4 Neon / GraphWalks BFS — 95.2% F1 reported.** The 200-problem long-context result was published 18 November 2026. The [original dataset](https://huggingface.co/datasets/openai/graphwalks) is public under MIT, but the exact evaluated subset and scorer remain unpinned; 256K–1M input contexts pose significant cost. [Feasibility dossier](docs/GRAPHWALKS.md).
+
+Neither headline has been independently reproduced. The GraphWalks record is research-stage metadata, not a claim that the existing Chartography-specific adapter supports it.
 
 ## Try it now — fully offline
 
