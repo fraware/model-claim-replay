@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from .core import ReplayError, canonical_json, load_claim, read_bytes, read_jsonl, sha256_bytes, write_jsonl
+from .content_fingerprint import sample_content_sha256
 
 MAX_INSPECT_LOG_BYTES = 1024 * 1024 * 1024
 SCORER_NAME = "golden_answer_scorer"
@@ -169,6 +170,9 @@ def extract_inspect_records(log: Any, claim: dict[str, Any]) -> tuple[list[dict[
         }
         if score is not None:
             record["score"] = score
+        content_digest = sample_content_sha256(sample)
+        if content_digest is not None:
+            record["content_sha256"] = content_digest
         records.append(record)
     records.sort(key=lambda r: (r["task_key"], r["epoch"]))
 
@@ -234,7 +238,20 @@ def _score_summary(claim: dict[str, Any], records: list[dict[str, Any]], header:
                 raise ReplayError("Imported score contradicts its status")
         elif "score" in r:
             raise ReplayError("Unscored and errored records cannot have a numeric score")
+        content_digest = r.get("content_sha256")
+        if content_digest is not None and (
+            not isinstance(content_digest, str) or len(content_digest) != 64 or
+            any(char not in "0123456789abcdef" for char in content_digest)
+        ):
+            raise ReplayError("Invalid sample-content SHA-256 fingerprint")
         grouped[task_key].append(r)
+
+    content_fingerprinted = sum("content_sha256" in row for row in records)
+    for task_rows in grouped.values():
+        content_versions = {row["content_sha256"] for row in task_rows
+                            if "content_sha256" in row}
+        if len(content_versions) > 1:
+            raise ReplayError("Logged task content differs across repeated epochs")
 
     good = sum(r["status"] == "pass" for r in records)
     bad = sum(r["status"] == "fail" for r in records)
@@ -262,6 +279,8 @@ def _score_summary(claim: dict[str, Any], records: list[dict[str, Any]], header:
         blockers.append("Incomplete 100-task × 10-epoch evidence grid or unexpected epoch numbering")
     if errors or unscored:
         blockers.append("At least one task/epoch is unscored or errored")
+    if content_fingerprinted != len(records):
+        blockers.append("Not all chart images and reference answers have byte-bound input fingerprints")
     if header.get("task") != "chartography":
         blockers.append("Logged task differs from official Chartography task")
     if header.get("model") != claim["model"]["name"]:
@@ -306,6 +325,7 @@ def _score_summary(claim: dict[str, Any], records: list[dict[str, Any]], header:
         ),
         "successes": good, "failures": bad, "errors": errors, "unscored": unscored,
         "assessed": assessed, "attempted": len(records),
+        "content_fingerprinted": content_fingerprinted,
         "distinct_tasks": len(grouped), "total_tasks": expected_tasks,
         "expected_epochs": expected_epochs, "coverage_complete": full_grid,
         "reference_protocol_flags": {
@@ -428,7 +448,8 @@ a{{color:inherit}}@media(max-width:600px){{.metrics{{grid-template-columns:1fr}}
 <section><h2>What this establishes</h2><p class="status">{esc(summary['comparison_status'])} · An imported log is not an authenticated reproduction</p>
 <p>{esc(summary['comparison_explanation'])}</p><ul>{issues}</ul></section>
 <section><h2>Score accounting</h2><p>{summary['successes']} passed · {summary['failures']} failed · {summary['errors']} errors · {summary['unscored']} unscored.
-{esc(coverage)}. Coverage complete: {esc(summary['coverage_complete'])}.</p>
+{esc(coverage)}. Coverage complete: {esc(summary['coverage_complete'])}.
+Logged input-and-target fingerprints: {summary['content_fingerprinted']}/{summary['attempted']}.</p>
 <p>Task-resampling bootstrap interval: <strong>{esc(ci_text)}</strong>. {esc(summary['task_cluster_bootstrap_note'])}</p></section>
 <section><h2>Logged protocol</h2><p>Judge: {esc(protocol.get('judge_recorded'))} · Dataset: {esc(protocol.get('dataset_recorded'))}<br>
 Harness commit: {esc(protocol.get('harness_revision_recorded'))} · Inspect version: {esc(protocol.get('inspect_version_recorded'))}<br>

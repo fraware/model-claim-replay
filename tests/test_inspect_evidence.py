@@ -27,7 +27,14 @@ def fixture_log(*, tasks=2, epochs=2, score=1, model="anthropic/claude-fable-5-2
     samples = [
         NS(id=f"licensed-task-{i}", epoch=j, error=None,
            output=NS(completion="PRIVATE MODEL OUTPUT"),
-           input="PRIVATE CHART IMAGE", target="PRIVATE GOLDEN ANSWER",
+           input=[NS(role="user", content=[
+               NS(type="text", text=f"PRIVATE CHART IMAGE task {i}"),
+               NS(type="image", image=(
+                   "data:image/png;base64,"
+                   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1Pe"
+                   "AAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC"
+               )),
+           ])], target="PRIVATE GOLDEN ANSWER",
            scores={"golden_answer_scorer": NS(value={"accuracy": score}, metadata={"result": "pass" if score == 1 else "fail"})})
         for i in range(tasks) for j in range(1, epochs + 1)
     ]
@@ -54,6 +61,7 @@ class InspectEvidenceTests(unittest.TestCase):
         summary = _score_summary(self.claim, rows, header)
         self.assertEqual((summary["successes"], summary["distinct_tasks"], summary["attempted"]), (4, 2, 4))
         self.assertEqual(summary["comparison_status"], "not_comparable")
+        self.assertEqual(summary["content_fingerprinted"], 4)
         self.assertFalse(summary["coverage_complete"])
         self.assertIsNone(summary["task_cluster_bootstrap_95"])
         self.assertTrue(any("Incomplete" in reason for reason in summary["comparison_blockers"]))
@@ -69,6 +77,21 @@ class InspectEvidenceTests(unittest.TestCase):
         self.assertEqual(summary["task_cluster_bootstrap_95"], [1, 1])
         self.assertEqual(summary["comparison_status"], "not_comparable")
         self.assertTrue(any("Publisher's exact" in issue for issue in summary["comparison_blockers"]))
+
+    def test_inconsistent_content_across_epochs_is_rejected(self):
+        log = fixture_log()
+        log.samples[1].target = "DIFFERENT ANSWER"
+        rows, header = extract_inspect_records(log, self.claim)
+        with self.assertRaisesRegex(ReplayError, "differs across repeated epochs"):
+            _score_summary(self.claim, rows, header)
+
+    def test_unresolved_chart_reference_is_explicitly_unpinned(self):
+        log = fixture_log()
+        log.samples[0].input[0].content[1].image = "/tmp/local-chart.png"
+        rows, header = extract_inspect_records(log, self.claim)
+        summary = _score_summary(self.claim, rows, header)
+        self.assertEqual(summary["content_fingerprinted"], 3)
+        self.assertTrue(any("byte-bound input fingerprints" in b for b in summary["comparison_blockers"]))
 
     def test_duplicate_epoch_refused(self):
         log = fixture_log()

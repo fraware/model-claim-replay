@@ -51,6 +51,34 @@ class CompareInspectTests(unittest.TestCase):
         self.assertIsNone(result["delta_right_minus_left_pp"])
         self.assertTrue(any("Scored task/epoch sets differ" in b for b in result["blockers"]))
 
+    def test_changed_chart_is_blocked_despite_matching_task_identifiers(self):
+        self.right_log.samples[0].input[0].content[1].image = (
+            "data:image/png;base64,aGVsbG8="
+        )
+        self.right_log.samples[1].input[0].content[1].image = (
+            "data:image/png;base64,aGVsbG8="
+        )
+        result = self.import_pair()
+        self.assertEqual(result["status"], "blocked")
+        self.assertTrue(any("Chart inputs or reference answers differ" in b
+                            for b in result["blockers"]))
+
+    def test_changed_reference_answer_is_blocked(self):
+        self.right_log.samples[0].target = "ALTERED GOLDEN ANSWER"
+        self.right_log.samples[1].target = "ALTERED GOLDEN ANSWER"
+        result = self.import_pair()
+        self.assertEqual(result["status"], "blocked")
+        self.assertTrue(any("Chart inputs or reference answers differ" in b
+                            for b in result["blockers"]))
+
+    def test_missing_image_bytes_are_blocked(self):
+        for log in (self.left_log, self.right_log):
+            for record in log.samples:
+                record.input[0].content[1].image = "/tmp/chart.png"
+        result = self.import_pair()
+        self.assertEqual(result["status"], "blocked")
+        self.assertTrue(any("Unpinned chart content" in b for b in result["blockers"]))
+
     def test_judge_mismatch_is_blocked(self):
         getattr(self.right_log, "eval").task_args["judge_model"] = "another/judge"
         result = self.import_pair()

@@ -95,3 +95,13 @@ containing `run.json`, `results.jsonl`, `verified-summary.json`,
 Download it from the [Tests workflow](https://github.com/fraware/model-claim-replay/actions/workflows/ci.yml).
 Only scoring metadata leave CI. The two-task mock test measures no real model
 and never constitutes reproduction of Anthropic's 73.4% claim.
+
+### Logged dataset content
+
+Paired-run comparisons require matching SHA-256 fingerprints of the logged
+question, chart-image bytes and reference answer for every scored task and epoch.
+A benchmark repository name, task ID and Git commit alone do not fix external
+Hugging Face data. An image reference to an unpinned local file or URL cannot
+satisfy this check. No image bytes, prompts or answers are included in exports.
+This validates consistency of the logged inputs, not source dataset authenticity
+or the original publisher's execution settings.

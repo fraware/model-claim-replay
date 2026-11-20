@@ -47,3 +47,21 @@ Until the publisher's precise version, dataset revision, model identity, judge p
 ## Paired evidence comparison
 
 Two logs for different model IDs are compared on exactly matching task pseudonyms and epoch numbers. The CLI refuses intersection-only score comparisons, incomplete trial grids, errors, missing verdicts, and any missing or conflicting provenance metadata used to establish protocol compatibility. The direction of the reported effect is **right minus left**, in percentage points. A task is resampled as the unit of the exploratory percentile bootstrap, preserving all its repeated epochs. This interval is conditional on the curated tasks and supplied log records, with no claim to a representative task population or independent execution. Identical source-log hashes are rejected as a tautological comparison. SHA-256 commitments detect modifications to local bytes; their existence does not authenticate the execution environment or the model provider. The reported result of a paired audit is `paired_diagnostic_only`, never confirmation or refutation of a source claim.
+
+## Logged content consistency
+
+Task-ID agreement and matching dataset repository names are insufficient for
+paired evaluations. The importer now computes a deterministic SHA-256 commitment
+over each sample's logged input, chart-image bytes and reference target. Images
+are fingerprinted only if bytes are embedded as an inline base64 data URI.
+Local file paths, remote URLs, missing images and unsupported content encodings
+leave the content fingerprint unavailable. Those observations remain importable,
+although paired scoring is blocked until content identity is established.
+Inconsistent fingerprints across epochs of the same task are rejected.
+
+**Scope of the guarantee:** matching fingerprints establish equality of the
+*logged* input and reference content under this canonicalization. They do not
+authenticate the model execution, prove the image was delivered to the model,
+establish upstream dataset licensing, or establish parity with the publisher.
+Digests are pseudonyms vulnerable to dictionary attacks on known examples.
+No prompts, chart bytes or targets are exported in evidence bundles.

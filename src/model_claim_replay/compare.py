@@ -24,7 +24,9 @@ _PROTOCOL_FIELDS = (
 )
 
 
-def _validated_bundle(claim_path: Path, run_dir: Path) -> tuple[dict[str, Any], dict[str, Any], dict[tuple[str, int], int]]:
+def _validated_bundle(
+    claim_path: Path, run_dir: Path,
+) -> tuple[dict[str, Any], dict[str, Any], dict[tuple[str, int], int], dict[tuple[str, int], str | None]]:
     """Load a verified import; create a task/epoch score map without raw content."""
     summary = verify_inspect_bundle(claim_path, run_dir)
     metadata = json.loads(read_bytes(run_dir / "run.json"))
@@ -34,7 +36,11 @@ def _validated_bundle(claim_path: Path, run_dir: Path) -> tuple[dict[str, Any], 
         (row["task_key"], row["epoch"]): row["score"]
         for row in rows if row["status"] in ("pass", "fail")
     }
-    return summary, header, scores
+    fingerprints = {
+        (row["task_key"], row["epoch"]): row.get("content_sha256")
+        for row in rows if row["status"] in ("pass", "fail")
+    }
+    return summary, header, scores, fingerprints
 
 
 def compare_inspect_bundles(
@@ -49,8 +55,8 @@ def compare_inspect_bundles(
     """
     if bootstrap_draws < 100 or bootstrap_draws > 100_000:
         raise ReplayError("Bootstrap draws must be in [100, 100000]")
-    left_summary, left_header, left_scores = _validated_bundle(claim_path, left)
-    right_summary, right_header, right_scores = _validated_bundle(claim_path, right)
+    left_summary, left_header, left_scores, left_fingerprints = _validated_bundle(claim_path, left)
+    right_summary, right_header, right_scores, right_fingerprints = _validated_bundle(claim_path, right)
     blockers: list[str] = []
 
     # Tasks must be *exactly* paired; computing an intersection-only estimate
@@ -63,6 +69,15 @@ def compare_inspect_bundles(
         blockers.append("The runs have different attempted task/epoch counts")
     if not left_scores or not right_scores:
         blockers.append("No scored samples are available for comparison")
+    if any(digest is None for digest in (*left_fingerprints.values(), *right_fingerprints.values())):
+        blockers.append(
+            "Unpinned chart content: both runs need image-byte and answer fingerprints "
+            "for every scored task/epoch"
+        )
+    elif left_fingerprints != right_fingerprints:
+        blockers.append(
+            "Chart inputs or reference answers differ across runs despite matching task IDs"
+        )
     for field in _PROTOCOL_FIELDS:
         lval, rval = left_header.get(field), right_header.get(field)
         if lval != rval:
