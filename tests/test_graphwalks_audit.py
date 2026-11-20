@@ -61,7 +61,7 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
             usage=SimpleNamespace(total_input_tokens=80, total_output_tokens=12),
         )
 
-    def run(self) -> None:
+    def execute_fixture(self) -> None:
         rt.execute_token_plan(
             self.plan_path, self.source, self.index, self.run_dir,
             generate=self.generate, recount_tokens=lambda _: 80,
@@ -77,7 +77,7 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
         path.write_bytes(canonical_json(obj) + b"\n")
 
     def test_valid_two_task_journal_is_private_and_self_reported(self) -> None:
-        self.run()
+        self.execute_fixture()
         audit = self.audit()
         self.assertEqual((audit["planned"], audit["attempted"], audit["completed"]), (2, 2, 2))
         self.assertEqual(audit["unresolved"], 0)
@@ -90,20 +90,20 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
         self.assertNotIn("node-0", text)
 
     def test_missing_result_is_retained_as_unresolved(self) -> None:
-        self.run()
+        self.execute_fixture()
         (self.run_dir / "attempts" / "bfs-row-000001.result.json").unlink()
         audit = self.audit()
         self.assertEqual((audit["completed"], audit["unresolved"]), (1, 1))
         self.assertEqual(audit["attempted"], 2)
 
     def test_result_without_intent_is_rejected(self) -> None:
-        self.run()
+        self.execute_fixture()
         (self.run_dir / "attempts" / "bfs-row-000000.intent.json").unlink()
         with self.assertRaisesRegex(ReplayError, "without an attempt intent"):
             self.audit()
 
     def test_modified_intent_or_result_is_rejected(self) -> None:
-        self.run()
+        self.execute_fixture()
         intent = self.run_dir / "attempts" / "bfs-row-000000.intent.json"
         self.change_json(intent, input_sha256="f" * 64)
         with self.assertRaisesRegex(ReplayError, "intent fails plan binding"):
@@ -118,7 +118,7 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
             self.audit()
 
     def test_invalid_usage_and_unexpected_artifacts_are_rejected(self) -> None:
-        self.run()
+        self.execute_fixture()
         path = self.run_dir / "attempts" / "bfs-row-000000.result.json"
         self.change_json(path, usage={"total_input_tokens": True})
         with self.assertRaisesRegex(ReplayError, "Invalid provider token usage"):
@@ -129,7 +129,7 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
             self.audit()
 
     def test_plan_tampering_is_detected(self) -> None:
-        self.run()
+        self.execute_fixture()
         plan = json.loads(self.plan_path.read_text())
         plan["planned_tasks"][0]["input_tokens"] += 1
         self.plan_path.write_bytes(canonical_json(plan) + b"\n")
@@ -137,7 +137,7 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
             self.audit()
 
     def test_old_unchanged_journal_is_auditable(self) -> None:
-        self.run()
+        self.execute_fixture()
         current = dt.datetime.now(dt.timezone.utc)
         real_datetime = dt.datetime
         # A historical run remains verifiable even if its payment plan expired.

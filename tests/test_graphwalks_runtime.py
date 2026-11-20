@@ -272,7 +272,8 @@ class RuntimeTests(unittest.TestCase):
             return SimpleNamespace(status="completed", output_text=f"Final Answer: [node-{index}]",usage=None)
         self._run(plan, generate)
         responses=self.root/"recorded.jsonl"
-        rt.export_private_responses(self.root/"plan.json",self.index,self.root/"private-run",responses)
+        with patch.object(rt, "INDEX_SHA256", self.index_sha), patch.object(rt, "DATASET_SHA256", self.source_sha):
+            rt.export_private_responses(self.root/"plan.json",self.index,self.root/"private-run",responses)
         report=score_recorded_bfs(self.index,responses,expected_index_sha256=self.index_sha,
                                   dataset_revision=rt.DATASET_REVISION)
         self.assertEqual(report["graded"],2)
@@ -280,6 +281,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertIsNone(report["mean_f1"])
         self.assertEqual(report["scored_subset_mean_f1_diagnostic"],1)
         with self.assertRaisesRegex(ReplayError,"already exists"):
+            with patch.object(rt, "INDEX_SHA256", self.index_sha), patch.object(rt, "DATASET_SHA256", self.source_sha):
             rt.export_private_responses(self.root/"plan.json",self.index,self.root/"private-run",responses)
 
 if __name__ == "__main__":
