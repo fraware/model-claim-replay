@@ -282,7 +282,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(report["scored_subset_mean_f1_diagnostic"],1)
         with self.assertRaisesRegex(ReplayError,"already exists"):
             with patch.object(rt, "INDEX_SHA256", self.index_sha), patch.object(rt, "DATASET_SHA256", self.source_sha):
-            rt.export_private_responses(self.root/"plan.json",self.index,self.root/"private-run",responses)
+                rt.export_private_responses(self.root/"plan.json",self.index,self.root/"private-run",responses)
 
 if __name__ == "__main__":
     unittest.main()
