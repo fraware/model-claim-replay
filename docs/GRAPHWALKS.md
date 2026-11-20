@@ -137,3 +137,13 @@ claim-replay grade-graphwalks \
 The evaluator is source-faithful, yet it cannot verify the model inputs,
 provider identity, original publisher cohort, or execution conditions.
 All offline score reports are explicitly `not_comparable` to the 95.2% claim.
+
+## Experimental execution adapter
+
+The [controlled GraphWalks execution guide](GRAPHWALKS_EXECUTION.md) documents
+how to verify all 200 public BFS prompt bytes, obtain actual provider token
+counts without requesting generation, and run explicitly authorized sequential
+API calls under a conservative budget reservation. The adapter records a durable
+intent before each request and never automatically retries interrupted requests.
+The original offline F1 grader remains separate. No Gemini inference has yet
+been executed, and exact equivalence to Google's 95.2% evaluation is unresolved.

@@ -44,6 +44,12 @@ claim-replay grade-graphwalks \
 
 Both records and the revision marker above are **synthetic**. The 5/6 F1 is a fixture result, not a model evaluation. For a real source-index format, correct score semantics and the pinned HF metadata snapshot, see [the GraphWalks dossier](docs/GRAPHWALKS.md).
 
+## Run GraphWalks with explicit token and spending gates
+
+The next research milestone is implemented as a **two-stage Gemini 4 Neon execution adapter**. `claim-replay plan-graphwalks` verifies the entire 200-task public source and calls Google's token-count endpoint without generating model answers; `claim-replay execute-graphwalks` only sends billable requests after an explicit `--execute-paid` authorization and an independently checked maximum budget reservation. It writes durable attempt intents before each request and never automatically retries an interrupted call. `claim-replay export-graphwalks` exports private responses for the separate original F1 scorer.
+
+The adapter is candidate-dataset research infrastructure, **not** reproduction of Google's reported 95.2%. No Gemini inference has been performed on this project's behalf. Exact publisher settings, actual model usage, and the full authorized experiment remain outstanding. For commands, pinned file SHA-256, token limits, pricing assumptions and error semantics, read the [GraphWalks execution guide](docs/GRAPHWALKS_EXECUTION.md).
+
 ## Try it now — fully offline
 
 Python 3.10+; no runtime dependencies and no API key needed for the bundled demonstration.

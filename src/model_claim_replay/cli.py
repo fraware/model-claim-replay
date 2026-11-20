@@ -164,6 +164,26 @@ def build_parser() -> argparse.ArgumentParser:
     graphwalks.add_argument("--dataset-revision", required=True,
                             help="40-character upstream dataset commit; user-declared and not independently authenticated")
     graphwalks.add_argument("--out", required=True, type=Path, help="New JSON-only evidence report")
+    count_gw = sub.add_parser("plan-graphwalks", help="Count exact Gemini input tokens without paid generation")
+    count_gw.add_argument("--parquet", required=True, type=Path, help="Byte-verified 297 MB candidate source Parquet")
+    count_gw.add_argument("--index", required=True, type=Path, help="Byte-verified 200-task BFS reference index")
+    count_gw.add_argument("--max-tasks", type=int, default=1, help="Number of first BFS tasks to preflight; default 1")
+    count_gw.add_argument("--max-output-tokens", type=int, default=16384)
+    count_gw.add_argument("--thinking-level", choices=("low","medium","high","xhigh"), default="xhigh")
+    count_gw.add_argument("--api-key-env", default="GEMINI_API_KEY")
+    count_gw.add_argument("--out", required=True, type=Path)
+    exec_gw = sub.add_parser("execute-graphwalks", help="Explicitly authorized Gemini run under a conservative cost reservation")
+    exec_gw.add_argument("--parquet", required=True, type=Path)
+    exec_gw.add_argument("--index", required=True, type=Path)
+    exec_gw.add_argument("--plan", required=True, type=Path)
+    exec_gw.add_argument("--api-key-env", default="GEMINI_API_KEY")
+    exec_gw.add_argument("--max-spend-usd", required=True, help="Positive USD budget ceiling; not a provider billing guarantee")
+    exec_gw.add_argument("--execute-paid", action="store_true", help="Explicitly permit paid model generation")
+    exec_gw.add_argument("--out", required=True, type=Path)
+    export_gw = sub.add_parser("export-graphwalks", help="Export private model answers for separate offline scoring")
+    export_gw.add_argument("--plan", required=True, type=Path)
+    export_gw.add_argument("--run-dir", required=True, type=Path)
+    export_gw.add_argument("--out", required=True, type=Path)
     import_inspect = sub.add_parser("import-inspect", help="Import scored results from an official Inspect AI log")
     import_inspect.add_argument("--claim", required=True, type=Path)
     import_inspect.add_argument("--log", required=True, type=Path, help="Inspect .eval or .json source log (never copied)")
@@ -244,6 +264,74 @@ def main(argv: list[str] | None = None) -> int:
             evaluate_records(claim, tasks, results, model=args.model, run_kind=kind)
             save_run(claim_path=args.claim, tasks_path=args.tasks, claim=claim, results=results, directory=args.out, model=args.model, run_kind=kind)
             print(f"Saved local evidence bundle: {args.out}")
+        elif args.command == "plan-graphwalks":
+            from .graphwalks_runtime import MODEL, build_token_plan, save_plan, verified_prompts
+            # The complete pinned source and reference index are validated first.
+            prompts = verified_prompts(args.parquet, args.index)
+            if not os.getenv(args.api_key_env):
+                raise ReplayError(f"Missing Gemini API credential environment variable: {args.api_key_env}")
+            try:
+                from google import genai
+            except ImportError as exc:
+                raise ReplayError("Install optional dependencies: pip install 'model-claim-replay[graphwalks]'") from exc
+            client = genai.Client(api_key=os.environ[args.api_key_env])
+            try:
+                def count(prompt: str) -> int:
+                    try:
+                        return client.models.count_tokens(model=MODEL, contents=prompt).total_tokens
+                    except Exception as exc:
+                        raise ReplayError(f"Gemini token-count request failed ({type(exc).__name__})") from None
+                plan = build_token_plan(
+                    args.index, prompts, count_tokens=count, max_tasks=args.max_tasks,
+                    max_output_tokens=args.max_output_tokens, thinking_level=args.thinking_level,
+                )
+                save_plan(plan, args.out)
+            finally:
+                close = getattr(client, "close", None)
+                if callable(close):
+                    close()
+            print(f"Counted {plan['planned_count']} genuine input prompts; "
+                  f"{plan['blocked_for_context']} exceed the configured context allowance")
+            print(f"Conservative maximum reserved USD: {plan['maximum_reserved_cost_usd']}")
+            print("No model generation requested. Publisher comparison remains unverified.")
+        elif args.command == "execute-graphwalks":
+            from .graphwalks_runtime import MODEL, execute_token_plan
+            if not args.execute_paid:
+                raise ReplayError("Refusing billable requests: provide --execute-paid to authorize")
+            if not os.getenv(args.api_key_env):
+                raise ReplayError(f"Missing Gemini API credential environment variable: {args.api_key_env}")
+            try:
+                from google import genai
+            except ImportError as exc:
+                raise ReplayError("Install optional dependencies: pip install 'model-claim-replay[graphwalks]'") from exc
+            client = genai.Client(api_key=os.environ[args.api_key_env])
+            try:
+                def count(prompt: str) -> int:
+                    try:
+                        return client.models.count_tokens(model=MODEL, contents=prompt).total_tokens
+                    except Exception as exc:
+                        raise ReplayError(f"Gemini token recount failed ({type(exc).__name__})") from None
+                def generate(prompt: str, model: str, maximum: int, thinking: str) -> Any:
+                    return client.interactions.create(
+                        model=model, input=prompt,
+                        generation_config={"thinking_level": thinking, "max_output_tokens": maximum},
+                        background=False,
+                    )
+                report = execute_token_plan(
+                    args.plan, args.parquet, args.index, args.out,
+                    generate=generate, recount_tokens=count,
+                    allow_paid=True, budget_usd=args.max_spend_usd,
+                )
+            finally:
+                close = getattr(client, "close", None)
+                if callable(close):
+                    close()
+            print(json.dumps(report, indent=2))
+            print("Responses remain private; incomplete requests are not automatically retried.")
+        elif args.command == "export-graphwalks":
+            from .graphwalks_runtime import export_private_responses
+            export_private_responses(args.plan, args.run_dir, args.out)
+            print(f"Exported locally recorded responses to {args.out}; do not commit private raw outputs")
         elif args.command == "grade-graphwalks":
             from .graphwalks import score_recorded_bfs, save_scoring_report
             summary = score_recorded_bfs(
