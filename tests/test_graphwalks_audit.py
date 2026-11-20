@@ -136,6 +136,35 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
         with self.assertRaises(ReplayError):
             self.audit()
 
+    def test_cli_audit_writes_a_score_free_report(self) -> None:
+        from model_claim_replay.cli import main
+        self.execute_fixture()
+        output = self.root / "published-audit.json"
+        self.assertEqual(main([
+            "audit-graphwalks", "--plan", str(self.plan_path),
+            "--index", str(self.index), "--run-dir", str(self.run_dir),
+            "--out", str(output),
+        ]), 0)
+        data = json.loads(output.read_text())
+        self.assertEqual(data["completed"], 2)
+        self.assertFalse(data["execution_authenticated"])
+        self.assertNotIn("Final Answer", output.read_text())
+        self.assertNotIn("Artificial question", output.read_text())
+        self.assertEqual(main([
+            "audit-graphwalks", "--plan", str(self.plan_path),
+            "--index", str(self.index), "--run-dir", str(self.run_dir),
+            "--out", str(output),
+        ]), 2)  # no silent overwrite of prior evidence
+
+    def test_export_rejects_inconsistent_journal(self) -> None:
+        self.execute_fixture()
+        result_path = self.run_dir / "attempts" / "bfs-row-000000.result.json"
+        self.change_json(result_path, id="bfs-row-000123")
+        output = self.root / "private-answers.jsonl"
+        with self.assertRaisesRegex(ReplayError, "Malformed or unbound"):
+            rt.export_private_responses(self.plan_path, self.index, self.run_dir, output)
+        self.assertFalse(output.exists())
+
     def test_old_unchanged_journal_is_auditable(self) -> None:
         self.execute_fixture()
         current = dt.datetime.now(dt.timezone.utc)
