@@ -4,9 +4,11 @@
 
 **Published AI benchmark results deserve independently inspectable evidence.** Model Claim Replay is an open-source project to turn individual model-launch claims into reproducible experiments, with pinned inputs, declared execution protocols, independently rerunnable scoring, uncertainty, and shareable reports.
 
-[Explore the website](https://fraware.github.io/model-claim-replay/) · [Methodology](docs/METHODOLOGY.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
+[Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
 
 > **Project status — foundation, not a completed benchmark replication.** The CLI executes pinned *portable text* fixtures, imports external response files, verifies content hashes, computes exact-match results, and generates standalone HTML/JSON reports. The registered Chartography claim is a real published statement, **not** a completed reproduction. Dataset access, licensing, model settings, judge protocol, and budget still need to be resolved before real comparison is justified. No provider result is invented.
+
+**Website publishing:** A GitHub Pages deployment workflow is included. The repository owner must enable **Settings → Pages → Build and deployment → Source: GitHub Actions** once before the site has a public URL.
 
 ## The ambition
 
