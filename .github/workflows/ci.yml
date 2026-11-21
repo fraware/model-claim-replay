@@ -91,14 +91,17 @@ jobs:
           "$RUNNER_TEMP/consumer/bin/python" - <<'PY'
           import json
           from pathlib import Path
-          from model_claim_replay.graphwalks_public import _public_prompt_digests
+          from model_claim_replay.graphwalks_public import _public_answer_list_sizes, _public_prompt_digests
 
           # The GraphWalks verifier must work from an installed wheel with no
           # source checkout, network access, or optional benchmark dependencies.
           commitments = _public_prompt_digests()
-          assert len(commitments) == 200
+          sizes = _public_answer_list_sizes()
+          assert len(commitments) == len(sizes) == 200
           assert commitments["bfs-row-000100"] == "8dff8adf1268f8298451e4e5c17d5f811c2cf1e5e3dab1a17cbe5ed9348956e6"
           assert commitments["bfs-row-000399"] == "a875b1bd8676b97374b7bedbefe696f4f50163c1e220a95163896665c724bc2c"
+          assert sizes["bfs-row-000100"] == 9
+          assert sizes["bfs-row-000300"] == 4961
           result = json.loads(Path("local-demo/report.json").read_text())
           assert result["successes"] == 2 and result["failures"] == 1
           assert result["comparison_status"] == "not_comparable"
