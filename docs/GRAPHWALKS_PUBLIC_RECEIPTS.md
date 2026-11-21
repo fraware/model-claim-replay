@@ -8,7 +8,7 @@ A successfully completed, manually authorized GraphWalks diagnostic uploads four
 - `pilot-audit.json`: local journal consistency checks, intent/result hashes and per-task statuses, with no raw model responses.
 - `pilot-scores.json`: the offline scorer's task-level F1, parser failures and coverage, with no gold answers or raw model responses.
 
-The fourth file, `pilot-public-verification.json`, records the verifier's independent consistency verdict and the hashes of the three supplied inputs. The workflow publishes task-level grades only after this verification succeeds. A failed or interrupted paid step can yield a **plan and audit only**, preserving unresolved request statuses while withholding an unverified score report.
+The fourth file, `pilot-public-verification.json`, records the verifier's independent consistency verdict and the hashes of the three supplied inputs. A fifth artifact, `pilot-public-report.html`, is a standalone human-readable view of the same verified receipts. The workflow publishes task-level grades only after this verification succeeds. A failed or interrupted paid step can yield a **plan and audit only**, preserving unresolved request statuses while withholding an unverified score report.
 
 A reader should be able to ask whether these three artifacts describe the **same** experiment without having to reconstruct a private journal. The dependency-free command `verify-graphwalks-public` performs exactly that cross-check.
 
@@ -24,6 +24,18 @@ claim-replay verify-graphwalks-public \
   --grades pilot-scores.json \
   --out verification.json
 ```
+
+For a standalone, shareable HTML inspection report, run the same receipt checks with:
+
+```bash
+claim-replay report-graphwalks-public \
+  --plan token-plan.json \
+  --audit pilot-audit.json \
+  --grades pilot-scores.json \
+  --out graphwalks-evidence.html
+```
+
+Open `graphwalks-evidence.html` locally. The report displays all 200 task identities, individual journal and scoring states, F1 for graded tasks, source commitments, and the distinction between a scored subset and the complete benchmark. You can filter the table by declared pilot, graded rows, and unresolved or errored attempts. A Google-reported 95.2% figure appears separately as **publisher context, not a comparison**. The generator refuses inconsistent receipts or existing output and rehashes each source artifact before rendering. The HTML includes no prompt text, answer-node lists, raw model responses, external scripts, or tracking.
 
 No network request, provider credential, original 297 MB source Parquet, reference answer index, or external Python dependency is used. The verifier refuses to overwrite an existing output file. A nonzero exit status indicates malformed or inconsistent receipts. The resulting JSON contains the SHA-256 of each exact input file for later identification.
 
