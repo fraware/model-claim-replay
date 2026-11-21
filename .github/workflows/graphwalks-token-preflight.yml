@@ -12,6 +12,7 @@ on:
         default: "1"
         options:
           - "1"
+          - "2"
           - "5"
           - "20"
           - "200"
@@ -24,6 +25,7 @@ on:
           - "8192"
           - "16384"
           - "32768"
+          - "65536"
 
 permissions:
   contents: read
@@ -78,4 +80,4 @@ jobs:
           name: graphwalks-gemini-token-count-only
           path: .runs/private/graphwalks-preflight/token-plan.json
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 90
