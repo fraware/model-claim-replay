@@ -307,6 +307,95 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(intent.read_bytes(), original)
         self.assertEqual(list(attempts.parent.glob(".graphwalks-journal-*")), [])
 
+    def test_second_paid_runner_for_same_output_fails_closed(self):
+        """A second runner cannot advance another task during an active run."""
+        if rt.os.name != "posix":
+            self.skipTest("POSIX advisory locking is needed for paid runs")
+        plan = self._plan(max_tasks=2)
+        out = self.root / "private-run"
+        with rt._exclusive_paid_run(out):
+            with self.assertRaisesRegex(ReplayError, "already active"):
+                self._run(
+                    plan, lambda *_: self.fail("Duplicate runner sent an API call"),
+                    out=out,
+                )
+            self.assertFalse((out / "attempts").exists())
+
+        # A released lock permits the originally authorized run to proceed.
+        result = self._run(
+            plan,
+            lambda *_: SimpleNamespace(
+                status="completed", output_text="Final Answer: [node-0]",
+                usage=SimpleNamespace(
+                    total_input_tokens=100, total_output_tokens=8,
+                ),
+            ),
+            out=out,
+        )
+        self.assertEqual(result["new_requests"], 2)
+        self.assertTrue((out / "attempts" / "bfs-row-000000.intent.json").is_file())
+
+    def test_paid_runner_lock_is_released_after_abrupt_interruption(self):
+        """Crash-style BaseException does not strand a persistent lock."""
+        if rt.os.name != "posix":
+            self.skipTest("POSIX advisory locking is needed for paid runs")
+        out = self.root / "private-run"
+        with self.assertRaises(KeyboardInterrupt):
+            with rt._exclusive_paid_run(out):
+                raise KeyboardInterrupt("simulated termination")
+        with rt._exclusive_paid_run(out):
+            self.assertFalse(out.exists())
+
+    def test_resumption_audits_corrupt_prior_results_before_new_calls(self):
+        """No extra paid task follows an invalid previous provider result."""
+        plan = self._plan(max_tasks=2)
+        one_request_budget = plan["planned_tasks"][0]["maximum_reserved_cost_usd"]
+        self._run(
+            plan,
+            lambda *_: SimpleNamespace(
+                status="completed", output_text="Final Answer: [node-0]",
+                usage=SimpleNamespace(
+                    total_input_tokens=100, total_output_tokens=10,
+                ),
+            ),
+            budget=one_request_budget,
+        )
+        result_path = (
+            self.root / "private-run" / "attempts"
+            / "bfs-row-000000.result.json"
+        )
+        result = json.loads(result_path.read_text())
+        result["usage"].pop("total_input_tokens")
+        result_path.write_text(json.dumps(result))
+
+        attempted = []
+        with self.assertRaisesRegex(ReplayError, "lacks provider usage"):
+            self._run(
+                plan, lambda *args: attempted.append(args), budget="1",
+            )
+        self.assertEqual(attempted, [])
+        self.assertFalse(
+            (self.root / "private-run" / "attempts"
+             / "bfs-row-000100.intent.json").exists()
+        )
+
+    def test_resumption_refuses_extraneous_journal_files(self):
+        """Unexpected prior artifacts cannot be ignored when billing resumes."""
+        plan = self._plan(max_tasks=2)
+        one_request_budget = plan["planned_tasks"][0]["maximum_reserved_cost_usd"]
+        self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
+        extra = self.root / "private-run" / "attempts" / "untracked.json"
+        extra.write_text("{}")
+        with self.assertRaisesRegex(ReplayError, "unexpected attempt artifact"):
+            self._run(
+                plan, lambda *_: self.fail("Paid request bypassed audit"),
+                budget="1",
+            )
+        self.assertFalse(
+            (self.root / "private-run" / "attempts"
+             / "bfs-row-000100.intent.json").exists()
+        )
+
     def test_abrupt_request_interruption_preserves_auditable_intent(self):
         from model_claim_replay.graphwalks_audit import audit_graphwalks_run
 
