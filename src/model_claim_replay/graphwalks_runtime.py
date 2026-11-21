@@ -444,7 +444,9 @@ def execute_token_plan(
             })
         else:
             existing = read_json(metadata)
-            if existing.get("plan_sha256") != plan_sha256 or existing.get("model") != MODEL:
+            if (not isinstance(existing, dict)
+                    or existing.get("plan_sha256") != plan_sha256
+                    or existing.get("model") != MODEL):
                 raise ReplayError("A resume cannot change the original execution plan")
             # Validate the entire prior journal, including result contents and
             # per-task budget reservations, before authorizing any new requests.
