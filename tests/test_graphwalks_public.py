@@ -302,6 +302,20 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayError, "unexpected fields"):
             self.verify()
 
+    def test_malformed_result_cannot_claim_parsed_predictions(self) -> None:
+        row = self.grades["results"][0]
+        row.update(f1=0.0, precision=0.0, recall=0.0,
+                   parse_failed=True, predicted_nodes=3)
+        self.grades.update(parsed=0, malformed=1,
+                           scored_subset_mean_f1_diagnostic=0.0)
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "malformed parser cannot"):
+            self.verify()
+
+        row["predicted_nodes"] = 0
+        self.write()
+        self.assertEqual(self.verify()["graded"], 1)
+
     def test_impossible_node_overlap_is_rejected(self) -> None:
         self.grades["results"][0]["precision"] = 0.3
         self.grades["results"][0]["recall"] = 0.3
