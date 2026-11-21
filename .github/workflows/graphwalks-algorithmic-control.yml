@@ -1,0 +1,45 @@
+name: GraphWalks algorithmic control
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/graphwalks_algorithmic_control.py'
+      - 'tests/test_graphwalks_algorithmic_control.py'
+      - '.github/workflows/graphwalks-algorithmic-control.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned-source reader
+        run: python -m pip install -e '.[graphwalks]'
+      - name: Test deterministic graph parser and BFS algorithm
+        run: python -m unittest discover -s tests -p test_graphwalks_algorithmic_control.py -v
+      - name: Independently verify source bytes, extract 200 BFS references
+        run: |
+          python scripts/graphwalks_data_audit.py \
+            --revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 \
+            --sha256 537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911 \
+            --size-bytes 296903814 \
+            --retain-parquet \
+            --out .runs/private/algorithmic-control
+      - name: Run full 200-task public graph-control evaluation
+        run: |
+          python scripts/graphwalks_algorithmic_control.py \
+            --parquet .runs/private/algorithmic-control/graphwalks_256k_to_1mil.parquet \
+            --index .runs/private/algorithmic-control/graphwalks-bfs-reference-index.jsonl \
+            --out .runs/graphwalks-algorithmic-control.json
+      - name: Publish algorithmic control evidence (no raw prompts or answers)
+        uses: actions/upload-artifact@v4
+        with:
+          name: graphwalks-algorithmic-control
+          path: .runs/graphwalks-algorithmic-control.json
+          if-no-files-found: error
+          retention-days: 14
