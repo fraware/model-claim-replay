@@ -8,6 +8,7 @@ fabricated receipts will also pass; this is not provider attestation.
 
 from __future__ import annotations
 
+import datetime as dt
 import math
 import re
 from collections import Counter
@@ -24,6 +25,7 @@ from .graphwalks_runtime import (
     INPUT_USD_PER_M,
     MODEL,
     OUTPUT_USD_PER_M,
+    PRICE_SOURCE,
     SCHEMA,
     SELECTION_POLICY,
 )
@@ -31,6 +33,36 @@ from .graphwalks_runtime import (
 _SHA = re.compile(r"^[0-9a-f]{64}$")
 _TASK = re.compile(r"^bfs-row-[0-9]{6}$")
 _STATES = frozenset({"completed", "error", "unresolved", "not_attempted"})
+_PLAN_FIELDS = frozenset({
+    "schema_version", "evidence_level", "model", "thinking_level",
+    "max_output_tokens", "dataset_revision", "parquet_sha256",
+    "index_sha256", "reference_task_count", "selection_policy",
+    "selection_counts", "planned_tasks", "planned_count", "context_limit",
+    "pricing", "created_utc", "maximum_reserved_cost_usd",
+    "blocked_for_context", "comparison_status", "limitations",
+})
+_PLAN_TASK_FIELDS = frozenset({
+    "id", "prompt_sha256", "input_tokens",
+    "fits_context_with_output_allowance", "maximum_reserved_cost_usd",
+})
+_AUDIT_FIELDS = frozenset({
+    "schema_version", "evidence_level", "plan_sha256", "run_manifest_sha256",
+    "index_sha256", "source_parquet_sha256", "model_declared", "planned",
+    "attempted", "completed", "failed", "unresolved", "not_attempted",
+    "responses_missing_usage", "budget_reserved_usd", "comparison_status",
+    "execution_authenticated", "entries",
+})
+_GRADE_FIELDS = frozenset({
+    "schema_version", "evidence_level", "dataset_revision_user_declared",
+    "reference_index_sha256", "response_file_sha256", "task_count",
+    "graded", "parsed", "malformed", "api_errors", "missing", "mean_f1",
+    "scored_subset_mean_f1_diagnostic", "comparison_status",
+    "comparison_explanation", "results",
+})
+_GRADED_ROW_FIELDS = frozenset({
+    "id", "status", "f1", "precision", "recall",
+    "parse_failed", "predicted_nodes", "reference_nodes",
+})
 
 
 def _check(condition: bool, message: str) -> None:
@@ -83,7 +115,31 @@ def verify_public_graphwalks_receipts(
     _check(all(isinstance(x, dict) for x in (plan, audit, grades)),
            "each artifact must be a JSON object")
 
+    _check(set(plan) == _PLAN_FIELDS, "token plan has missing or unexpected fields")
+    _check(set(audit) == _AUDIT_FIELDS, "audit has missing or unexpected fields")
+    _check(set(grades) == _GRADE_FIELDS, "scorer has missing or unexpected fields")
     _check(plan.get("schema_version") == SCHEMA, "unsupported token plan")
+    _check(plan.get("evidence_level") ==
+           "candidate_public_dataset_api_token_preflight_not_a_model_evaluation",
+           "token plan improperly claims evaluation evidence")
+    _check(plan.get("thinking_level") in ("low", "medium", "high", "xhigh"),
+           "invalid model thinking configuration")
+    _check(plan.get("pricing") == {
+        "input_usd_per_m": str(INPUT_USD_PER_M),
+        "output_usd_per_m": str(OUTPUT_USD_PER_M),
+        "as_of": "2026-11-20", "source": PRICE_SOURCE,
+        "tier": "standard", "currency": "USD",
+    }, "token plan has incorrect pricing assumptions")
+    _check(isinstance(plan.get("created_utc"), str), "token plan has no timestamp")
+    try:
+        created = dt.datetime.fromisoformat(plan["created_utc"])
+    except ValueError as exc:
+        raise ReplayError("Public GraphWalks receipts: invalid token plan timestamp") from exc
+    _check(created.tzinfo is not None and created.utcoffset() is not None,
+           "token plan timestamp lacks timezone")
+    _check(isinstance(plan.get("limitations"), list)
+           and all(isinstance(x, str) for x in plan["limitations"]),
+           "token plan limitations are malformed")
     _check(plan.get("model") == MODEL, "unsupported model identity")
     _check(plan.get("dataset_revision") == DATASET_REVISION
            and plan.get("parquet_sha256") == DATASET_SHA256
@@ -109,7 +165,8 @@ def verify_public_graphwalks_receipts(
     task_ids: list[str] = []
     reservation_by_id: dict[str, Decimal] = {}
     for task in planned:
-        _check(isinstance(task, dict), "invalid planned task")
+        _check(isinstance(task, dict) and set(task) == _PLAN_TASK_FIELDS,
+               "invalid or unredacted planned task")
         ident = task.get("id")
         _check(isinstance(ident, str) and _TASK.fullmatch(ident) is not None,
                "invalid planned task identity")
@@ -156,7 +213,13 @@ def verify_public_graphwalks_receipts(
         _check(isinstance(entry, dict) and entry.get("id") == task["id"],
                "audit task order or identity differs")
         status = entry.get("status")
-        _check(status in _STATES, "invalid audit task status")
+        _check(type(status) is str and status in _STATES, "invalid audit task status")
+        expected_fields = {"id", "status"}
+        if status != "not_attempted":
+            expected_fields.add("intent_sha256")
+        if status in ("completed", "error"):
+            expected_fields.add("result_sha256")
+        _check(set(entry) == expected_fields, "audit entry has unexpected fields")
         ident = task["id"]
         statuses[ident] = status
         if status == "not_attempted":
@@ -211,6 +274,8 @@ def verify_public_graphwalks_receipts(
                            "unresolved": "missing", "not_attempted": "missing"}[intended]
         _check(status == expected_status, f"scored status differs from journal for {ident}")
         if status == "graded":
+            _check(set(row) == _GRADED_ROW_FIELDS,
+                   "graded result has missing or unexpected fields")
             graded += 1
             p, r, f1 = (_ratio(row.get(key), f"{key} for {ident}")
                         for key in ("precision", "recall", "f1"))
@@ -222,6 +287,16 @@ def verify_public_graphwalks_receipts(
                 _check(p == r == f1 == 0, "malformed answer has nonzero score")
                 malformed += 1
             else:
+                if not predicted and not reference:
+                    _check(p == r == f1 == 1, "empty reference and output must score one")
+                elif not predicted or not reference:
+                    _check(p == r == f1 == 0, "single empty node set must score zero")
+                else:
+                    overlap_p, overlap_r = p * predicted, r * reference
+                    _check(math.isclose(overlap_p, overlap_r, abs_tol=1e-9)
+                           and math.isclose(overlap_p, round(overlap_p), abs_tol=1e-9)
+                           and 0 <= overlap_p <= min(predicted, reference) + 1e-9,
+                           "precision/recall imply an impossible node overlap")
                 expected_f1 = 2 * p * r / (p + r) if (p + r) else 0.0
                 _same_score(f1, expected_f1, f"F1 for {ident}")
                 _check((predicted > 0 or p in (0, 1))
