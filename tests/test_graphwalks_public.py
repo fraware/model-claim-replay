@@ -125,6 +125,34 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         ]), 0)
         self.assertEqual(json.loads(self.report_path.read_text())["graded"], 1)
 
+    def test_full_provider_foreground_allowance_is_verified(self) -> None:
+        """The declared output ceiling must agree from preflight to public audit."""
+        maximum = 65_536
+        self.plan["max_output_tokens"] = maximum
+        for task in self.plan["planned_tasks"]:
+            task["maximum_reserved_cost_usd"] = _cost(task["input_tokens"], maximum)
+        total = str(sum(
+            (Decimal(task["maximum_reserved_cost_usd"])
+             for task in self.plan["planned_tasks"]),
+            Decimal(0),
+        ))
+        self.plan["maximum_reserved_cost_usd"] = total
+        self.audit["budget_reserved_usd"] = total
+        self.write()
+
+        report = self.verify()
+        self.assertEqual(report["graded"], 1)
+        self.assertEqual(report["completed"], 1)
+        self.assertEqual(report["verification_status"],
+                         "internally_consistent_self_reported_only")
+        self.assertFalse(report["claim_reproduced"])
+
+    def test_provider_ceiling_plus_one_is_refused_by_public_verifier(self) -> None:
+        self.plan["max_output_tokens"] = 65_537
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "output allowance"):
+            self.verify()
+
     def test_changed_plan_is_rejected_even_when_counts_still_agree(self) -> None:
         self.plan["created_utc"] = "2026-11-21T16:00:01+00:00"
         self.paths[0].write_text(json.dumps(self.plan))
