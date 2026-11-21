@@ -245,7 +245,7 @@ class PublicReceiptVerificationTests(unittest.TestCase):
 
     def test_false_success_and_missing_task_scores_are_rejected(self) -> None:
         self.grades["results"][100] = {
-            **self.grades["results"][0], "id": "bfs-row-000150",
+            **self.grades["results"][0], "id": "bfs-row-000300",
         }
         self.write()
         with self.assertRaisesRegex(ReplayError, "scored status"):
@@ -270,7 +270,7 @@ class PublicReceiptVerificationTests(unittest.TestCase):
             self.verify()
 
     def test_duplicate_and_unplanned_task_are_rejected(self) -> None:
-        self.grades["results"][2]["id"] = "bfs-row-000001"
+        self.grades["results"][2]["id"] = "bfs-row-000100"
         self.write()
         with self.assertRaisesRegex(ReplayError, "duplicate scored"):
             self.verify()
@@ -313,10 +313,10 @@ class PublicReceiptVerificationTests(unittest.TestCase):
 
     def test_unresolved_request_must_remain_unscored(self) -> None:
         self.audit["entries"][1] = {
-            "id": "bfs-row-000150", "status": "unresolved", "intent_sha256": "f" * 64,
+            "id": "bfs-row-000300", "status": "unresolved", "intent_sha256": "f" * 64,
         }
         self.audit.update(failed=0, unresolved=1, responses_missing_usage=0)
-        self.grades["results"][100] = {"id": "bfs-row-000150", "status": "missing"}
+        self.grades["results"][100] = {"id": "bfs-row-000300", "status": "missing"}
         self.grades.update(api_errors=0, missing=199)
         self.write()
         self.assertEqual(self.verify()["unresolved"], 1)
