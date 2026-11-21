@@ -139,8 +139,19 @@ jobs:
             --responses .runs/private/pilot-responses.jsonl \
             --index-sha256 250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee \
             --dataset-revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 \
-            --out .runs/private/pilot-scores.json
-      - name: Upload only score-free plan, redacted audit and task-level grades
+            --out .runs/private/pilot-scores-pending.json
+      - name: Cross-check redacted evidence before publishing scored results
+        # Prevent a score artifact from being published if its statuses,
+        # denominators, reservations or SHA-256 bindings disagree with the audit.
+        if: ${{ !cancelled() && steps.paid_execution.outcome == 'success' && steps.private_audit.outcome == 'success' }}
+        run: |
+          claim-replay verify-graphwalks-public \
+            --plan .runs/private/pilot-source/token-plan.json \
+            --audit .runs/private/pilot-audit.json \
+            --grades .runs/private/pilot-scores-pending.json \
+            --out .runs/private/pilot-public-verification.json
+          mv .runs/private/pilot-scores-pending.json .runs/private/pilot-scores.json
+      - name: Upload only score-free plan, redacted audit and verified task-level grades
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
@@ -149,5 +160,6 @@ jobs:
             .runs/private/pilot-source/token-plan.json
             .runs/private/pilot-audit.json
             .runs/private/pilot-scores.json
+            .runs/private/pilot-public-verification.json
           if-no-files-found: warn
           retention-days: 7
