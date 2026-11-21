@@ -10,7 +10,7 @@ from pathlib import Path
 
 from model_claim_replay.cli import main
 from model_claim_replay.core import ReplayError, sha256_bytes
-from model_claim_replay.graphwalks_public import _public_prompt_digests, verify_public_graphwalks_receipts
+from model_claim_replay.graphwalks_public import (_public_answer_list_sizes, _public_prompt_digests, verify_public_graphwalks_receipts)
 from model_claim_replay.graphwalks_runtime import (
     CONTEXT_LIMIT, DATASET_REVISION, DATASET_SHA256, INDEX_SHA256,
     INPUT_USD_PER_M, MODEL, OUTPUT_USD_PER_M, PRICE_SOURCE, SCHEMA, SELECTION_POLICY,
@@ -83,8 +83,8 @@ class PublicReceiptVerificationTests(unittest.TestCase):
                 for i in (*range(100, 200), *range(300, 400))]
         rows[0] = {
             "id": first, "status": "graded", "f1": 0.5,
-            "precision": 0.5, "recall": 0.5,
-            "parse_failed": False, "predicted_nodes": 2, "reference_nodes": 2,
+            "precision": 1.0, "recall": 1 / 3,
+            "parse_failed": False, "predicted_nodes": 3, "reference_nodes": 9,
         }
         rows[100] = {"id": second, "status": "error"}
         self.grades = {
@@ -237,6 +237,38 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayError, "planned prompt digest differs"):
             generate_graphwalks_public_html(*self.paths, output)
         self.assertFalse(output.exists())
+
+    def test_public_answer_list_sizes_are_pinned_and_bounded(self) -> None:
+        """The reference cardinality upper bound comes from the public audit."""
+        snapshot = json.loads(
+            (Path(__file__).resolve().parents[1] /
+             "website" / "graphwalks-audit.json").read_text()
+        )
+        self.assertEqual(snapshot["source"]["reference_index_sha256"], INDEX_SHA256)
+        self.assertEqual(
+            _public_answer_list_sizes(),
+            {row["id"]: row["answer_node_count"] for row in snapshot["tasks"]},
+        )
+        self.assertEqual(_public_answer_list_sizes()["bfs-row-000100"], 9)
+
+    def test_self_consistent_oversized_reference_set_is_rejected(self) -> None:
+        """Fabricating a huge truth set must fail even with coherent F1 math."""
+        row = self.grades["results"][0]
+        row.update(precision=1.0, recall=0.5, f1=2 / 3,
+                   predicted_nodes=12, reference_nodes=24)
+        self.grades["scored_subset_mean_f1_diagnostic"] = 2 / 3
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "cardinality contradicts pinned source"):
+            self.verify()
+
+    def test_zero_reference_set_conflicts_with_nonempty_source_answer(self) -> None:
+        row = self.grades["results"][0]
+        row.update(precision=0.0, recall=0.0, f1=0.0,
+                   predicted_nodes=4, reference_nodes=0)
+        self.grades["scored_subset_mean_f1_diagnostic"] = 0.0
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "cardinality contradicts pinned source"):
+            self.verify()
 
     def test_full_provider_foreground_allowance_is_verified(self) -> None:
         """The declared output ceiling must agree from preflight to public audit."""
