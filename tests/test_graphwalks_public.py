@@ -31,7 +31,7 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         root = Path(temporary.name)
         self.paths = [root / name for name in ("plan.json", "audit.json", "grades.json")]
         self.report_path = root / "verified.json"
-        first, second = "bfs-row-000001", "bfs-row-000150"
+        first, second = "bfs-row-000100", "bfs-row-000300"
         tasks = [
             {"id": first, "prompt_sha256": "a" * 64, "input_tokens": 200,
              "fits_context_with_output_allowance": True,
@@ -79,13 +79,13 @@ class PublicReceiptVerificationTests(unittest.TestCase):
             ],
         }
         rows = [{"id": f"bfs-row-{i:06d}", "status": "missing"}
-                for i in range(200)]
-        rows[1] = {
+                for i in (*range(100, 200), *range(300, 400))]
+        rows[0] = {
             "id": first, "status": "graded", "f1": 0.5,
             "precision": 0.5, "recall": 0.5,
             "parse_failed": False, "predicted_nodes": 2, "reference_nodes": 2,
         }
-        rows[150] = {"id": second, "status": "error"}
+        rows[100] = {"id": second, "status": "error"}
         self.grades = {
             "schema_version": "graphwalks-offline-grade-v1",
             "evidence_level": "locally_imported_response_scores_unattested",
@@ -169,11 +169,45 @@ class PublicReceiptVerificationTests(unittest.TestCase):
     def test_standalone_report_rejects_tampering_without_writing(self) -> None:
         from model_claim_replay.graphwalks_html import generate_graphwalks_public_html
         destination = self.report_path.with_suffix(".html")
-        self.grades["results"][1]["f1"] = 0.75
+        self.grades["results"][0]["f1"] = 0.75
         self.write()
         with self.assertRaisesRegex(ReplayError, "inconsistent F1"):
             generate_graphwalks_public_html(*self.paths, destination)
         self.assertFalse(destination.exists())
+
+    def test_public_cohort_identifiers_match_pinned_source_explorer(self) -> None:
+        """Source row identities are bound to the independently audited index."""
+        from model_claim_replay.graphwalks_public import _PUBLIC_SOURCE_IDS
+
+        source = json.loads(
+            (Path(__file__).resolve().parents[1] /
+             "website" / "graphwalks-audit.json").read_text()
+        )
+        self.assertEqual(source["source"]["reference_index_sha256"], INDEX_SHA256)
+        self.assertEqual(
+            tuple(task["id"] for task in source["tasks"]), _PUBLIC_SOURCE_IDS,
+        )
+        self.assertEqual(len(set(_PUBLIC_SOURCE_IDS)), 200)
+        self.assertEqual(len(_PUBLIC_SOURCE_IDS), 200)
+
+    def test_rejects_forged_unplanned_public_task_id(self) -> None:
+        self.grades["results"][3]["id"] = "bfs-row-000003"
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "pinned 200-item public cohort"):
+            self.verify()
+
+    def test_rejects_shuffled_public_source_order(self) -> None:
+        rows = self.grades["results"]
+        rows[3], rows[4] = rows[4], rows[3]
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "pinned 200-item public cohort"):
+            self.verify()
+
+    def test_rejects_wrong_balanced_pilot_selection(self) -> None:
+        self.plan["planned_tasks"][1]["id"] = "bfs-row-000301"
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "pinned balanced public cohort"):
+            self.verify()
 
     def test_full_provider_foreground_allowance_is_verified(self) -> None:
         """The declared output ceiling must agree from preflight to public audit."""
@@ -210,15 +244,15 @@ class PublicReceiptVerificationTests(unittest.TestCase):
             self.verify()
 
     def test_false_success_and_missing_task_scores_are_rejected(self) -> None:
-        self.grades["results"][150] = {
-            **self.grades["results"][1], "id": "bfs-row-000150",
+        self.grades["results"][100] = {
+            **self.grades["results"][0], "id": "bfs-row-000300",
         }
         self.write()
         with self.assertRaisesRegex(ReplayError, "scored status"):
             self.verify()
 
     def test_tampered_score_arithmetic_is_rejected(self) -> None:
-        self.grades["results"][1]["f1"] = 0.9
+        self.grades["results"][0]["f1"] = 0.9
         self.grades["scored_subset_mean_f1_diagnostic"] = 0.9
         self.write()
         with self.assertRaisesRegex(ReplayError, "inconsistent F1"):
@@ -236,7 +270,7 @@ class PublicReceiptVerificationTests(unittest.TestCase):
             self.verify()
 
     def test_duplicate_and_unplanned_task_are_rejected(self) -> None:
-        self.grades["results"][2]["id"] = "bfs-row-000001"
+        self.grades["results"][2]["id"] = "bfs-row-000100"
         self.write()
         with self.assertRaisesRegex(ReplayError, "duplicate scored"):
             self.verify()
@@ -247,11 +281,11 @@ class PublicReceiptVerificationTests(unittest.TestCase):
             self.verify()
 
     def test_nonfinite_and_unattested_statuses_are_rejected(self) -> None:
-        self.grades["results"][1]["f1"] = float("nan")
+        self.grades["results"][0]["f1"] = float("nan")
         self.write()
         with self.assertRaisesRegex(ReplayError, "invalid f1"):
             self.verify()
-        self.grades["results"][1]["f1"] = 0.5
+        self.grades["results"][0]["f1"] = 0.5
         self.audit["execution_authenticated"] = True
         self.write()
         with self.assertRaisesRegex(ReplayError, "authentication"):
@@ -263,15 +297,29 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayError, "unredacted"):
             self.verify()
         del self.plan["planned_tasks"][0]["prompt"]
-        self.grades["results"][1]["output"] = "raw response"
+        self.grades["results"][0]["output"] = "raw response"
         self.write()
         with self.assertRaisesRegex(ReplayError, "unexpected fields"):
             self.verify()
 
+    def test_malformed_result_cannot_claim_parsed_predictions(self) -> None:
+        row = self.grades["results"][0]
+        row.update(f1=0.0, precision=0.0, recall=0.0,
+                   parse_failed=True, predicted_nodes=3)
+        self.grades.update(parsed=0, malformed=1,
+                           scored_subset_mean_f1_diagnostic=0.0)
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "malformed parser cannot"):
+            self.verify()
+
+        row["predicted_nodes"] = 0
+        self.write()
+        self.assertEqual(self.verify()["graded"], 1)
+
     def test_impossible_node_overlap_is_rejected(self) -> None:
-        self.grades["results"][1]["precision"] = 0.3
-        self.grades["results"][1]["recall"] = 0.3
-        self.grades["results"][1]["f1"] = 0.3
+        self.grades["results"][0]["precision"] = 0.3
+        self.grades["results"][0]["recall"] = 0.3
+        self.grades["results"][0]["f1"] = 0.3
         self.grades["scored_subset_mean_f1_diagnostic"] = 0.3
         self.write()
         with self.assertRaisesRegex(ReplayError, "impossible node overlap"):
@@ -279,10 +327,10 @@ class PublicReceiptVerificationTests(unittest.TestCase):
 
     def test_unresolved_request_must_remain_unscored(self) -> None:
         self.audit["entries"][1] = {
-            "id": "bfs-row-000150", "status": "unresolved", "intent_sha256": "f" * 64,
+            "id": "bfs-row-000300", "status": "unresolved", "intent_sha256": "f" * 64,
         }
         self.audit.update(failed=0, unresolved=1, responses_missing_usage=0)
-        self.grades["results"][150] = {"id": "bfs-row-000150", "status": "missing"}
+        self.grades["results"][100] = {"id": "bfs-row-000300", "status": "missing"}
         self.grades.update(api_errors=0, missing=199)
         self.write()
         self.assertEqual(self.verify()["unresolved"], 1)
