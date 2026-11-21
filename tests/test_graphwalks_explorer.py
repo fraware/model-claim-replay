@@ -68,7 +68,7 @@ class PublicGraphWalksExplorerTests(unittest.TestCase):
         self.assertNotIn("answer_nodes", raw.decode())
         html = (ROOT / "website" / "graphwalks.html").read_text()
         self.assertIn("INDEPENDENT MODEL RESULT", html)
-        self.assertIn("DETERMINISTIC BFS CONTROL", html)
+        self.assertIn("ALGORITHMIC CONTROL", html)
         self.assertIn("No model inference run performed", html)
         self.assertIn("graphwalks-control.json", (ROOT / "website" / "graphwalks.js").read_text())
 
