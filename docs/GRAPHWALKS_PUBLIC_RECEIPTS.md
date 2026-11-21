@@ -4,24 +4,24 @@
 
 The manually authorized GraphWalks diagnostic uploads three JSON artifacts:
 
-- \`token-plan.json\`: model identity, public candidate source digest, selected task IDs, provider-reported input token counts and worst-case cost reservations, with no raw prompts or answers.
-- \`pilot-audit.json\`: local journal consistency checks, intent/result hashes and per-task statuses, with no raw model responses.
-- \`pilot-scores.json\`: the offline scorer's task-level F1, parser failures and coverage, with no gold answers or raw model responses.
+- `token-plan.json`: model identity, public candidate source digest, selected task IDs, provider-reported input token counts and worst-case cost reservations, with no raw prompts or answers.
+- `pilot-audit.json`: local journal consistency checks, intent/result hashes and per-task statuses, with no raw model responses.
+- `pilot-scores.json`: the offline scorer's task-level F1, parser failures and coverage, with no gold answers or raw model responses.
 
-A reader should be able to ask whether these three artifacts describe the **same** experiment without having to reconstruct a private journal. The dependency-free command \`verify-graphwalks-public\` performs exactly that cross-check.
+A reader should be able to ask whether these three artifacts describe the **same** experiment without having to reconstruct a private journal. The dependency-free command `verify-graphwalks-public` performs exactly that cross-check.
 
 ## Usage
 
 Download the three artifacts from a completed, manually authorized diagnostic workflow, then run:
 
-\`\`\`bash
+```bash
 python -m pip install -e .
 claim-replay verify-graphwalks-public \
   --plan token-plan.json \
   --audit pilot-audit.json \
   --grades pilot-scores.json \
   --out verification.json
-\`\`\`
+```
 
 No network request, provider credential, original 297 MB source Parquet, reference answer index, or external Python dependency is used. The verifier refuses to overwrite an existing output file. A nonzero exit status indicates malformed or inconsistent receipts. The resulting JSON contains the SHA-256 of each exact input file for later identification.
 
@@ -41,7 +41,7 @@ In particular, an actor who controls all three receipts can fabricate a mutually
 
 The validated output consequently uses:
 
-\`\`\`json
+```json
 {
   "verification_status": "internally_consistent_self_reported_only",
   "claim_reproduced": false,
@@ -50,12 +50,12 @@ The validated output consequently uses:
   "source_dataset_reverified": false,
   "comparison_status": "not_comparable"
 }
-\`\`\`
+```
 
 These fields are fixed by the verifier; they do not depend on a provided self-declaration.
 
 ## Independent test strategy
 
-\`tests/test_graphwalks_public.py\` creates small synthetic receipt metadata and a 200-row score index, then tests legitimate partial coverage, changed token-plan bytes, forged completed requests, invalid F1 and means, duplicate or unplanned task IDs, incorrect reserved budgets, NaN values and unresolved attempts. These tests make no paid API calls and do not stand in for the first real GraphWalks model observation.
+`tests/test_graphwalks_public.py` creates small synthetic receipt metadata and a 200-row score index, then tests legitimate partial coverage, changed token-plan bytes, forged completed requests, invalid F1 and means, duplicate or unplanned task IDs, incorrect reserved budgets, NaN values and unresolved attempts. These tests make no paid API calls and do not stand in for the first real GraphWalks model observation.
 
 The [GraphWalks execution guide](GRAPHWALKS_EXECUTION.md) describes the separate provider protocol, authorization gates and original task-level scoring.
