@@ -126,7 +126,7 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         self.assertEqual(json.loads(self.report_path.read_text())["graded"], 1)
 
     def test_changed_plan_is_rejected_even_when_counts_still_agree(self) -> None:
-        self.plan["created_utc"] = "different"
+        self.plan["created_utc"] = "2026-11-21T16:00:01+00:00"
         self.paths[0].write_text(json.dumps(self.plan))
         with self.assertRaisesRegex(ReplayError, "does not bind"):
             self.verify()
