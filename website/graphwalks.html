@@ -14,7 +14,7 @@
 </head>
 <body>
   <a class="skip" href="#audit">Skip to source-data explorer</a>
-  <div class="topline"><span>PUBLIC EVIDENCE RECORD&nbsp; / &nbsp;002</span><span>20 NOV 2026 &nbsp;·&nbsp; SOURCE AUDIT</span></div>
+  <div class="topline"><span>PUBLIC EVIDENCE RECORD&nbsp; / &nbsp;002</span><span>21 NOV 2026 &nbsp;·&nbsp; SOURCE + CONTROL AUDIT</span></div>
   <header class="masthead wrap">
     <a class="brand" href="./index.html"><span class="brandmark">M<span>/</span>CR</span><span class="brandtext">MODEL CLAIM<br>REPLAY</span></a>
     <nav aria-label="Page navigation"><a href="./index.html#claims">Claim registry</a><a href="#audit">Explore dataset</a><a href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
@@ -29,12 +29,29 @@
     </section>
     <section class="score-band"><div class="wrap score-grid">
       <div class="score"><span>01 / PUBLISHER-REPORTED</span><strong>95.2<small>% F1</small></strong><p>Gemini 4 Neon, reported by Google</p></div>
-      <div class="score unresolved"><span>02 / INDEPENDENT RESULT</span><strong>—</strong><p>No model inference run performed</p></div>
-      <div class="score"><span>03 / SOURCE TASKS VERIFIED</span><strong>200<small> / 200</small></strong><p>Public candidate BFS reference records</p></div>
+      <div class="score unresolved"><span>02 / INDEPENDENT MODEL RESULT</span><strong>—</strong><p>No model inference run performed</p></div>
+      <div class="score"><span>03 / ALGORITHMIC CONTROL</span><strong>100<small>% F1</small></strong><p>Deterministic BFS; zero model inference calls</p></div>
+      <div class="score"><span>04 / SOURCE TASKS VERIFIED</span><strong>200<small> / 200</small></strong><p>Public candidate BFS reference records</p></div>
     </div></section>
+    <section class="control-panel wrap" id="control">
+      <div class="control-header"><span class="control-label">INDEPENDENT ALGORITHMIC CONTROL / 21 NOVEMBER 2026</span><span class="control-flag">200 / 200 SOURCE TASKS</span></div>
+      <div class="control-layout">
+        <div>
+          <h2>A graph algorithm<br>gets every answer right.</h2>
+          <p>We parsed the original public prompts, reconstructed directed graphs, and executed ordinary breadth-first search. All 200 tasks scored F1 = 1.0 under the source's grading convention, including the 100 longer-context cases. No AI model was called.</p>
+          <p>This is an <strong>algorithmic reference control</strong>. It checks the public dataset and graph-operation implementation. It does not reproduce or invalidate the publisher's Gemini 4 Neon result, because a specialized parser and an LLM are different systems.</p>
+          <div class="control-links"><a href="./graphwalks-control.json" download>Inspect 200 task results ↗</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/44884895995">Independent CI execution ↗</a><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_CONTROL.md">Read methodology ↗</a></div>
+        </div>
+        <div class="control-measures">
+          <div><span>MEAN F1 / DETERMINISTIC CONTROL</span><strong>1.000</strong><small>200 graded / 0 parse failures</small></div>
+          <div><span>LONG-CONTEXT GROUP</span><strong>100 / 100</strong><small>all task F1 values = 1.0</small></div>
+          <div><span>INDEPENDENT GEMINI RUN</span><strong>Pending</strong><small>provider token counts and inference not executed</small></div>
+        </div>
+      </div>
+    </section>
     <section class="work wrap" id="audit">
       <div class="section-index"><span>THE SOURCE / 001</span><span>PINNED PUBLIC DATA</span></div>
-      <div class="section-heading"><h2>Inspect the 200 tasks.</h2><p>The chart encodes the length of each original prompt in <strong>characters</strong>. These are verified source fields, not model token counts or measured performance.</p></div>
+      <div class="section-heading"><h2>Inspect the 200 tasks.</h2><p>The chart encodes original prompt lengths in <strong>characters</strong>. Select a task to inspect source provenance and its algorithmic control result. These lengths are not model token counts.</p></div>
       <div class="inspector">
         <div class="controls"><div class="filter-group" role="group" aria-label="Filter by input length">
           <button class="filter active" type="button" data-filter="all" aria-pressed="true">All <span>200</span></button>
@@ -56,6 +73,6 @@
     </div></div></section>
     <section class="next wrap"><div class="section-index"><span>THE NEXT EXPERIMENT / 003</span><span>GENERATIVE MODEL TEST PENDING</span></div><h2>Source access is solved.<br><em>Execution is next.</em></h2><div class="next-grid"><p>The repository now includes a budget-controlled Gemini 4 Neon runner with actual token-count checks, explicit financial authorization, one-attempt-only execution, and a separate offline grader. The published 95.2% remains an unverified claim until a matched inference experiment produces real evidence.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
   </main>
-  <footer><div class="wrap footer"><strong>MODEL CLAIM REPLAY</strong><span>Real source data. No synthetic benchmark scores on this page.</span><a href="./index.html">Back to registry ↑</a></div></footer>
+  <footer><div class="wrap footer"><strong>MODEL CLAIM REPLAY</strong><span>Real source data and algorithmic controls. No independently reproduced model score.</span><a href="./index.html">Back to registry ↑</a></div></footer>
 </body>
 </html>

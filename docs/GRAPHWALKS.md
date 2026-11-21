@@ -151,3 +151,18 @@ been executed, and exact equivalence to Google's 95.2% evaluation is unresolved.
 ## Public evidence explorer
 
 The [interactive GraphWalks audit](https://fraware.github.io/model-claim-replay/graphwalks.html) displays all **200 SHA-256-verified candidate BFS items**, their source row IDs, prompt-character lengths, and SHA-256 commitments without exposing the underlying prompt or reference-node content. It is generated from the pinned index using `scripts/publish_graphwalks_summary.py` with an independently checked source-index digest. Its two equal-sized bands distinguish shorter and longer inputs by a **1,000,000-character threshold**, not by model tokens. The explorer is an inspectable source-data record and cannot be interpreted as a model performance measurement.
+
+## Independent algorithmic control — 21 November 2026
+
+A dedicated [model-free GraphWalks control](GRAPHWALKS_CONTROL.md)
+executed against the original 200 pinned long-context BFS prompts.
+Ordinary deterministic graph parsing and BFS achieved **200/200
+parsed tasks and F1 = 1.0 for each**, as verified by the
+[GitHub Actions run](https://github.com/fraware/model-claim-replay/actions/runs/44884895995)
+and its [per-task report](../website/graphwalks-control.json). This
+confirms internal consistency of source graph prompts and reference
+answers under an algorithmic solver. It is **not a Gemini model
+evaluation**, does not reproduce the publisher's 95.2%, and does not
+establish equivalence to the publisher's dataset revision or inference
+conditions. An existing [FalkorDB graph/LLM proxy](https://github.com/FalkorDB/GraphWalks)
+is acknowledged as adjacent prior art.

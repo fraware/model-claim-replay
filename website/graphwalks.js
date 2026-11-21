@@ -11,6 +11,7 @@
   let query = '';
   let selected = null;
   let tasks = [];
+  let controlById = new Map();
 
   function showTask(task) {
     selected = task.id;
@@ -60,6 +61,19 @@
       catch { copy.textContent = 'Select digest above to copy'; }
     });
     right.append(hashLabel, hash, copy);
+    const measured = controlById.get(task.id);
+    if (measured) {
+      const evidence = document.createElement('div');
+      evidence.className = 'control-task';
+      const title = document.createElement('small');
+      title.textContent = 'DETERMINISTIC BFS CONTROL / NOT A MODEL SCORE';
+      const result = document.createElement('strong');
+      result.textContent = `F1 ${Number(measured.f1).toFixed(3)} · ${fmt(measured.edge_count)} edges`;
+      const detail = document.createElement('p');
+      detail.textContent = `BFS depth ${measured.depth}; result verified against the pinned public reference answer.`;
+      evidence.append(title, result, detail);
+      right.append(evidence);
+    }
     layout.append(left, right);
     RECORD.append(layout);
   }
@@ -118,6 +132,28 @@
       }
       tasks = data.tasks;
       draw();
+      return fetch('./graphwalks-control.json')
+        .then(response => { if (!response.ok) throw Error('Missing control evidence'); return response.json(); })
+        .then(control => {
+          if (control.schema_version !== 'graphwalks-algorithmic-control-v1' ||
+              control.reference_index_sha256 !== data.source.reference_index_sha256 ||
+              control.source_parquet_sha256 !== data.source.parquet_sha256_verified ||
+              control.source_task_count !== 200 || control.graded !== 200 ||
+              control.parse_failures !== 0 || control.mean_f1_full_cohort !== 1 ||
+              !Array.isArray(control.tasks) || control.tasks.length !== 200) {
+            throw Error('Unexpected algorithmic control receipt');
+          }
+          const byId = new Map(control.tasks.map(row => [row.id, row]));
+          if (byId.size !== 200 || tasks.some(task => {
+            const result = byId.get(task.id);
+            return !result || result.prompt_sha256 !== task.prompt_sha256 ||
+              result.status !== 'graded' || result.f1 !== 1;
+          })) throw Error('Control records do not match public source index');
+          controlById = byId;
+          const selectedTask = tasks.find(row => row.id === selected);
+          if (selectedTask) showTask(selectedTask);
+        })
+        .catch(() => { controlById = new Map(); });
     })
     .catch(() => {
       ROOT.innerHTML = '<p class="loading">The explorer data could not be loaded. The source audit is still available through GitHub.</p>';

@@ -41,6 +41,37 @@ class PublicGraphWalksExplorerTests(unittest.TestCase):
         self.assertEqual(s["shorter_tasks"], 100)
         self.assertEqual(s["longer_tasks"], 100)
 
+    def test_independent_algorithmic_control_is_source_matched_and_not_a_model_score(self):
+        import hashlib
+        path = ROOT / "website" / "graphwalks-control.json"
+        raw = path.read_bytes()
+        control = json.loads(raw)
+        source = json.loads(DATA.read_text())
+        self.assertEqual(hashlib.sha256(raw).hexdigest(),
+                         "627be857ef90db4fe9ff3363f810c313b8454ee8ab0d5dfb2383825ec204bc0b")
+        self.assertEqual(control["schema_version"], "graphwalks-algorithmic-control-v1")
+        self.assertEqual(control["comparison_status"], "not_comparable_to_gemini_model_claim")
+        self.assertEqual(control["source_parquet_sha256"], source["source"]["parquet_sha256_verified"])
+        self.assertEqual(control["reference_index_sha256"], source["source"]["reference_index_sha256"])
+        self.assertEqual((control["graded"], control["parse_failures"]), (200, 0))
+        self.assertEqual(control["mean_f1_full_cohort"], 1.0)
+        by_id = {row["id"]: row for row in control["tasks"]}
+        self.assertEqual(len(by_id), 200)
+        self.assertEqual(sum(row["band"] == "short" for row in by_id.values()), 100)
+        self.assertEqual(sum(row["band"] == "long" for row in by_id.values()), 100)
+        for row in source["tasks"]:
+            result = by_id[row["id"]]
+            self.assertEqual(result["prompt_sha256"], row["prompt_sha256"])
+            self.assertEqual(result["status"], "graded")
+            self.assertEqual(result["f1"], 1.0)
+        self.assertNotIn("Final Answer:", raw.decode())
+        self.assertNotIn("answer_nodes", raw.decode())
+        html = (ROOT / "website" / "graphwalks.html").read_text()
+        self.assertIn("INDEPENDENT MODEL RESULT", html)
+        self.assertIn("DETERMINISTIC BFS CONTROL", html)
+        self.assertIn("No model inference run performed", html)
+        self.assertIn("graphwalks-control.json", (ROOT / "website" / "graphwalks.js").read_text())
+
     def test_provenance_hashes_and_claim_status(self):
         d = json.loads(DATA.read_text())
         src = d["source"]

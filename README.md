@@ -1,6 +1,6 @@
 # Model Claim Replay
 
-### The model is 40% better. Let's reproduce that.
+### They published the score. Show the experiment.
 
 **Published AI benchmark results deserve independently inspectable evidence.** Model Claim Replay is an open-source project to turn individual model-launch claims into reproducible experiments, with pinned inputs, declared execution protocols, independently rerunnable scoring, uncertainty, and shareable reports.
 
@@ -47,6 +47,12 @@ Both records and the revision marker above are **synthetic**. The 5/6 F1 is a fi
 ## Explore the verified GraphWalks source data
 
 The [interactive 200-task GraphWalks audit](https://fraware.github.io/model-claim-replay/graphwalks.html) visualizes the complete SHA-256-verified candidate BFS cohort. Explore source row identities, input sizes and task-level prompt commitments without downloading the original large dataset, revealing raw benchmark prompts, or confusing publisher-reported performance with independent testing. The underlying static JSON is reproducibly generated from the pinned 200-task reference index by `scripts/publish_graphwalks_summary.py`.
+
+## First complete public-data control — 200/200 tasks
+
+Our [source-bound deterministic BFS control](docs/GRAPHWALKS_CONTROL.md) executed against all **200 independently SHA-256-verified public GraphWalks BFS tasks**, achieving **F1 1.0 on all 200** under the original benchmark grader. The audit recorded zero parser failures and exactly 100 tasks in each source-length cohort. The [official GitHub Actions run](https://github.com/fraware/model-claim-replay/actions/runs/44884895995) and [task-level receipt](website/graphwalks-control.json) are public.
+
+**Interpretation:** this is a specialized algorithm reading graph edges from prompts, **not Gemini inference** or a comparison to the published model's 95.2%. It demonstrates internal agreement of the public prompts, graph traversal and source reference answers. The separate model claim remains independently untested.
 
 ## Model-free algorithmic control
 
