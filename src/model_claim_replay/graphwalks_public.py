@@ -19,6 +19,7 @@ from typing import Any
 from .core import ReplayError, read_bytes, read_json, sha256_bytes
 from .graphwalks_runtime import (
     CONTEXT_LIMIT,
+    FOREGROUND_OUTPUT_LIMIT,
     DATASET_REVISION,
     DATASET_SHA256,
     INDEX_SHA256,
@@ -152,7 +153,7 @@ def verify_public_graphwalks_receipts(
     _check(plan.get("context_limit") == CONTEXT_LIMIT, "plan context limit differs")
     _check(plan.get("reference_task_count") == 200, "plan reference count differs")
     output_limit = _count(plan.get("max_output_tokens"), "output allowance")
-    _check(1 <= output_limit <= 32768, "invalid output allowance")
+    _check(1 <= output_limit <= FOREGROUND_OUTPUT_LIMIT, "invalid output allowance")
     planned = plan.get("planned_tasks")
     _check(isinstance(planned, list) and 1 <= len(planned) <= 200,
            "plan has no valid task cohort")
