@@ -122,3 +122,5 @@ jobs:
           claim-replay execute-graphwalks --help
           claim-replay export-graphwalks --help
           claim-replay audit-graphwalks --help
+          claim-replay verify-graphwalks-public --help
+          claim-replay report-graphwalks-public --help
