@@ -274,6 +274,39 @@ class RuntimeTests(unittest.TestCase):
         )
         self.assertEqual(plan["blocked_for_context"], 0)
 
+    def test_journal_creation_is_atomic_and_never_overwrites(self):
+        """Interrupted persistence must not publish truncated intent files."""
+        attempts = self.root / "private-run" / "attempts"
+        attempts.mkdir(parents=True)
+        intent = attempts / "bfs-row-000000.intent.json"
+        first = {"id": "bfs-row-000000", "status": "intended"}
+
+        # Failure before the hard-link publication leaves no journal entry
+        # for the independent auditor to mistake for a billable request.
+        with patch.object(rt.os, "link", side_effect=OSError("injected publish failure")):
+            with self.assertRaisesRegex(OSError, "injected publish"):
+                rt._write_exclusive(intent, first)
+        self.assertFalse(intent.exists())
+        self.assertEqual(list(attempts.iterdir()), [])
+        self.assertEqual(list(attempts.parent.glob(".graphwalks-journal-*")), [])
+
+        # A fatal interruption during serialization leaves the same state.
+        with patch.object(rt, "canonical_json", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                rt._write_exclusive(intent, first)
+        self.assertFalse(intent.exists())
+        self.assertEqual(list(attempts.parent.glob(".graphwalks-journal-*")), [])
+
+        rt._write_exclusive(intent, first)
+        original = intent.read_bytes()
+        self.assertEqual(json.loads(original), first)
+
+        # A duplicate request or result is rejected without changing bytes.
+        with self.assertRaises(FileExistsError):
+            rt._write_exclusive(intent, {"id": "bfs-row-000000", "status": "replay"})
+        self.assertEqual(intent.read_bytes(), original)
+        self.assertEqual(list(attempts.parent.glob(".graphwalks-journal-*")), [])
+
     def test_abrupt_request_interruption_preserves_auditable_intent(self):
         from model_claim_replay.graphwalks_audit import audit_graphwalks_run
 
