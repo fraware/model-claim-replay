@@ -306,6 +306,7 @@ def verify_public_graphwalks_receipts(
             failed = row["parse_failed"]
             if failed:
                 _check(p == r == f1 == 0, "malformed answer has nonzero score")
+                _check(predicted == 0, "malformed parser cannot yield node predictions")
                 malformed += 1
             else:
                 if not predicted and not reference:
