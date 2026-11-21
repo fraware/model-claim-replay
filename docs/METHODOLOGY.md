@@ -65,3 +65,23 @@ authenticate the model execution, prove the image was delivered to the model,
 establish upstream dataset licensing, or establish parity with the publisher.
 Digests are pseudonyms vulnerable to dictionary attacks on known examples.
 No prompts, chart bytes or targets are exported in evidence bundles.
+
+## Single-request portable adapter and incomplete output
+
+The OpenAI-compatible text-only adapter is intentionally narrower than
+provider-specific evaluation harnesses. It sends one HTTP POST to the
+declared endpoint and refuses HTTP redirects. Python's standard
+`urllib.request` opener otherwise follows some POST redirects; an
+unexpected redirect could transmit benchmark data to another URL or
+lead to additional requests. This protection is exercised with actual
+loopback HTTP servers testing HTTP 302 and 307 responses.
+
+A provider chat-completions response is scored only when its
+`finish_reason` is explicitly `stop` and its message contains text.
+Truncated output (`length`), content-filter termination, tool handoff,
+missing completion status, and other reasons are recorded as
+unsuccessful requests, not scored text predictions. This strict
+behavior sacrifices compatibility with endpoints that omit
+`finish_reason`; those endpoints need a declared, independently
+audited protocol adapter. A test success establishes the local
+transport semantics, not the provider's identity or billing.

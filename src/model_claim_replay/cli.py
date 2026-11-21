@@ -31,6 +31,14 @@ def claim_listing(directory: Path) -> list[dict[str, str]]:
     return claims
 
 
+class _NoProviderRedirects(urllib.request.HTTPRedirectHandler):
+    """Reject every redirect: a provider call is one HTTP request only."""
+
+    def redirect_request(self, request: Any, response: Any, code: int,
+                         message: str, headers: Any, newurl: str) -> None:
+        return None
+
+
 def api_completion(*, base_url: str, api_key: str | None, model: str, messages: list[dict[str, str]], temperature: float, max_tokens: int, timeout: float) -> tuple[str, dict[str, Any] | None]:
     """Call an OpenAI-compatible chat-completions endpoint once, without retries.
 
@@ -51,8 +59,11 @@ def api_completion(*, base_url: str, api_key: str | None, model: str, messages: 
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
     request = urllib.request.Request(endpoint, data=canonical_json(payload), headers=headers, method="POST")
+    # urllib's default opener follows certain POST redirects, potentially
+    # changing endpoints or issuing a second request. Never follow them.
+    opener = urllib.request.build_opener(_NoProviderRedirects())
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with opener.open(request, timeout=timeout) as response:
             if int(response.headers.get("Content-Length", "0")) > 1024 * 1024:
                 raise ReplayError("Provider response exceeded size limit")
             raw = response.read(1024 * 1024 + 1)
@@ -64,7 +75,12 @@ def api_completion(*, base_url: str, api_key: str | None, model: str, messages: 
         raise ReplayError("Provider response exceeded 1 MiB")
     try:
         body = json.loads(raw)
-        output = body["choices"][0]["message"]["content"]
+        choice = body["choices"][0]
+        # 'length' means truncated generation; 'content_filter' and tool
+        # handoffs are also incomplete as ordinary text answers.
+        if choice.get("finish_reason") != "stop":
+            raise ReplayError("Provider response did not finish with a complete text answer")
+        output = choice["message"]["content"]
         if not isinstance(output, str):
             raise ValueError("content is not text")
         usage = body.get("usage")
