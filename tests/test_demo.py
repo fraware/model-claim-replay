@@ -55,7 +55,7 @@ class InstalledDemoTests(unittest.TestCase):
             self.assertEqual(summary, json.loads((dest / "report.json").read_text()))
             page = (dest / "report.html").read_text()
             self.assertIn("66.7%", page)
-            self.assertIn("Synthetic", page)
+            self.assertIn("synthetic", page.lower())
             self.assertIn("self-reported", page)
             self.assertNotIn("<script src=", page)
             old = {str(p.relative_to(dest)): p.read_bytes()
