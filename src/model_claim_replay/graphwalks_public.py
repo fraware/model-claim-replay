@@ -33,6 +33,24 @@ from .graphwalks_runtime import (
 
 _SHA = re.compile(r"^[0-9a-f]{64}$")
 _TASK = re.compile(r"^bfs-row-[0-9]{6}$")
+# Derived from the byte-verified candidate Parquet and published in
+# website/graphwalks-audit.json, under the pinned reference index digest.
+# This checks public candidate identities, not publisher cohort equivalence.
+_PUBLIC_SOURCE_IDS = tuple(
+    f"bfs-row-{row:06d}"
+    for band in (range(100, 200), range(300, 400))
+    for row in band
+)
+
+
+def _selected_public_ids(count: int) -> list[str]:
+    """Reconstruct the prespecified source-ordered, context-balanced cohort."""
+    shorter, longer = _PUBLIC_SOURCE_IDS[:100], _PUBLIC_SOURCE_IDS[100:]
+    n_short, n_long = (count + 1) // 2, count // 2
+    return (
+        [shorter[(i * 100) // n_short] for i in range(n_short)]
+        + [longer[(i * 100) // n_long] for i in range(n_long)]
+    )
 _STATES = frozenset({"completed", "error", "unresolved", "not_attempted"})
 _PLAN_FIELDS = frozenset({
     "schema_version", "evidence_level", "model", "thinking_level",
@@ -184,6 +202,8 @@ def verify_public_graphwalks_receipts(
         _check(reservation == expected, "task reservation arithmetic differs")
         reservation_by_id[ident] = reservation
         task_ids.append(ident)
+    _check(task_ids == _selected_public_ids(len(planned)),
+           "planned task identities do not match the pinned balanced public cohort")
     _check(_money(plan.get("maximum_reserved_cost_usd"), "plan reservation")
            == sum(reservation_by_id.values(), Decimal(0)),
            "plan total reservation differs")
@@ -310,6 +330,8 @@ def verify_public_graphwalks_receipts(
             errors += int(status == "error")
             missing += int(status == "missing")
     _check(set(task_ids).issubset(seen), "scorer omitted planned task identities")
+    _check(tuple(row["id"] for row in rows) == _PUBLIC_SOURCE_IDS,
+           "scorer task IDs or order differ from the pinned 200-item public cohort")
     _check(grades.get("task_count") == 200, "score denominator differs")
     for field, expected in (("graded", graded), ("parsed", graded - malformed),
                              ("malformed", malformed), ("api_errors", errors),
