@@ -78,13 +78,37 @@ class GraphWalksPilotGateTests(unittest.TestCase):
         self.assertLess(workflow.index("Refuse partial-coverage"),
                         workflow.index("Perform explicitly authorized"))
 
+    def test_interrupted_paid_step_preserves_audit_and_limits_output(self) -> None:
+        workflow = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
+        self.assertIn('          - "65536"', workflow)
+        self.assertIn('default: "16384"', workflow)
+        self.assertIn("    timeout-minutes: 360", workflow)
+        self.assertIn("        id: paid_execution", workflow)
+        self.assertIn("        timeout-minutes: 330", workflow)
+        self.assertIn("        id: private_audit", workflow)
+        self.assertIn(
+            "if: ${{ !cancelled() && steps.paid_execution.outcome != 'skipped' }}",
+            workflow,
+        )
+        self.assertIn(
+            "steps.private_audit.outcome == 'success'", workflow,
+        )
+        self.assertLess(
+            workflow.index("id: paid_execution"), workflow.index("id: private_audit"),
+        )
+        self.assertLess(
+            workflow.index("id: private_audit"),
+            workflow.index("Upload only score-free plan"),
+        )
+        self.assertIn("if: ${{ !cancelled() }}", workflow)
+
     def test_public_artifact_allowlist_excludes_private_source_and_raw_responses(self) -> None:
         workflow = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
-        artifact = workflow.split("- name: Upload only score-free plan, redacted audit and task-level grades", 1)[1]
+        artifact = workflow.split("- name: Upload only score-free plan, redacted audit and verified task-level grades", 1)[1]
         self.assertIn("path: |", artifact)
-        for filename in ("token-plan.json", "pilot-audit.json", "pilot-scores.json"):
+        for filename in ("token-plan.json", "pilot-audit.json", "pilot-scores.json", "pilot-public-verification.json"):
             self.assertIn(filename, artifact)
-        for private_name in ("pilot-responses.jsonl", "graphwalks_256k_to_1mil.parquet", "pilot-run", "bfs-reference-index.jsonl"):
+        for private_name in ("pilot-responses.jsonl", "graphwalks_256k_to_1mil.parquet", "pilot-run", "bfs-reference-index.jsonl", "pilot-scores-pending.json"):
             self.assertNotIn(private_name, artifact)
         self.assertIn("retention-days: 7", artifact)
 

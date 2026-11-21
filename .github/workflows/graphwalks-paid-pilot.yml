@@ -23,6 +23,7 @@ on:
           - "8192"
           - "16384"
           - "32768"
+          - "65536"
       max_spend_usd:
         description: "Authorized upper reservation in USD (positive, <=100)"
         type: string
@@ -44,7 +45,7 @@ concurrency:
 jobs:
   controlled-pilot:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -99,6 +100,9 @@ jobs:
             --plan .runs/private/pilot-source/token-plan.json \
             --index .runs/private/pilot-source/graphwalks-bfs-reference-index.jsonl
       - name: Perform explicitly authorized sequential single-attempt model calls
+        id: paid_execution
+        # Preserve time for a post-failure audit of durable request intents.
+        timeout-minutes: 330
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           MAX_SPEND_USD: ${{ inputs.max_spend_usd }}
@@ -109,7 +113,11 @@ jobs:
             --plan .runs/private/pilot-source/token-plan.json \
             --max-spend-usd "$MAX_SPEND_USD" --execute-paid \
             --out .runs/private/pilot-run
-      - name: Independently audit the private response journal
+      - name: Independently audit the private response journal, including interrupted runs
+        id: private_audit
+        # A failed paid step may leave possibly billable intent files.
+        # Retain their redacted status whenever the runner is still available.
+        if: ${{ !cancelled() && steps.paid_execution.outcome != 'skipped' }}
         run: |
           claim-replay audit-graphwalks \
             --plan .runs/private/pilot-source/token-plan.json \
@@ -117,6 +125,9 @@ jobs:
             --run-dir .runs/private/pilot-run \
             --out .runs/private/pilot-audit.json
       - name: Export private answers and score against original F1
+        # A journal audit remains publishable after a runner failure; scored
+        # results are emitted only following successful execution and audit.
+        if: ${{ !cancelled() && steps.paid_execution.outcome == 'success' && steps.private_audit.outcome == 'success' }}
         run: |
           claim-replay export-graphwalks \
             --plan .runs/private/pilot-source/token-plan.json \
@@ -128,8 +139,19 @@ jobs:
             --responses .runs/private/pilot-responses.jsonl \
             --index-sha256 250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee \
             --dataset-revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 \
-            --out .runs/private/pilot-scores.json
-      - name: Upload only score-free plan, redacted audit and task-level grades
+            --out .runs/private/pilot-scores-pending.json
+      - name: Cross-check redacted evidence before publishing scored results
+        # Prevent a score artifact from being published if its statuses,
+        # denominators, reservations or SHA-256 bindings disagree with the audit.
+        if: ${{ !cancelled() && steps.paid_execution.outcome == 'success' && steps.private_audit.outcome == 'success' }}
+        run: |
+          claim-replay verify-graphwalks-public \
+            --plan .runs/private/pilot-source/token-plan.json \
+            --audit .runs/private/pilot-audit.json \
+            --grades .runs/private/pilot-scores-pending.json \
+            --out .runs/private/pilot-public-verification.json
+          mv .runs/private/pilot-scores-pending.json .runs/private/pilot-scores.json
+      - name: Upload only score-free plan, redacted audit and verified task-level grades
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
@@ -138,5 +160,6 @@ jobs:
             .runs/private/pilot-source/token-plan.json
             .runs/private/pilot-audit.json
             .runs/private/pilot-scores.json
+            .runs/private/pilot-public-verification.json
           if-no-files-found: warn
           retention-days: 7

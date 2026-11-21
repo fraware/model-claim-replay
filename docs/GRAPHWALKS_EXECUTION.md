@@ -66,7 +66,7 @@ claim-replay plan-graphwalks \
   --out .runs/private/graphwalks/one-task-plan.json
 ```
 
-The plan contains *provider-returned* input token counts, context feasibility, per-task maximum reserved charges at the documented **standard** pricing of $3/M input tokens and $15/M output tokens (including thinking), and exact source SHA-256 bindings. It contains no prompt text or correct answers. The model has a **shared 1,048,576-token input+reasoning+output context** and a **32,768-token single-hop nonstreaming output ceiling**. Longer responses need a separately budgeted continuation protocol. Any input whose counted tokens plus requested output allowance exceed the context limit is marked blocked. The preflight is strictly preliminary until the provider confirms the actual context allocation. Changing the model, thinking level, source bytes or output allowance invalidates the plan.
+The plan contains *provider-returned* input token counts, context feasibility, per-task maximum reserved charges at the documented **standard** pricing of $3/M input tokens and $15/M output tokens (including thinking), and exact source SHA-256 bindings. It contains no prompt text or correct answers. The model has a **shared 1,048,576-token input+reasoning+output context** and a **65,536-token synchronous one-hop output ceiling**. Longer responses need a separately budgeted continuation protocol. Any input whose counted tokens plus requested output allowance exceed the context limit is marked blocked. The preflight is strictly preliminary until the provider confirms the actual context allocation. Changing the model, thinking level, source bytes or output allowance invalidates the plan.
 
 ## Manual GitHub pilot with two separate authorization gates
 
@@ -84,7 +84,7 @@ defaults to `approval=NO` and `max_spend_usd=0`, deliberately
 blocking billable requests. To authorize one run, set a **positive
 finite USD ceiling no greater than $100** and type the exact phrase
 `AUTHORIZE_PAID_GEMINI`. Choose 1, 2, 5, or 20 tasks and a
-per-task output allowance of 8,192, 16,384, or 32,768 tokens.
+per-task output allowance of 8,192, 16,384, 32,768, or 65,536 tokens. The default remains 16,384 for a lower-cost diagnostic; the 65,536-token choice is the published foreground limit, not evidence that Google used that exact allowance.
 Two tasks is the recommended first diagnostic: one from each
 verified source-length cohort.
 
@@ -105,9 +105,7 @@ plan**, the **redacted local journal audit**, and the **per-task F1 report**
 original source Parquet, gold answer index, private model-response
 journal, raw predictions and credential never enter that artifact.
 GitHub-hosted runners and the model provider still process those
-private files under their own service policies. A failed or
-interrupted step can produce incomplete evidence. Download the artifacts
-and review all statuses before drawing a conclusion.
+private files under their own service policies. The execution step has a 330-minute timeout inside a 360-minute job. If it fails or times out after writing a durable request intent, the workflow attempts the independent audit even though the paid step failed. The redacted audit then records unresolved intents as potentially billable, with no fabricated result. Scoring only proceeds if the execution step and audit both succeed. Before publishing grades, the workflow cross-checks the redacted plan, audit and scorer output using `claim-replay verify-graphwalks-public`. Its verification receipt and source-faithful grades are published only if that comparison passes; a failed attempt can instead publish the token plan and audit alone. Abrupt cancellation, runner loss, or exhaustion of the overall job timeout can still prevent any upload. The GitHub runner is ephemeral: absence of an artifact is not evidence that zero API calls occurred. Download the artifacts and review all statuses before drawing a conclusion.
 
 For an entirely offline authorization audit, run:
 `python -m unittest discover -s tests -p test_graphwalks_pilot_gate.py -v`.
@@ -195,7 +193,7 @@ text content. The parser admits only one completed model-output step,
 the correct model identity, and valid token usage. Incomplete or
 `requires_continuation` responses are **unscored**. It never copies
 partial continuation tokens or reasoning signatures to public artifacts.
-One-hop nonstreaming output is limited to **32,768 tokens**.
+One-hop nonstreaming output is limited to **65,536 tokens** for Gemini 4 Neon under Google's November 2026 model specification. The paid workflow defaults to a deliberately smaller **16,384-token allowance**. The allowance includes reasoning and final-answer tokens: a restricted diagnostic run can truncate a correct generation and does not establish the publisher's evaluation conditions.
 
 A loopback HTTP integration test verifies exact JSON fields, request
 headers, a single POST, 429 responses without retries, redirect rejection,

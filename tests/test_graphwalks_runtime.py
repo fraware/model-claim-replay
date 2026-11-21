@@ -256,7 +256,7 @@ class RuntimeTests(unittest.TestCase):
             self._run(plan, lambda *_: 1/0)
 
     def test_invalid_max_output_and_fake_counts_blocked(self):
-        for output in (True, 0, -1, 32769, 65537):
+        for output in (True, 0, -1, 65537, 1000000):
             with self.subTest(output=output):
                 with self.assertRaises(ReplayError):
                     self._plan(max_output_tokens=output)
@@ -264,6 +264,58 @@ class RuntimeTests(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaisesRegex(ReplayError, "token count"):
                     self._plan(count=lambda _: value)
+
+    def test_foreground_provider_limit_is_explicitly_reserved(self):
+        plan = self._plan(max_tasks=1, max_output_tokens=65536)
+        self.assertEqual(plan["max_output_tokens"], 65536)
+        self.assertEqual(
+            plan["planned_tasks"][0]["maximum_reserved_cost_usd"],
+            str(rt._usd(100, 65536)),
+        )
+        self.assertEqual(plan["blocked_for_context"], 0)
+
+    def test_abrupt_request_interruption_preserves_auditable_intent(self):
+        from model_claim_replay.graphwalks_audit import audit_graphwalks_run
+
+        plan = self._plan(max_tasks=2)
+        def interrupt(*_):
+            raise KeyboardInterrupt("simulated abrupt process stop")
+
+        # A BaseException interrupts the command after its intent was created,
+        # but before a result was persisted. No API is contacted by this test.
+        with self.assertRaises(KeyboardInterrupt):
+            self._run(plan, interrupt)
+        intent = self.root / "private-run" / "attempts" / "bfs-row-000000.intent.json"
+        result = self.root / "private-run" / "attempts" / "bfs-row-000000.result.json"
+        self.assertTrue(intent.is_file())
+        self.assertFalse(result.exists())
+
+        with patch.object(rt, "INDEX_SHA256", self.index_sha), patch.object(
+            rt, "DATASET_SHA256", self.source_sha,
+        ):
+            audit = audit_graphwalks_run(
+                self.root / "plan.json", self.index, self.root / "private-run",
+            )
+        self.assertEqual(
+            (audit["attempted"], audit["unresolved"], audit["not_attempted"]),
+            (1, 1, 1),
+        )
+        self.assertEqual(audit["entries"][0]["status"], "unresolved")
+        self.assertNotIn("Synthetic GraphWalks", json.dumps(audit))
+        self.assertNotIn("answer_nodes", json.dumps(audit))
+
+        calls = []
+        def next_task_only(prompt, *_):
+            calls.append(prompt)
+            return SimpleNamespace(
+                status="completed", output_text="Final Answer: [node-100]",
+                usage=SimpleNamespace(total_input_tokens=100, total_output_tokens=9),
+            )
+        resumed = self._run(plan, next_task_only)
+        self.assertEqual(resumed["new_requests"], 1)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0], "Synthetic GraphWalks task 100")
+        self.assertEqual(resumed["unresolved_attempts_without_results"], 1)
 
     def test_budget_prevents_second_billable_request(self):
         plan = self._plan()

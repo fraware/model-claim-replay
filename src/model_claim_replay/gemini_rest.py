@@ -23,7 +23,10 @@ API_HOST = "generativelanguage.googleapis.com"
 API_PATH = "/v1beta/interactions"
 API_REVISION = "2026-05-20"
 MAX_RESPONSE_BYTES = 8 * 1024 * 1024
-MAX_ONE_HOP_OUTPUT = 32_768
+# Google AI Studio's Gemini 4 Neon specification (2026-11-21):
+# https://aistudio.google.com/docs/models/gemini-4-neon
+# This is the provider's synchronous limit, not the default diagnostic budget.
+MAX_ONE_HOP_OUTPUT = 65_536
 DEFAULT_TIMEOUT_SECONDS = 900
 
 
