@@ -98,6 +98,30 @@ jobs:
           assert Path("local-demo/report.html").is_file()
           PY
 
+  website-browser:
+    # Test real HTML/CSS/JS and source receipts in Chromium on two viewports.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Playwright and local Chromium
+        run: |
+          python -m pip install 'playwright>=1.56,<2'
+          python -m playwright install --with-deps chromium
+      - name: Test desktop/mobile interactions and source-data receipts
+        run: python scripts/visual_smoke.py --site website --out .runs/visual-smoke
+      - name: Retain offline screenshots when browser QA fails
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-browser-failure
+          path: .runs/visual-smoke
+          if-no-files-found: ignore
+          retention-days: 7
+
   graphwalks-runtime:
     runs-on: ubuntu-latest
     timeout-minutes: 10
