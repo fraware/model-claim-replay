@@ -201,6 +201,11 @@ def build_parser() -> argparse.ArgumentParser:
     export_gw.add_argument("--index", required=True, type=Path, help="Pinned 200-task BFS reference index")
     export_gw.add_argument("--run-dir", required=True, type=Path)
     export_gw.add_argument("--out", required=True, type=Path)
+    public_gw = sub.add_parser("verify-graphwalks-public", help="Cross-check redacted GraphWalks public receipts offline")
+    public_gw.add_argument("--plan", required=True, type=Path, help="Public non-generative token plan")
+    public_gw.add_argument("--audit", required=True, type=Path, help="Redacted private-journal audit")
+    public_gw.add_argument("--grades", required=True, type=Path, help="Public task-level F1 scoring report")
+    public_gw.add_argument("--out", required=True, type=Path, help="New JSON verification receipt")
     audit_gw = sub.add_parser("audit-graphwalks", help="Audit a private GraphWalks run journal completely offline")
     audit_gw.add_argument("--plan", required=True, type=Path)
     audit_gw.add_argument("--index", required=True, type=Path)
@@ -381,6 +386,17 @@ def main(argv: list[str] | None = None) -> int:
                   f"{audit['unresolved']} unresolved")
             print("This checks self-reported local records, not provider execution or billing.")
             print(f"Saved private-run audit: {args.out}")
+        elif args.command == "verify-graphwalks-public":
+            from .graphwalks_public import verify_public_graphwalks_receipts
+            from .graphwalks import save_scoring_report
+            summary = verify_public_graphwalks_receipts(args.plan, args.audit, args.grades)
+            save_scoring_report(summary, args.out)
+            print(f"Redacted receipts agree: {summary['completed']} completed, "
+                  f"{summary['failed']} failed, {summary['unresolved']} unresolved; "
+                  f"{summary['graded']}/{summary['task_count']} graded")
+            print("Evidence level: internally consistent self-report only; "
+                  "provider execution and scoring correctness remain unattested")
+            print(f"Saved verification receipt: {args.out}")
         elif args.command == "grade-graphwalks":
             from .graphwalks import score_recorded_bfs, save_scoring_report
             summary = score_recorded_bfs(
