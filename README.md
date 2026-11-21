@@ -4,6 +4,17 @@
 
 **Published AI benchmark results deserve independently inspectable evidence.** Model Claim Replay is an open-source project to turn individual model-launch claims into reproducible experiments, with pinned inputs, declared execution protocols, independently rerunnable scoring, uncertainty, and shareable reports.
 
+## Run your first evidence replay
+
+Python 3.10+; no model key, paid inference, or third-party runtime packages. Install directly from GitHub and generate a **fully offline synthetic** evidence bundle from any directory:
+
+```bash
+python -m pip install "git+https://github.com/fraware/model-claim-replay.git"
+claim-replay demo
+```
+
+Open `.runs/demo/report.html` in a browser. The bundled three-task exercise imports fixed responses, recomputes exact-match scores, checks SHA-256 integrity, and creates independent HTML/JSON reports. Its **2/3 score is synthetic** and cannot be used to support any published model claim. Run `claim-replay demo --out another-directory` to create a second exercise; the command never overwrites an existing bundle.
+
 [Live website](https://fraware.github.io/model-claim-replay/) · [Explore 200 verified GraphWalks tasks](https://fraware.github.io/model-claim-replay/graphwalks.html) · [Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [GraphWalks research](docs/GRAPHWALKS.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
 
 > **Project status — foundation, not a completed benchmark replication.** The CLI executes pinned *portable text* fixtures, imports scored Inspect AI logs from an official evaluation, verifies local evidence hashes, compares compatible runs on identical task/epoch pairs, and generates standalone HTML/JSON reports. The registered Chartography and Gemini 4 Neon / GraphWalks claims are real published statements, **not** completed reproductions. Dataset access, licensing, model settings, judge protocol, and budget still need to be resolved before real comparison is justified. No provider result is invented.

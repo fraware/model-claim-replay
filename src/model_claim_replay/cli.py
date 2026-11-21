@@ -150,6 +150,9 @@ def build_parser() -> argparse.ArgumentParser:
     """Create the stable v0.1 CLI parser."""
     p = argparse.ArgumentParser(prog="claim-replay", description="Source-anchored AI model claim experiments")
     sub = p.add_subparsers(dest="command", required=True)
+    demo = sub.add_parser("demo", help="Generate a full offline synthetic evidence report with no credentials")
+    demo.add_argument("--out", type=Path, default=Path(".runs/demo"),
+                      help="New directory for the full evidence exercise (default: .runs/demo)")
     listing = sub.add_parser("list", help="List the claim registry")
     listing.add_argument("--claims-dir", type=Path, default=Path("claims"))
     inspect = sub.add_parser("inspect", help="Inspect a claim and its reproduction blockers")
@@ -240,7 +243,14 @@ def main(argv: list[str] | None = None) -> int:
     """Run CLI, emitting actionable errors and nonzero exit status on failure."""
     args = build_parser().parse_args(argv)
     try:
-        if args.command == "list":
+        if args.command == "demo":
+            from .demo import generate_offline_demo
+            summary = generate_offline_demo(args.out)
+            print(f"Synthetic evidence verified: {summary['successes']}/{summary['assessed']} exact matches")
+            print(f"Open this file in a browser: {args.out / 'report.html'}")
+            print(f"Independently inspect artifacts: {args.out / 'README.md'}")
+            print("No model API calls, provider attestation, or published-claim reproduction.")
+        elif args.command == "list":
             for item in claim_listing(args.claims_dir):
                 print(f"{item['kind']:<10} {item['id']:<44} {item['title']}")
         elif args.command == "inspect":

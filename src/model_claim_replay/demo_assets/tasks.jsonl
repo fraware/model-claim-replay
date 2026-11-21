@@ -1,0 +1,3 @@
+{"id":"one","prompt":"Answer with exactly the word alpha.","expected":"alpha"}
+{"id":"two","prompt":"Answer with exactly the word beta.","expected":"beta"}
+{"id":"three","prompt":"Answer with exactly the word gamma.","expected":"gamma"}

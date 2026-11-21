@@ -70,6 +70,34 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  packaged-demo:
+    # Verify the actual wheel from an unrelated directory, not the checkout.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build installable wheel
+        run: python -m pip wheel . --no-deps --wheel-dir "$RUNNER_TEMP/wheels"
+      - name: Install only the wheel and run an offline demonstration
+        run: |
+          python -m venv "$RUNNER_TEMP/consumer"
+          "$RUNNER_TEMP/consumer/bin/python" -m pip install "$RUNNER_TEMP"/wheels/model_claim_replay-*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/consumer/bin/claim-replay" demo --out local-demo
+          "$RUNNER_TEMP/consumer/bin/claim-replay" verify local-demo/run --claim local-demo/claim.json --tasks local-demo/tasks.jsonl
+          "$RUNNER_TEMP/consumer/bin/python" - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path("local-demo/report.json").read_text())
+          assert result["successes"] == 2 and result["failures"] == 1
+          assert result["comparison_status"] == "not_comparable"
+          assert result["kind"] == "synthetic"
+          assert Path("local-demo/report.html").is_file()
+          PY
+
   graphwalks-runtime:
     runs-on: ubuntu-latest
     timeout-minutes: 10

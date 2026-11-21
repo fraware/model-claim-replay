@@ -24,4 +24,4 @@ claim-replay = "model_claim_replay.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-model_claim_replay = ["py.typed"]
+model_claim_replay = ["py.typed", "demo_assets/*.json", "demo_assets/*.jsonl"]
