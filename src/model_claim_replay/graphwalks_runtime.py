@@ -13,7 +13,9 @@ import hashlib
 import json
 import math
 import os
+import stat
 import tempfile
+from contextlib import contextmanager
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Callable, Iterator
@@ -328,6 +330,50 @@ def _write_exclusive(path: Path, obj: dict[str, Any]) -> None:
         staged.unlink(missing_ok=True)
 
 
+@contextmanager
+def _exclusive_paid_run(out: Path) -> Iterator[None]:
+    """Fail closed if another runner owns this output directory.
+
+    A persistent, per-run advisory lock is acquired nonblocking *before*
+    inspecting a resumed journal. POSIX releases the lock on a process crash,
+    unlike an exclusive-create sentinel that would permanently block recovery.
+    Resolve parent-directory aliases to the same lock. Windows paid execution
+    is refused until equivalent cross-process locking is implemented.
+    """
+    try:
+        import fcntl
+    except ImportError as exc:
+        raise ReplayError(
+            "GraphWalks paid execution needs POSIX advisory locking"
+        ) from exc
+    if out.is_symlink():
+        raise ReplayError("GraphWalks paid run directory must not be a symlink")
+    target = out.resolve(strict=False)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = target.parent / f".{target.name}.graphwalks-execution.lock"
+    flags = os.O_RDWR | os.O_CREAT | os.O_NONBLOCK
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    if hasattr(os, "O_CLOEXEC"):
+        flags |= os.O_CLOEXEC
+    fd = os.open(lock_path, flags, 0o600)
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise ReplayError("GraphWalks paid execution lock must be a regular file")
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise ReplayError(
+                "Another GraphWalks execution is already active for this output directory"
+            ) from None
+        try:
+            yield
+        finally:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+    finally:
+        os.close(fd)
+
+
 def _run_status(response: Any) -> tuple[str, str | None, dict[str, int | None]]:
     status = getattr(response, "status", None)
     output = getattr(response, "output_text", None)
@@ -368,100 +414,107 @@ def execute_token_plan(
         raise ReplayError("--max-spend-usd must be a positive finite decimal") from None
     if not budget.is_finite() or budget <= 0:
         raise ReplayError("--max-spend-usd must be a positive finite decimal")
-    plan = _load_plan(plan_path, index_path)
-    prompts = verified_prompts(
-        parquet_path, index_path,
-        expected_parquet_sha256=plan["parquet_sha256"],
-        expected_index_sha256=plan["index_sha256"],
-        source_rows=source_rows,
-    )
-    if any(not row["fits_context_with_output_allowance"] for row in plan["planned_tasks"]):
-        raise ReplayError("Plan contains out-of-context tasks; paid run is blocked")
-    plan_sha256 = sha256_bytes(read_bytes(plan_path))
-    attempts = out / "attempts"
-    metadata = out / "run.json"
-    if out.exists() and not metadata.is_file():
-        raise ReplayError("Output directory exists without a valid run manifest")
-    if not out.exists():
-        out.mkdir(parents=True, exist_ok=False)
-        attempts.mkdir(exist_ok=False)
-        _write_exclusive(metadata, {
-            "schema_version": "graphwalks-paid-run-v1",
-            "model": MODEL, "plan_sha256": plan_sha256,
-            "candidate_dataset_revision": DATASET_REVISION,
-            "provenance": "api_self_reported_no_provider_attestation",
-            "created_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-            "content_policy": "raw_model_answers_private_no_source_prompts",
-        })
-    else:
-        existing = read_json(metadata)
-        if existing.get("plan_sha256") != plan_sha256 or existing.get("model") != MODEL:
-            raise ReplayError("A resume cannot change the original execution plan")
-    reserved = Decimal(0)
-    completed = ambiguous = sent = 0
-    for task in plan["planned_tasks"]:
-        ident = task["id"]
-        intent = attempts / f"{ident}.intent.json"
-        result_path = attempts / f"{ident}.result.json"
-        upper = Decimal(task["maximum_reserved_cost_usd"])
-        if intent.is_file():
-            if reserved + upper > budget:
-                raise ReplayError("Existing attempt reservations exceed the supplied budget")
-            if read_json(intent).get("plan_sha256") != plan_sha256:
-                raise ReplayError("Previous attempt is bound to another plan")
-            reserved += upper
-            if result_path.is_file():
-                completed += int(read_json(result_path).get("status") == "ok")
-            else:
-                ambiguous += 1
-            continue
-        if reserved + upper > budget:
-            break
-        # The plan is user-held bytes, not authenticated provider usage.
-        # Recount the exact current prompt before every billable call.
-        fresh = _tokens(recount_tokens(prompts[ident]), description="pre-generation input")
-        if fresh != task["input_tokens"]:
-            raise ReplayError("Current provider token count differs from the approved plan")
-        if fresh + plan["max_output_tokens"] > CONTEXT_LIMIT:
-            raise ReplayError("Current input and output allowance exceed the model context")
-        reserved += upper
-        _write_exclusive(intent, {
-            "id": ident, "plan_sha256": plan_sha256,
-            "input_sha256": task["prompt_sha256"],
-            "reserved_ceiling_usd": str(upper),
-            "request_state": "possibly_billable_once_intent_created",
-            "started_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-        })
-        sent += 1
-        try:
-            response = generate(prompts[ident], MODEL, plan["max_output_tokens"], plan["thinking_level"])
-            status, output, usage = _run_status(response)
-        except Exception as exc:
-            status, output, usage = "error", None, {}
-            # Never repeat a failed or uncertain request automatically. The
-            # provider may already have billed the attempt.
-            error_type = (f"ProviderHTTP_{exc.status_code}"
-                          if isinstance(exc, ProviderStatusError)
-                          else type(exc).__name__)
+    # Serialize the source check, journal audit, budget accounting and
+    # generation loop under one cross-process lock.
+    with _exclusive_paid_run(out):
+        plan = _load_plan(plan_path, index_path)
+        prompts = verified_prompts(
+            parquet_path, index_path,
+            expected_parquet_sha256=plan["parquet_sha256"],
+            expected_index_sha256=plan["index_sha256"],
+            source_rows=source_rows,
+        )
+        if any(not row["fits_context_with_output_allowance"] for row in plan["planned_tasks"]):
+            raise ReplayError("Plan contains out-of-context tasks; paid run is blocked")
+        plan_sha256 = sha256_bytes(read_bytes(plan_path))
+        attempts = out / "attempts"
+        metadata = out / "run.json"
+        if out.exists() and not metadata.is_file():
+            raise ReplayError("Output directory exists without a valid run manifest")
+        if not out.exists():
+            out.mkdir(parents=True, exist_ok=False)
+            attempts.mkdir(exist_ok=False)
+            _write_exclusive(metadata, {
+                "schema_version": "graphwalks-paid-run-v1",
+                "model": MODEL, "plan_sha256": plan_sha256,
+                "candidate_dataset_revision": DATASET_REVISION,
+                "provenance": "api_self_reported_no_provider_attestation",
+                "created_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "content_policy": "raw_model_answers_private_no_source_prompts",
+            })
         else:
-            error_type = None
-        data: dict[str, Any] = {"id": ident, "status": status, "usage": usage,
-                               "error_type": error_type}
-        if status == "ok":
-            data["output"] = output
-            completed += 1
-        _write_exclusive(result_path, data)
-    return {
-        "schema_version": "graphwalks-paid-run-summary-v1",
-        "plan_sha256": plan_sha256,
-        "new_requests": sent,
-        "successful_attempts": completed,
-        "unresolved_attempts_without_results": ambiguous,
-        "budget_reserved_usd": str(reserved),
-        "budget_authorized_usd": str(budget),
-        "notional_spend_only": True,
-        "comparison_status": "not_comparable",
-    }
+            existing = read_json(metadata)
+            if existing.get("plan_sha256") != plan_sha256 or existing.get("model") != MODEL:
+                raise ReplayError("A resume cannot change the original execution plan")
+            # Validate the entire prior journal, including result contents and
+            # per-task budget reservations, before authorizing any new requests.
+            from .graphwalks_audit import audit_graphwalks_run
+            audit_graphwalks_run(plan_path, index_path, out)
+        reserved = Decimal(0)
+        completed = ambiguous = sent = 0
+        for task in plan["planned_tasks"]:
+            ident = task["id"]
+            intent = attempts / f"{ident}.intent.json"
+            result_path = attempts / f"{ident}.result.json"
+            upper = Decimal(task["maximum_reserved_cost_usd"])
+            if intent.is_file():
+                if reserved + upper > budget:
+                    raise ReplayError("Existing attempt reservations exceed the supplied budget")
+                if read_json(intent).get("plan_sha256") != plan_sha256:
+                    raise ReplayError("Previous attempt is bound to another plan")
+                reserved += upper
+                if result_path.is_file():
+                    completed += int(read_json(result_path).get("status") == "ok")
+                else:
+                    ambiguous += 1
+                continue
+            if reserved + upper > budget:
+                break
+            # The plan is user-held bytes, not authenticated provider usage.
+            # Recount the exact current prompt before every billable call.
+            fresh = _tokens(recount_tokens(prompts[ident]), description="pre-generation input")
+            if fresh != task["input_tokens"]:
+                raise ReplayError("Current provider token count differs from the approved plan")
+            if fresh + plan["max_output_tokens"] > CONTEXT_LIMIT:
+                raise ReplayError("Current input and output allowance exceed the model context")
+            reserved += upper
+            _write_exclusive(intent, {
+                "id": ident, "plan_sha256": plan_sha256,
+                "input_sha256": task["prompt_sha256"],
+                "reserved_ceiling_usd": str(upper),
+                "request_state": "possibly_billable_once_intent_created",
+                "started_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+            })
+            sent += 1
+            try:
+                response = generate(prompts[ident], MODEL, plan["max_output_tokens"], plan["thinking_level"])
+                status, output, usage = _run_status(response)
+            except Exception as exc:
+                status, output, usage = "error", None, {}
+                # Never repeat a failed or uncertain request automatically. The
+                # provider may already have billed the attempt.
+                error_type = (f"ProviderHTTP_{exc.status_code}"
+                              if isinstance(exc, ProviderStatusError)
+                              else type(exc).__name__)
+            else:
+                error_type = None
+            data: dict[str, Any] = {"id": ident, "status": status, "usage": usage,
+                                   "error_type": error_type}
+            if status == "ok":
+                data["output"] = output
+                completed += 1
+            _write_exclusive(result_path, data)
+        return {
+            "schema_version": "graphwalks-paid-run-summary-v1",
+            "plan_sha256": plan_sha256,
+            "new_requests": sent,
+            "successful_attempts": completed,
+            "unresolved_attempts_without_results": ambiguous,
+            "budget_reserved_usd": str(reserved),
+            "budget_authorized_usd": str(budget),
+            "notional_spend_only": True,
+            "comparison_status": "not_comparable",
+        }
 
 
 def export_private_responses(plan_path: Path, index_path: Path, run_dir: Path, out: Path) -> None:
