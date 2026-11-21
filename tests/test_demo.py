@@ -52,7 +52,8 @@ class InstalledDemoTests(unittest.TestCase):
             self.assertEqual(summary["kind"], "synthetic")
             self.assertEqual(summary["run_kind"], "imported")
             self.assertEqual(summary["comparison_status"], "not_comparable")
-            self.assertEqual(summary, json.loads((dest / "report.json").read_text()))
+            self.assertEqual(json.loads(json.dumps(summary)),
+                             json.loads((dest / "report.json").read_text()))
             page = (dest / "report.html").read_text()
             self.assertIn("66.7%", page)
             self.assertIn("synthetic", page.lower())
