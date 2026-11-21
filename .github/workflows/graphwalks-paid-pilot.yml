@@ -150,6 +150,11 @@ jobs:
             --audit .runs/private/pilot-audit.json \
             --grades .runs/private/pilot-scores-pending.json \
             --out .runs/private/pilot-public-verification.json
+          claim-replay report-graphwalks-public \
+            --plan .runs/private/pilot-source/token-plan.json \
+            --audit .runs/private/pilot-audit.json \
+            --grades .runs/private/pilot-scores-pending.json \
+            --out .runs/private/pilot-public-report.html
           mv .runs/private/pilot-scores-pending.json .runs/private/pilot-scores.json
       - name: Upload only score-free plan, redacted audit and verified task-level grades
         if: ${{ !cancelled() }}
@@ -161,5 +166,6 @@ jobs:
             .runs/private/pilot-audit.json
             .runs/private/pilot-scores.json
             .runs/private/pilot-public-verification.json
+            .runs/private/pilot-public-report.html
           if-no-files-found: warn
           retention-days: 7
