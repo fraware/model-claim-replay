@@ -71,6 +71,36 @@ def _public_prompt_digests() -> dict[str, str]:
     return dict(zip(_PUBLIC_SOURCE_IDS, rows))
 
 
+@lru_cache(maxsize=1)
+def _public_answer_list_sizes() -> dict[str, int]:
+    """Read the 200 public candidate reference-list sizes, not gold answers.
+
+    The source audit exported len(answer_nodes) for each BFS task. The
+    original scorer uses len(set(answer_nodes)); thus source list length is
+    a provable upper bound on the scorer's reference-set cardinality, even
+    if a reference happened to contain duplicate entries. A nonempty list
+    of valid node identifiers also implies a nonempty reference set.
+    """
+    try:
+        rows = (
+            files("model_claim_replay")
+            .joinpath("graphwalks_answer_list_sizes.txt")
+            .read_text(encoding="ascii")
+            .splitlines()
+        )
+    except (OSError, UnicodeError) as exc:
+        raise ReplayError(
+            "Public GraphWalks candidate answer-list sizes are unavailable"
+        ) from exc
+    _check(
+        len(rows) == len(_PUBLIC_SOURCE_IDS)
+        and all(value.isascii() and value.isdecimal()
+                and str(int(value)) == value for value in rows),
+        "invalid bundled public candidate answer-list sizes",
+    )
+    return dict(zip(_PUBLIC_SOURCE_IDS, map(int, rows)))
+
+
 def _selected_public_ids(count: int) -> list[str]:
     """Reconstruct the prespecified source-ordered, context-balanced cohort."""
     shorter, longer = _PUBLIC_SOURCE_IDS[:100], _PUBLIC_SOURCE_IDS[100:]
@@ -335,6 +365,14 @@ def verify_public_graphwalks_receipts(
             _check(type(row.get("parse_failed")) is bool, "invalid parser status")
             predicted = _count(row.get("predicted_nodes"), "predicted nodes")
             reference = _count(row.get("reference_nodes"), "reference nodes")
+            source_list_size = _public_answer_list_sizes()[ident]
+            # Source list length bounds deduplicated reference-set size. Do
+            # not assert equality without proving source-list uniqueness.
+            _check(
+                (reference == 0 if source_list_size == 0
+                 else 1 <= reference <= source_list_size),
+                f"scored reference cardinality contradicts pinned source for {ident}",
+            )
             failed = row["parse_failed"]
             if failed:
                 _check(p == r == f1 == 0, "malformed answer has nonzero score")
