@@ -379,6 +379,22 @@ class RuntimeTests(unittest.TestCase):
              / "bfs-row-000100.intent.json").exists()
         )
 
+    def test_resumption_rejects_nonobject_run_manifest(self):
+        """Malformed private metadata must not produce an AttributeError."""
+        plan = self._plan(max_tasks=2)
+        one_request_budget = plan["planned_tasks"][0]["maximum_reserved_cost_usd"]
+        self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
+        (self.root / "private-run" / "run.json").write_text("[]")
+        with self.assertRaisesRegex(ReplayError, "resume cannot change"):
+            self._run(
+                plan, lambda *_: self.fail("Paid request with invalid metadata"),
+                budget="1",
+            )
+        self.assertFalse(
+            (self.root / "private-run" / "attempts"
+             / "bfs-row-000100.intent.json").exists()
+        )
+
     def test_resumption_refuses_extraneous_journal_files(self):
         """Unexpected prior artifacts cannot be ignored when billing resumes."""
         plan = self._plan(max_tasks=2)
