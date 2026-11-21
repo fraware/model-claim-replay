@@ -35,7 +35,9 @@ Add a repository Actions secret named `GEMINI_API_KEY` through
 **Settings → Secrets and variables → Actions → New repository secret**,
 then choose **Actions → GraphWalks Gemini token preflight → Run workflow**.
 The default counts **one** pinned BFS task. Other explicit choices count
-5, 20, or all 200 tasks. For multi-task preflights the selected records
+2, 5, 20, or all 200 tasks; the two-task choice matches the recommended
+balanced paid-pilot cohort. Both preflight and paid workflow accept a
+65,536-token maximum output allowance, subject to the same context gate. For multi-task preflights the selected records
 are deterministically balanced across the two public input-length bands.
 
 The workflow retrieves the exact public source file, recomputes its SHA-256,
@@ -43,7 +45,8 @@ rebuilds the 200-task reference index, verifies its pinned digest, and sends
 the selected original prompts to the Gemini **token-count** endpoint.
 It performs **no model generation** and never invokes
 `execute-graphwalks`. It uploads only a JSON token-count and maximum-cost
-plan, retained for seven days; no source Parquet, reference answers,
+plan, retained for up to 90 days (subject to repository retention settings);
+no source Parquet, reference answers,
 source prompt text or API keys are included in the uploaded artifact.
 
 **Security and limitation:** The secret is passed only to the token-count
@@ -124,7 +127,10 @@ claim-replay execute-graphwalks \
   --out .runs/private/graphwalks/one-task-run
 ```
 
-The runner recounts tokens immediately before each request, refuses an altered count, validates context headroom, and checks a **worst-case per-request cost reservation** before contacting Google. It creates a durable intent record *before* the billable request. Each task is attempted at most once by the runner. If the process is interrupted after sending a request, that attempt remains unresolved; rerunning the same command **does not resend it**. Network errors are recorded without assuming they were free. Unknown provider-side effects, taxes, caching charges, pricing changes, network failures and financial account limits mean this is a **conservative application-side reservation, not a guarantee of the invoice amount**.
+The runner recounts tokens immediately before each request, refuses an altered count, validates context headroom, and checks a **worst-case per-request cost reservation** before contacting Google. It atomically publishes an fsynced intent record *before* the billable request.
+An interrupted write cannot expose a truncated final intent or result as a
+valid journal file. Temporary files used for publication reside outside the
+audited attempts directory. Each task is attempted at most once by the runner. If the process is interrupted after sending a request, that attempt remains unresolved; rerunning the same command **does not resend it**. Network errors are recorded without assuming they were free. Unknown provider-side effects, taxes, caching charges, pricing changes, network failures and financial account limits mean this is a **conservative application-side reservation, not a guarantee of the invoice amount**.
 
 The private run directory holds response text, limited provider usage metadata and request receipts. It never uploads that text automatically. It is excluded by `.gitignore` under `.runs/`. The runner deliberately does **not** enable provider tools, web search or code execution; it sends the exact original prompt as a single, stateless input with the declared thinking level. No automatic retries occur.
 

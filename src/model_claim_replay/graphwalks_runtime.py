@@ -295,11 +295,37 @@ def _load_plan(plan_path: Path, index_path: Path, *, require_fresh: bool = True)
 
 
 def _write_exclusive(path: Path, obj: dict[str, Any]) -> None:
-    """Durably create a single file; preserve an interrupted attempt for audit."""
-    with path.open("xb") as stream:
-        stream.write(canonical_json(obj) + b"\n")
-        stream.flush()
-        os.fsync(stream.fileno())
+    """Atomically publish a durable journal entry without replacing prior data.
+
+    A direct exclusive write exposes a truncated final file if the process
+    stops during serialization or disk I/O. Persist the complete bytes to a
+    same-filesystem temporary file, then create the destination using an
+    exclusive hard link. Stage attempt files outside the audited attempts
+    directory to avoid spurious corrupted entries after process termination.
+
+    A failure following publication keeps the intent in place, conservatively
+    preventing any automatic retry of a possibly billable request.
+    """
+    stage_dir = path.parent.parent if path.parent.name == "attempts" else path.parent
+    fd, stage_name = tempfile.mkstemp(prefix=".graphwalks-journal-", dir=stage_dir)
+    staged = Path(stage_name)
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(canonical_json(obj) + b"\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+
+        # Atomic, exclusive publication. Concurrent or resumed attempts never
+        # replace a previously recorded intent or provider result.
+        os.link(staged, path)
+        if os.name == "posix":
+            directory_fd = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+    finally:
+        staged.unlink(missing_ok=True)
 
 
 def _run_status(response: Any) -> tuple[str, str | None, dict[str, int | None]]:

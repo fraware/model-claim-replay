@@ -102,6 +102,23 @@ class GraphWalksPilotGateTests(unittest.TestCase):
         )
         self.assertIn("if: ${{ !cancelled() }}", workflow)
 
+    def test_non_generating_preflight_covers_paid_pilot_settings(self) -> None:
+        """Avoid UI/runner drift at the exact pilot cohort and output limit."""
+        preflight = (ROOT / ".github/workflows/graphwalks-token-preflight.yml").read_text()
+        paid = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
+        self.assertIn('default: "1"', preflight)
+        self.assertIn('default: "2"', paid)
+        self.assertIn('          - "2"', preflight)
+        self.assertIn('          - "65536"', preflight)
+        self.assertIn('          - "65536"', paid)
+        self.assertIn('          - "16384"', preflight)
+        self.assertIn('          - "16384"', paid)
+        self.assertIn("retention-days: 90", preflight)
+        self.assertIn("workflow_dispatch:", preflight)
+        self.assertNotIn("--execute-paid", preflight)
+        for forbidden in ("\n  push:", "\n  pull_request:", "\n  schedule:"):
+            self.assertNotIn(forbidden, preflight)
+
     def test_public_artifact_allowlist_excludes_private_source_and_raw_responses(self) -> None:
         workflow = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
         artifact = workflow.split("- name: Upload only score-free plan, redacted audit and verified task-level grades", 1)[1]
