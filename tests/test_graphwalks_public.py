@@ -125,6 +125,56 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         ]), 0)
         self.assertEqual(json.loads(self.report_path.read_text())["graded"], 1)
 
+    def test_complete_standalone_html_report_from_redacted_receipts(self) -> None:
+        """Generate a local, readable report without exposing private data."""
+        from model_claim_replay.graphwalks_html import generate_graphwalks_public_html
+
+        out = self.report_path.with_suffix(".html")
+        self.plan["limitations"].append("<script>window.injected = true</script>")
+        self.grades["comparison_explanation"] = (
+            '<img src=x onerror="window.injected = true">'
+        )
+        self.write()
+        self.assertEqual(main([
+            "report-graphwalks-public",
+            "--plan", str(self.paths[0]),
+            "--audit", str(self.paths[1]),
+            "--grades", str(self.paths[2]),
+            "--out", str(out),
+        ]), 0)
+        page = out.read_text(encoding="utf-8")
+        self.assertIn("95.2%", page)
+        self.assertIn("50.0%", page)
+        self.assertIn("NOT COMPARABLE TO THE PUBLISHED CLAIM", page)
+        self.assertIn("Unavailable: the 200-task reference cohort is incomplete", page)
+        self.assertIn("Recorded error", page)
+        self.assertIn("Outside pilot", page)
+        self.assertIn('data-journal="completed"', page)
+        self.assertIn('data-journal="error"', page)
+        self.assertEqual(page.count("<tr data-journal="), 200)
+        self.assertIn(sha256_bytes(self.paths[0].read_bytes()), page)
+        self.assertIn(sha256_bytes(self.paths[1].read_bytes()), page)
+        self.assertIn(sha256_bytes(self.paths[2].read_bytes()), page)
+        self.assertNotIn("window.injected", page)
+        self.assertNotIn("<img", page)
+        self.assertNotIn("answer_nodes", page)
+        self.assertNotIn("Final Answer:", page)
+        self.assertIn("connect-src 'none'", page)
+
+        original = out.read_bytes()
+        with self.assertRaisesRegex(ReplayError, "already exists"):
+            generate_graphwalks_public_html(*self.paths, out)
+        self.assertEqual(out.read_bytes(), original)
+
+    def test_standalone_report_rejects_tampering_without_writing(self) -> None:
+        from model_claim_replay.graphwalks_html import generate_graphwalks_public_html
+        destination = self.report_path.with_suffix(".html")
+        self.grades["results"][1]["f1"] = 0.75
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "inconsistent F1"):
+            generate_graphwalks_public_html(*self.paths, destination)
+        self.assertFalse(destination.exists())
+
     def test_full_provider_foreground_allowance_is_verified(self) -> None:
         """The declared output ceiling must agree from preflight to public audit."""
         maximum = 65_536

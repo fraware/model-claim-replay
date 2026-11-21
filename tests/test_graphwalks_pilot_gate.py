@@ -106,11 +106,20 @@ class GraphWalksPilotGateTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
         artifact = workflow.split("- name: Upload only score-free plan, redacted audit and verified task-level grades", 1)[1]
         self.assertIn("path: |", artifact)
-        for filename in ("token-plan.json", "pilot-audit.json", "pilot-scores.json", "pilot-public-verification.json"):
+        for filename in ("token-plan.json", "pilot-audit.json", "pilot-scores.json", "pilot-public-verification.json", "pilot-public-report.html"):
             self.assertIn(filename, artifact)
         for private_name in ("pilot-responses.jsonl", "graphwalks_256k_to_1mil.parquet", "pilot-run", "bfs-reference-index.jsonl", "pilot-scores-pending.json"):
             self.assertNotIn(private_name, artifact)
-        self.assertIn("retention-days: 7", artifact)
+        self.assertIn("retention-days: 90", artifact)
+        self.assertIn("claim-replay report-graphwalks-public", workflow)
+        self.assertLess(
+            workflow.index("verify-graphwalks-public"),
+            workflow.index("report-graphwalks-public"),
+        )
+        self.assertLess(
+            workflow.index("report-graphwalks-public"),
+            workflow.index("mv .runs/private/pilot-scores-pending.json"),
+        )
 
 
 if __name__ == "__main__":

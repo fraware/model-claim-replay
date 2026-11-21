@@ -209,6 +209,11 @@ def build_parser() -> argparse.ArgumentParser:
     public_gw.add_argument("--audit", required=True, type=Path, help="Redacted private-journal audit")
     public_gw.add_argument("--grades", required=True, type=Path, help="Public task-level F1 scoring report")
     public_gw.add_argument("--out", required=True, type=Path, help="New JSON verification receipt")
+    html_gw = sub.add_parser("report-graphwalks-public", help="Build an offline HTML evidence report from three consistent redacted receipts")
+    html_gw.add_argument("--plan", required=True, type=Path)
+    html_gw.add_argument("--audit", required=True, type=Path)
+    html_gw.add_argument("--grades", required=True, type=Path)
+    html_gw.add_argument("--out", required=True, type=Path, help="New self-contained HTML report")
     audit_gw = sub.add_parser("audit-graphwalks", help="Audit a private GraphWalks run journal completely offline")
     audit_gw.add_argument("--plan", required=True, type=Path)
     audit_gw.add_argument("--index", required=True, type=Path)
@@ -407,6 +412,15 @@ def main(argv: list[str] | None = None) -> int:
             print("Evidence level: internally consistent self-report only; "
                   "provider execution and scoring correctness remain unattested")
             print(f"Saved verification receipt: {args.out}")
+        elif args.command == "report-graphwalks-public":
+            from .graphwalks_html import generate_graphwalks_public_html
+            summary = generate_graphwalks_public_html(
+                args.plan, args.audit, args.grades, args.out,
+            )
+            print(f"Saved offline redacted evidence report: {args.out}")
+            print(f"Recorded {summary['graded']}/{summary['task_count']} graded responses")
+            print("Self-reported internal consistency only; no authenticated provider "
+                  "execution or reproduced publisher claim.")
         elif args.command == "grade-graphwalks":
             from .graphwalks import score_recorded_bfs, save_scoring_report
             summary = score_recorded_bfs(

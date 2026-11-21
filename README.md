@@ -75,9 +75,9 @@ A [manual GitHub diagnostic workflow](https://github.com/fraware/model-claim-rep
 
 The default **two-task pilot** covers one short-context and one long-context BFS prompt. GitHub uploads only the no-prompt token plan, redacted self-reported journal audit, and, after a successful cross-receipt consistency check, task-level grades and a verification receipt. After an interrupted paid step, the redacted audit is still attempted and scored artifacts are withheld. It never uploads prompts, gold answers, or raw model responses. A repository `GEMINI_API_KEY` Actions secret is necessary. This is a *diagnostic*, not a verified reproduction of Google's 95.2%; the provider protocol and publisher cohort remain unresolved. Read the [execution and budget guide](docs/GRAPHWALKS_EXECUTION.md) before authorizing any spending.
 
-## Verify a published GraphWalks diagnostic locally
+## Verify and inspect a public GraphWalks diagnostic
 
-When a real authorized diagnostic publishes a complete set of redacted artifacts, any developer can download its token plan, journal audit, and task-level grades, then check them offline. The published fourth receipt records the workflow's own cross-check. An interrupted run may publish only the plan and audit, with no scoring artifact. No Gemini credential, source Parquet, answer index, model response text, or external dependency is necessary.
+When a real authorized diagnostic publishes a complete set of redacted artifacts, any developer can download its token plan, journal audit, and task-level grades, check them offline and generate a self-contained HTML report. The published fourth receipt records the workflow's own cross-check. An interrupted run may publish only the plan and audit, with no scoring artifact. No Gemini credential, source Parquet, answer index, model response text, or external dependency is necessary.
 
 ```bash
 claim-replay verify-graphwalks-public \
@@ -86,6 +86,18 @@ claim-replay verify-graphwalks-public \
   --grades pilot-scores.json \
   --out verification.json
 ```
+
+To explore the same redacted evidence in a browser, run:
+
+```bash
+claim-replay report-graphwalks-public \
+  --plan token-plan.json \
+  --audit pilot-audit.json \
+  --grades pilot-scores.json \
+  --out graphwalks-evidence.html
+```
+
+The HTML enumerates 200 task identities with explicit states, per-task scores and input hashes. It never includes private prompts, reference answers or raw model responses. Scored-subset F1 and the publisher's headline are labeled separately.
 
 This command checks the cross-artifact plan digest, pinned candidate source identities, task-status correspondence, missing trials, cost reservations, score arithmetic and denominator accounting. **A passing result establishes internal consistency of self-reported redacted evidence only.** It does not recalculate F1 from private model outputs or authenticate Google, the original source bytes, the benchmark judge, or invoice charges. See the [public-receipt verification contract](docs/GRAPHWALKS_PUBLIC_RECEIPTS.md) for the exact guarantees and limits. No paid pilot receipts have been released as of 21 November 2026.
 
