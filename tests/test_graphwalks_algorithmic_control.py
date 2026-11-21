@@ -44,6 +44,14 @@ class DeterministicControlTests(unittest.TestCase):
         response, _ = solve_bfs_prompt(prompt)
         self.assertEqual(grade_response(response, ["b"])["f1"], 1.0)
 
+    def test_corrected_2026_exact_depth_instruction(self):
+        prompt = self.source(
+            "a -> b\nb -> c\nc -> a",
+            "Perform a BFS from node a and return only the nodes at exactly depth 2 (not nodes at intermediate depths).",
+        )
+        response, _ = solve_bfs_prompt(prompt)
+        self.assertEqual(grade_response(response, ["c"])["f1"], 1.0)
+
     def test_depth_zero_empty_frontier_rule(self):
         prompt = self.source("a -> b", "Perform a BFS from node a with depth 0.")
         response, _ = solve_bfs_prompt(prompt)

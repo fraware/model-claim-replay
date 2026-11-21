@@ -28,7 +28,9 @@ from model_claim_replay.core import ReplayError, canonical_json, read_jsonl
 EXAMPLE = re.compile(r"<begin example>.*?<end example>", re.IGNORECASE | re.DOTALL)
 EDGE = re.compile(r"^\s*([A-Za-z0-9_]{1,64})\s*->\s*([A-Za-z0-9_]{1,64})\s*$", re.MULTILINE)
 OPERATION = re.compile(
-    r"^\s*Perform a BFS from node ([A-Za-z0-9_]{1,64}) with depth (\d+)\.\s*$",
+    r"^\s*Perform a BFS from node ([A-Za-z0-9_]{1,64})"
+    r"(?: with depth (\d+)\.| and return only the nodes at exactly depth (\d+)"
+    r" \(not nodes at intermediate depths\)\.)\s*$",
     re.MULTILINE | re.IGNORECASE,
 )
 GRAPH_HEADER = "The graph has the following edges:"
@@ -49,9 +51,14 @@ def solve_bfs_prompt(prompt: str) -> tuple[str, dict[str, int]]:
         raise ReplayError("Ambiguous or missing graph-edge section")
     operation = list(OPERATION.finditer(source))
     if len(operation) != 1:
-        raise ReplayError("Ambiguous or missing BFS operation")
-    start, depth_text = operation[0].groups()
-    depth = int(depth_text)
+        # Include only a standardized diagnostic line; hexadecimal node IDs
+        # are redacted so public reports never disclose raw prompts.
+        candidates = [line.strip() for line in source.splitlines()
+                      if line.strip().lower().startswith("perform a bfs")]
+        template = re.sub(r"\b[0-9a-f]{10}\b", "<NODE>", candidates[-1]) if candidates else "missing"
+        raise ReplayError("Unsupported BFS operation form: " + template[:180])
+    start, legacy_depth, corrected_depth = operation[0].groups()
+    depth = int(legacy_depth or corrected_depth)
     if depth > 100:
         raise ReplayError("Unreasonably deep BFS operation")
     if operation[0].start() <= header_positions[0].end():
