@@ -10,7 +10,7 @@ from pathlib import Path
 
 from model_claim_replay.cli import main
 from model_claim_replay.core import ReplayError, sha256_bytes
-from model_claim_replay.graphwalks_public import verify_public_graphwalks_receipts
+from model_claim_replay.graphwalks_public import _public_prompt_digests, verify_public_graphwalks_receipts
 from model_claim_replay.graphwalks_runtime import (
     CONTEXT_LIMIT, DATASET_REVISION, DATASET_SHA256, INDEX_SHA256,
     INPUT_USD_PER_M, MODEL, OUTPUT_USD_PER_M, PRICE_SOURCE, SCHEMA, SELECTION_POLICY,
@@ -32,11 +32,12 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         self.paths = [root / name for name in ("plan.json", "audit.json", "grades.json")]
         self.report_path = root / "verified.json"
         first, second = "bfs-row-000100", "bfs-row-000300"
+        source = _public_prompt_digests()
         tasks = [
-            {"id": first, "prompt_sha256": "a" * 64, "input_tokens": 200,
+            {"id": first, "prompt_sha256": source[first], "input_tokens": 200,
              "fits_context_with_output_allowance": True,
              "maximum_reserved_cost_usd": _cost(200, 128)},
-            {"id": second, "prompt_sha256": "b" * 64, "input_tokens": 800,
+            {"id": second, "prompt_sha256": source[second], "input_tokens": 800,
              "fits_context_with_output_allowance": True,
              "maximum_reserved_cost_usd": _cost(800, 128)},
         ]
@@ -208,6 +209,34 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         self.write()
         with self.assertRaisesRegex(ReplayError, "pinned balanced public cohort"):
             self.verify()
+
+    def test_bundled_prompt_hashes_match_public_source_receipt(self) -> None:
+        """The installed verifier uses the same 200 source commitments as the site."""
+        snapshot = json.loads(
+            (Path(__file__).resolve().parents[1] /
+             "website" / "graphwalks-audit.json").read_text()
+        )
+        self.assertEqual(snapshot["source"]["reference_index_sha256"], INDEX_SHA256)
+        self.assertEqual(
+            _public_prompt_digests(),
+            {row["id"]: row["prompt_sha256"] for row in snapshot["tasks"]},
+        )
+
+    def test_forged_prompt_digest_rejected_despite_matching_audit_plan_hash(self) -> None:
+        """A self-consistent plan+audit cannot substitute another prompt."""
+        self.plan["planned_tasks"][0]["prompt_sha256"] = "f" * 64
+        self.write()  # Rebind audit to the tampered plan to bypass digest-only checks.
+        with self.assertRaisesRegex(ReplayError, "planned prompt digest differs"):
+            self.verify()
+
+    def test_html_report_rejects_forged_prompt_digest(self) -> None:
+        from model_claim_replay.graphwalks_html import generate_graphwalks_public_html
+        self.plan["planned_tasks"][1]["prompt_sha256"] = "f" * 64
+        self.write()
+        output = self.report_path.with_suffix(".html")
+        with self.assertRaisesRegex(ReplayError, "planned prompt digest differs"):
+            generate_graphwalks_public_html(*self.paths, output)
+        self.assertFalse(output.exists())
 
     def test_full_provider_foreground_allowance_is_verified(self) -> None:
         """The declared output ceiling must agree from preflight to public audit."""

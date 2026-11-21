@@ -12,6 +12,8 @@ import datetime as dt
 import math
 import re
 from collections import Counter
+from functools import lru_cache
+from importlib.resources import files
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
@@ -41,6 +43,32 @@ _PUBLIC_SOURCE_IDS = tuple(
     for band in (range(100, 200), range(300, 400))
     for row in band
 )
+
+
+@lru_cache(maxsize=1)
+def _public_prompt_digests() -> dict[str, str]:
+    """Load source-bound per-task SHA-256 pins from the installed package.
+
+    The bundled 200-line file is derived from the SHA-256-verified public
+    reference index, using the same source order as the static explorer.
+    This validates reported *candidate-source prompt identities* only;
+    provider execution and the publisher's task cohort remain unattested.
+    """
+    try:
+        rows = (
+            files("model_claim_replay")
+            .joinpath("graphwalks_prompt_sha256.txt")
+            .read_text(encoding="ascii")
+            .splitlines()
+        )
+    except (OSError, UnicodeError) as exc:
+        raise ReplayError("Public GraphWalks candidate prompt commitments are unavailable") from exc
+    _check(
+        len(rows) == len(_PUBLIC_SOURCE_IDS)
+        and all(_SHA.fullmatch(value) is not None for value in rows),
+        "invalid bundled public candidate prompt commitments",
+    )
+    return dict(zip(_PUBLIC_SOURCE_IDS, rows))
 
 
 def _selected_public_ids(count: int) -> list[str]:
@@ -204,6 +232,10 @@ def verify_public_graphwalks_receipts(
         task_ids.append(ident)
     _check(task_ids == _selected_public_ids(len(planned)),
            "planned task identities do not match the pinned balanced public cohort")
+    source_prompts = _public_prompt_digests()
+    for task in planned:
+        _check(task["prompt_sha256"] == source_prompts[task["id"]],
+               f"planned prompt digest differs from the pinned public candidate for {task['id']}")
     _check(_money(plan.get("maximum_reserved_cost_usd"), "plan reservation")
            == sum(reservation_by_id.values(), Decimal(0)),
            "plan total reservation differs")
