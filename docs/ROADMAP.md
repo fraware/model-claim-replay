@@ -30,3 +30,16 @@
 ## Product standard
 
 We will optimize for independent usefulness and extraordinary execution quality. Timed launches are an amplification strategy, not a justification for speculative benchmarks. Top GitHub Trending Daily is an aspiration, not an experimental finding or a metric we can promise.
+
+## Gate for the first real GraphWalks model observation (21 November 2026)
+
+A [manual, explicitly budgeted Gemini diagnostic workflow](../.github/workflows/graphwalks-paid-pilot.yml)
+is implemented and guarded by adversarial consent, budget, context
+and artifact-privacy tests. It has not been launched against the
+provider. The default two-task selection includes one shorter and
+one longer public BFS prompt; completed task-level results would be
+labeled self-reported diagnostic evidence, with full-cohort and
+publisher-protocol comparability withheld. A future launch requires
+authorized API access, the real token-count receipt, deliberate
+financial approval, and careful interpretation of success, error and
+truncation outcomes.

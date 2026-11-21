@@ -68,6 +68,51 @@ claim-replay plan-graphwalks \
 
 The plan contains *provider-returned* input token counts, context feasibility, per-task maximum reserved charges at the documented **standard** pricing of $3/M input tokens and $15/M output tokens (including thinking), and exact source SHA-256 bindings. It contains no prompt text or correct answers. The model has a **shared 1,048,576-token input+reasoning+output context** and a **32,768-token single-hop nonstreaming output ceiling**. Longer responses need a separately budgeted continuation protocol. Any input whose counted tokens plus requested output allowance exceed the context limit is marked blocked. The preflight is strictly preliminary until the provider confirms the actual context allocation. Changing the model, thinking level, source bytes or output allowance invalidates the plan.
 
+## Manual GitHub pilot with two separate authorization gates
+
+For a credential-owning maintainer, the
+[GraphWalks paid diagnostic workflow](https://github.com/fraware/model-claim-replay/actions/workflows/graphwalks-paid-pilot.yml)
+provides a controlled path through source verification, model-specific
+token-count preflight, paid generation, journal audit, private-response
+export, and the original F1 scorer. **This workflow has not been executed
+against the live provider.** It is deployed infrastructure, not experimental
+evidence of any model's performance.
+
+Set a repository Actions secret named `GEMINI_API_KEY`, then navigate
+to **Actions → GraphWalks paid diagnostic → Run workflow**. The form
+defaults to `approval=NO` and `max_spend_usd=0`, deliberately
+blocking billable requests. To authorize one run, set a **positive
+finite USD ceiling no greater than $100** and type the exact phrase
+`AUTHORIZE_PAID_GEMINI`. Choose 1, 2, 5, or 20 tasks and a
+per-task output allowance of 8,192, 16,384, or 32,768 tokens.
+Two tasks is the recommended first diagnostic: one from each
+verified source-length cohort.
+
+The first check rejects missing consent, invalid budgets and missing
+credentials *before downloading the approximately 297 MB public source*.
+After SHA-256 validation and provider-side token counting, the second
+check rejects any infeasible context, mismatched cohort size or total
+maximum cost reservation above the authorized budget. The paid runner
+rechecks input token counts immediately before its single-attempt
+generation calls. A 24-hour freshness limit applies to token plans.
+The $100 ceiling is an application-side authorization cap, **not an
+invoice guarantee**; provider accounting, taxes, price revisions and
+external account limits are not under this project's control.
+
+The public GitHub Actions artifact is limited to the **score-free token
+plan**, the **redacted local journal audit**, and the **per-task F1 report**
+(each remains self-reported and not comparable to the publisher). The
+original source Parquet, gold answer index, private model-response
+journal, raw predictions and credential never enter that artifact.
+GitHub-hosted runners and the model provider still process those
+private files under their own service policies. A failed or
+interrupted step can produce incomplete evidence. Download the artifacts
+and review all statuses before drawing a conclusion.
+
+For an entirely offline authorization audit, run:
+`python -m unittest discover -s tests -p test_graphwalks_pilot_gate.py -v`.
+These tests exercise the gate without a provider account.
+
 ## Stage 2: explicit, sequential paid execution
 
 **Never run this stage without inspecting the plan and authorizing an explicit financial ceiling.** No paid calls are made in the project's CI workflows. For a one-task pilot:
