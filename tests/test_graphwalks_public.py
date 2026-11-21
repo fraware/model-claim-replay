@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import json
 import tempfile
 import unittest
@@ -14,7 +13,7 @@ from model_claim_replay.core import ReplayError, sha256_bytes
 from model_claim_replay.graphwalks_public import verify_public_graphwalks_receipts
 from model_claim_replay.graphwalks_runtime import (
     CONTEXT_LIMIT, DATASET_REVISION, DATASET_SHA256, INDEX_SHA256,
-    INPUT_USD_PER_M, MODEL, OUTPUT_USD_PER_M, SCHEMA, SELECTION_POLICY,
+    INPUT_USD_PER_M, MODEL, OUTPUT_USD_PER_M, PRICE_SOURCE, SCHEMA, SELECTION_POLICY,
 )
 
 
@@ -43,6 +42,13 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         ]
         self.plan = {
             "schema_version": SCHEMA, "model": MODEL,
+            "evidence_level": "candidate_public_dataset_api_token_preflight_not_a_model_evaluation",
+            "thinking_level": "xhigh", "created_utc": "2026-11-21T16:00:00+00:00",
+            "limitations": ["Synthetic source-bound token preflight only."],
+            "pricing": {"input_usd_per_m": str(INPUT_USD_PER_M),
+                        "output_usd_per_m": str(OUTPUT_USD_PER_M),
+                        "as_of": "2026-11-20", "source": PRICE_SOURCE,
+                        "tier": "standard", "currency": "USD"},
             "dataset_revision": DATASET_REVISION,
             "parquet_sha256": DATASET_SHA256, "index_sha256": INDEX_SHA256,
             "selection_policy": SELECTION_POLICY, "context_limit": CONTEXT_LIMIT,
@@ -87,6 +93,7 @@ class PublicReceiptVerificationTests(unittest.TestCase):
             "reference_index_sha256": INDEX_SHA256,
             "response_file_sha256": "1" * 64,
             "comparison_status": "not_comparable", "results": rows,
+            "comparison_explanation": "Only local scoring; provider not authenticated.",
             "task_count": 200, "graded": 1, "parsed": 1,
             "malformed": 0, "api_errors": 1, "missing": 198,
             "scored_subset_mean_f1_diagnostic": 0.5, "mean_f1": None,
@@ -170,6 +177,26 @@ class PublicReceiptVerificationTests(unittest.TestCase):
         self.audit["execution_authenticated"] = True
         self.write()
         with self.assertRaisesRegex(ReplayError, "authentication"):
+            self.verify()
+
+    def test_unredacted_public_artifacts_are_rejected(self) -> None:
+        self.plan["planned_tasks"][0]["prompt"] = "must stay private"
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "unredacted"):
+            self.verify()
+        del self.plan["planned_tasks"][0]["prompt"]
+        self.grades["results"][1]["output"] = "raw response"
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "unexpected fields"):
+            self.verify()
+
+    def test_impossible_node_overlap_is_rejected(self) -> None:
+        self.grades["results"][1]["precision"] = 0.3
+        self.grades["results"][1]["recall"] = 0.3
+        self.grades["results"][1]["f1"] = 0.3
+        self.grades["scored_subset_mean_f1_diagnostic"] = 0.3
+        self.write()
+        with self.assertRaisesRegex(ReplayError, "impossible node overlap"):
             self.verify()
 
     def test_unresolved_request_must_remain_unscored(self) -> None:
