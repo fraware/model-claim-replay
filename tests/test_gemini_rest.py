@@ -60,12 +60,12 @@ class GeminiRESTContractTests(unittest.TestCase):
         self.addCleanup(self.server.server_close)
         self.addCleanup(self.server.shutdown)
 
-    def _call(self):
+    def _call(self, max_output_tokens: int = 4096):
         def connect(host: str, *, timeout: int):
             self.assertEqual(host, "generativelanguage.googleapis.com")
             return http.client.HTTPConnection("127.0.0.1", self.server.server_port, timeout=timeout)
         return single_interaction("One synthetic GraphWalks question", api_key="test-not-secret",
-                                  model="gemini-4-neon", max_output_tokens=4096,
+                                  model="gemini-4-neon", max_output_tokens=max_output_tokens,
                                   thinking_level="xhigh", _connect=connect)
 
     def test_single_post_and_exact_generation_contract(self):
@@ -86,6 +86,15 @@ class GeminiRESTContractTests(unittest.TestCase):
             "background": False, "stream": False, "store": False,
             "service_tier": "standard",
         })
+
+    def test_model_documented_foreground_output_limit_is_accepted(self):
+        result = self._call(max_output_tokens=MAX_ONE_HOP_OUTPUT)
+        self.assertEqual(result.status, "completed")
+        self.assertEqual(len(_Handler.requests), 1)
+        payload = json.loads(_Handler.requests[0]["body"])
+        self.assertEqual(
+            payload["generation_config"]["max_output_tokens"], 65536,
+        )
 
     def test_429_error_does_not_retry_or_expose_response(self):
         _Handler.status_code = 429
