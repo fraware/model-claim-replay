@@ -68,13 +68,15 @@ def _credential(environ: Mapping[str, str], *names: str) -> str | None:
 def probe_providers(
     environ: Mapping[str, str],
     *,
-    request: _ProviderRequest = _metadata_get,
+    request: _ProviderRequest | None = None,
 ) -> dict[str, Any]:
     """Select usable metadata access: Gemini claim model, then OpenAI fallback.
 
     Model-list metadata access is a credential/API availability diagnostic only.
     An OpenAI result cannot reproduce a Google Gemini publisher claim.
     """
+    if request is None:
+        request = _metadata_get
     selected = None
     gemini: dict[str, Any] = {"status": "credential_missing"}
     openai: dict[str, Any] = {"status": "not_checked"}
