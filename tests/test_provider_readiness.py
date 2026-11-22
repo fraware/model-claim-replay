@@ -75,15 +75,18 @@ class ProviderReadinessTests(unittest.TestCase):
                 200, {"name": "models/" + GEMINI_CLAIM_MODEL},
             )
         out = probe_providers(
-            {"GEMINI_API_KEY": "expired", "GOOGLE_API_KEY": "valid",
-             "OPENAI_API_KEY": "unused"},
+            {"GEMINI_API_KEY": "fixture-gemini-stale-token",
+             "GOOGLE_API_KEY": "fixture-gemini-alternate-token",
+             "OPENAI_API_KEY": "fixture-openai-unused-token"},
             request=get,
         )
-        self.assertEqual(attempts, ["expired", "valid"])
+        self.assertEqual(
+            attempts, ["fixture-gemini-stale-token", "fixture-gemini-alternate-token"],
+        )
         self.assertEqual(out["selected"], "gemini")
         self.assertEqual(out["openai"]["status"], "not_checked")
-        self.assertNotIn("expired", json.dumps(out))
-        self.assertNotIn("valid", json.dumps(out))
+        for token in attempts:
+            self.assertNotIn(token, json.dumps(out))
 
     def test_stale_openai_secret_alias_does_not_hide_valid_alternate(self):
         attempts = []
@@ -94,13 +97,17 @@ class ProviderReadinessTests(unittest.TestCase):
                 200, {"data": [{"id": "available"}]},
             )
         out = probe_providers(
-            {"OPENAI_API_KEY": "expired", "OPENAI_KEY": "valid"}, request=get,
+            {"OPENAI_API_KEY": "fixture-openai-stale-token",
+             "OPENAI_KEY": "fixture-openai-alternate-token"}, request=get,
         )
         self.assertEqual(out["selected"], "openai")
-        self.assertEqual(len(attempts), 2)
+        self.assertEqual(
+            attempts, ["Bearer fixture-openai-stale-token",
+                       "Bearer fixture-openai-alternate-token"],
+        )
         self.assertEqual(out["gemini"]["status"], "credential_missing")
-        self.assertNotIn("expired", json.dumps(out))
-        self.assertNotIn("valid", json.dumps(out))
+        for token in ("fixture-openai-stale-token", "fixture-openai-alternate-token"):
+            self.assertNotIn(token, json.dumps(out))
 
     def test_transport_failure_falls_back_to_openai(self):
         def get(host, path, headers):
