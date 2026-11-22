@@ -67,6 +67,41 @@ class ProviderReadinessTests(unittest.TestCase):
         self.assertEqual(out["selected"], "openai")
         self.assertEqual(out["gemini"]["status"], "unexpected_model_metadata")
 
+    def test_stale_gemini_secret_alias_does_not_hide_valid_alternate(self):
+        attempts = []
+        def get(host, path, headers):
+            attempts.append(headers["x-goog-api-key"])
+            return (401, None) if len(attempts) == 1 else (
+                200, {"name": "models/" + GEMINI_CLAIM_MODEL},
+            )
+        out = probe_providers(
+            {"GEMINI_API_KEY": "expired", "GOOGLE_API_KEY": "valid",
+             "OPENAI_API_KEY": "unused"},
+            request=get,
+        )
+        self.assertEqual(attempts, ["expired", "valid"])
+        self.assertEqual(out["selected"], "gemini")
+        self.assertEqual(out["openai"]["status"], "not_checked")
+        self.assertNotIn("expired", json.dumps(out))
+        self.assertNotIn("valid", json.dumps(out))
+
+    def test_stale_openai_secret_alias_does_not_hide_valid_alternate(self):
+        attempts = []
+        def get(host, path, headers):
+            token = headers["Authorization"]
+            attempts.append(token)
+            return (403, None) if len(attempts) == 1 else (
+                200, {"data": [{"id": "available"}]},
+            )
+        out = probe_providers(
+            {"OPENAI_API_KEY": "expired", "OPENAI_KEY": "valid"}, request=get,
+        )
+        self.assertEqual(out["selected"], "openai")
+        self.assertEqual(len(attempts), 2)
+        self.assertEqual(out["gemini"]["status"], "credential_missing")
+        self.assertNotIn("expired", json.dumps(out))
+        self.assertNotIn("valid", json.dumps(out))
+
     def test_transport_failure_falls_back_to_openai(self):
         def get(host, path, headers):
             if "googleapis.com" in host:
