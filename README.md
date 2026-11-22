@@ -40,6 +40,31 @@ The long-term product is a **living, versioned claim registry** plus reproducibl
 
 Neither headline has been independently reproduced. [Our byte-verified 200-task BFS index](https://github.com/fraware/model-claim-replay/actions/runs/44746523023) is available as a reproducible CI artifact. The GraphWalks scorer is distinct from the Chartography Inspect importer. Neither component authenticates the model provider.
 
+## Provider credential readiness and fallback
+
+The [provider-readiness workflow](.github/workflows/provider-readiness.yml)
+runs after pushes to `main`, where GitHub Actions repository secrets are
+available. It sends a **metadata-only GET**, first for the exact Gemini
+GraphWalks claim model and, if that request fails or the secret is absent, for
+the OpenAI model catalog. It recognizes `GEMINI_API_KEY` (also
+`GOOGLE_API_KEY` or `GOOGLE_GENAI_API_KEY`) and `OPENAI_API_KEY` (also
+`OPENAI_KEY`). Secrets stay in the GitHub runner and are never recorded in
+the artifact or logs. The workflow publishes only redacted provider status.
+
+```bash
+# Optional local metadata-only check using the same environment-variable keys:
+python scripts/provider_readiness.py --out .runs/provider-readiness.json
+```
+
+**An OpenAI fallback confirms only metadata access to a different provider.**
+It is deliberately excluded from the Gemini 4 Neon GraphWalks experiment,
+whose model identity, tokenizer, context capacity, pricing, and score protocol
+are fixed. The fallback does not execute model generation, validate spending
+access, establish usable benchmark model availability, or reproduce a Google
+claim. Paid GraphWalks inference continues to require its separate manual
+approval and explicit spending ceiling. A successful readiness receipt is not
+a model-performance result.
+
 ## Score GraphWalks responses offline
 
 A dedicated `grade-graphwalks` CLI command follows the published GraphWalks final-line answer parser and node-set F1. It checks the supplied BFS reference-index SHA-256 and scores recorded model outputs **without making API calls**. Original dataset rows and prompt input fidelity still need separate verification, and the resulting report is never labeled a publisher reproduction.

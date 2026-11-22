@@ -1,0 +1,46 @@
+name: Provider readiness (no inference)
+
+# This workflow uses repository secrets only on the protected default-branch
+# push event. It is not available to pull requests or forks.
+# It makes metadata-only GET requests, never billable model generations.
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: model-claim-replay-provider-readiness
+  cancel-in-progress: false
+
+jobs:
+  metadata-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the dependency-free provider probe
+        run: python -m pip install -e .
+      - name: Check Gemini target model, or fall back to OpenAI model catalog
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_GENAI_API_KEY: ${{ secrets.GOOGLE_GENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+        run: |
+          python scripts/provider_readiness.py \
+            --out .runs/provider-readiness.json
+      - name: Retain only key-free provider metadata receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: provider-readiness-metadata-only
+          path: .runs/provider-readiness.json
+          if-no-files-found: warn
+          retention-days: 14
