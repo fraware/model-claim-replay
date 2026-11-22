@@ -56,13 +56,14 @@ def _metadata_get(
         connection.close()
 
 
-def _credential(environ: Mapping[str, str], *names: str) -> str | None:
-    """Select a configured nonblank secret; never include its value in output."""
+def _credentials(environ: Mapping[str, str], *names: str) -> list[str]:
+    """Collect distinct nonblank secret aliases without emitting their values."""
+    values: list[str] = []
     for name in names:
         candidate = environ.get(name)
-        if isinstance(candidate, str) and candidate.strip():
-            return candidate
-    return None
+        if isinstance(candidate, str) and candidate.strip() and candidate not in values:
+            values.append(candidate)
+    return values
 
 
 def probe_providers(
@@ -80,11 +81,14 @@ def probe_providers(
     selected = None
     gemini: dict[str, Any] = {"status": "credential_missing"}
     openai: dict[str, Any] = {"status": "not_checked"}
-    key = _credential(environ, "GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENAI_API_KEY")
-    if key is not None:
+    gemini_keys = _credentials(
+        environ, "GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENAI_API_KEY",
+    )
+    for key in gemini_keys:
         try:
             status, payload = request(
-                _GEMINI_HOST, _GEMINI_PATH, {"x-goog-api-key": key, "Accept": "application/json"},
+                _GEMINI_HOST, _GEMINI_PATH,
+                {"x-goog-api-key": key, "Accept": "application/json"},
             )
         except ProviderProbeError:
             gemini = {"status": "transport_or_response_error"}
@@ -96,16 +100,15 @@ def probe_providers(
                 ):
                     gemini = {"status": "model_metadata_available", "http_status": 200}
                     selected = "gemini"
-                else:
-                    gemini = {"status": "unexpected_model_metadata", "http_status": 200}
+                    break
+                gemini = {"status": "unexpected_model_metadata", "http_status": 200}
             else:
                 gemini = {"status": "http_error", "http_status": status}
 
     if selected is None:
-        key = _credential(environ, "OPENAI_API_KEY", "OPENAI_KEY")
-        if key is None:
-            openai = {"status": "credential_missing"}
-        else:
+        openai_keys = _credentials(environ, "OPENAI_API_KEY", "OPENAI_KEY")
+        openai = {"status": "credential_missing"} if not openai_keys else openai
+        for key in openai_keys:
             try:
                 status, payload = request(
                     _OPENAI_HOST, _OPENAI_PATH,
@@ -123,8 +126,8 @@ def probe_providers(
                     ):
                         openai = {"status": "model_catalog_available", "http_status": 200}
                         selected = "openai"
-                    else:
-                        openai = {"status": "unexpected_model_catalog", "http_status": 200}
+                        break
+                    openai = {"status": "unexpected_model_catalog", "http_status": 200}
                 else:
                     openai = {"status": "http_error", "http_status": status}
     return {
