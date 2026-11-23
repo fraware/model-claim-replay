@@ -95,13 +95,15 @@ class GeminiSecretSelectionTests(unittest.TestCase):
         self.assertNotIn("  pull_request:", workflow)
         self.assertNotIn("  schedule:", workflow)
         self.assertNotIn("  workflow_dispatch:", workflow)
-        self.assertIn("--max-tasks 2 --max-output-tokens 8192", workflow)
+        self.assertIn("--max-tasks 20 --max-output-tokens 8192", workflow)
+        self.assertIn("scripts/graphwalks_model_capabilities.py", workflow)
         self.assertIn("scripts/graphwalks_select_gemini_secret.py", workflow)
         self.assertNotIn("--execute-paid", workflow)
         self.assertNotIn("execute-graphwalks", workflow)
         self.assertNotIn("generate-graphwalks", workflow)
         allowed = workflow.split("name: Upload strictly redacted token-count evidence", 1)[1]
         self.assertIn("token-plan.json", allowed)
+        self.assertIn("model-capabilities.json", allowed)
         for forbidden in ("bfs-reference-index.jsonl", "graphwalks_256k_to_1mil.parquet",
                           "pilot-responses.jsonl", "pilot-run"):
             self.assertNotIn(forbidden, allowed)

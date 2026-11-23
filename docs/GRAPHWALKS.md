@@ -1,8 +1,14 @@
 # Gemini 4 Neon / GraphWalks long-context BFS
 
-**Source-registered candidate, not a reproduced result — 20 November 2026.**
+**Source-registered candidate, not a reproduced result — updated 23 November 2026.**
 
 Google DeepMind's 18 November 2026 [Gemini 4 Neon model card](https://deepmind.google/models/model-cards/gemini-4-neon/) reports **95.2% F1** on GraphWalks breadth-first search with contexts from **256K to 1M tokens**. Its [evaluation methodology](https://deepmind.google/models/evals-methodology/gemini-4-neon) states that this was a self-computed evaluation on **200 GraphWalks problems**. The general methodology specifies Gemini API execution with highest thinking settings, pass@1 except where noted, and safety filters enabled outside cybersecurity evaluations. It does not establish the exact prompt assembly, dataset snapshot, output parser, or number of GraphWalks repetitions.
+
+## Live model-input feasibility finding (23 November 2026)
+
+Our [authenticated, source-verified Gemini token-count diagnostic](https://github.com/fraware/model-claim-replay/actions/runs/45156733056) measured 355,124 input tokens for `bfs-row-000100` and 1,419,783 for `bfs-row-000300`, with no generated output. Under the runner's declared 1,048,576-token context limit, the second prompt is **371,207 input tokens over the limit**, even with zero output allowance. The original public source/index SHA-256 commitments and a redacted token-plan receipt are available in that run. This finding applies to the **sampled public candidate**, not necessarily to the unpublished 200-task cohort selected by Google.
+
+The [byte-identical, hash-tested source-bound token plan](../evidence/graphwalks/gemini-4-neon-two-task-token-plan-2026-11-23.json) is permanently preserved with the original run URL. A separate, prespecified 20-task scan is configured to test the extent of the candidate-source feasibility problem. Provider-advertised limits are retained separately; neither token-count run is a score reproduction.
 
 ## Why this is an important second candidate
 

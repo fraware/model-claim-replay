@@ -1,8 +1,21 @@
 # GraphWalks: controlled Gemini 4 Neon execution
 
-**Status as of 20 November 2026: implemented and locally tested, no Gemini inference performed.**
+**Status as of 23 November 2026: source-bound Gemini token counting succeeded for two public candidate prompts; no model generation performed. One long-context candidate exceeds the model's declared context limit.**
 
 This adapter upgrades the independently byte-verified, MIT-licensed GraphWalks BFS candidate population from an offline grader to a cost-gated experimental runner. It has two distinct network stages and never generates a model answer by default.
+
+## First authenticated model token-count evidence — 23 November 2026
+
+The [first live Gemini provider token-count run](https://github.com/fraware/model-claim-replay/actions/runs/45156733056) authenticated `GEMINI_API_KEY`, verified the original public Parquet and its BFS index byte-for-byte, and counted **two prespecified public candidate inputs**. It used `gemini-4-neon`, `xhigh` thinking for a hypothetical subsequent experiment, and an **8,192-token future output allowance**. No model completion was requested.
+
+| Original BFS source task | Provider-reported input tokens | Conservative input + output allowance | Feasibility under declared 1,048,576-token context |
+|---|---:|---:|---|
+| `bfs-row-000100` (shorter band) | 355,124 | 363,316 | Within declared context |
+| `bfs-row-000300` (longer band) | 1,419,783 | 1,427,975 | Exceeds declared context |
+
+The longer prompt exceeds the declared context limit by **371,207 input tokens**, even if zero output tokens are reserved. This invalidates that candidate for the prescribed execution configuration. Shrinking the output cap cannot repair an input-only overflow. The token plan reports **one of two blocked** and a combined hypothetical worst-case reservation of **$5.570481**; this is *not* observed billing, authorization, or evidence of generation. The original JSON token plan has SHA-256 `552f98fd33a53f585362abaee989c601c7754f48008792255c963cd45449f92f` and is retained as the run's redacted Actions artifact. A byte-identical, hash-tested copy is permanently [committed to the repository](../evidence/graphwalks/gemini-4-neon-two-task-token-plan-2026-11-23.json).
+
+These values establish feasibility for **two selected candidates only**. They do not identify Google's private 200-task selection, validate the publisher's exact input construction or imply a model F1 result. A [separate prespecified 20-task non-generative scan](../.github/workflows/graphwalks-live-token-count.yml) will examine the extent of the constraint, along with the provider-advertised model limits.
 
 ## Inputs and trust boundaries
 
@@ -35,8 +48,7 @@ Add a repository Actions secret named `GEMINI_API_KEY` through
 **Settings → Secrets and variables → Actions → New repository secret**,
 then choose **Actions → GraphWalks Gemini token preflight → Run workflow**.
 The default counts **one** pinned BFS task. Other explicit choices count
-2, 5, 20, or all 200 tasks; the two-task choice matches the recommended
-balanced paid-pilot cohort. Both preflight and paid workflow accept a
+2, 5, 20, or all 200 tasks; the two-task choice samples both public input bands but the first live preflight found its selected long-context task outside the model's declared context limit. The **one-task short-context selection** is the default for a potential context-feasibility-screened diagnostic. All paid runs still need explicit financial authorization. Both preflight and paid workflow accept a
 65,536-token maximum output allowance, subject to the same context gate. For multi-task preflights the selected records
 are deterministically balanced across the two public input-length bands.
 
