@@ -37,7 +37,7 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
     required = (
         "index.html", "app.js", "style.css", "graphwalks.html",
         "graphwalks.js", "graphwalks.css", "graphwalks-audit.json",
-        "graphwalks-control.json",
+        "graphwalks-control.json", "graphwalks-gemini-feasibility.json",
     )
     for filename in required:
         if not (site / filename).is_file():
@@ -96,6 +96,23 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 control = page.locator(".control-task").inner_text()
                                 assert "F1 1.000" in control
                                 assert "NOT A MODEL SCORE" in control
+
+                                # Wait for the third real, source-bound receipt
+                                # and verify the task-level context verdict.
+                                page.wait_for_function(
+                                    "document.querySelector('#record')?.textContent?.includes('GEMINI INPUT TOKENS / LIVE PROVIDER')"
+                                )
+                                self_report = page.locator("#record").inner_text()
+                                assert "355,124" in self_report
+                                assert "WITHIN INPUT LIMIT" in self_report
+                                assert "100 prompts fit." in page.locator("#provider").inner_text()
+
+                                page.locator('button.filter[data-filter="long"]').click()
+                                page.locator("button.task-dot").first.click()
+                                long_text = page.locator("#record").inner_text()
+                                assert "1,419,783" in long_text
+                                assert "EXCEEDS INPUT LIMIT" in long_text
+                                page.locator('button.filter[data-filter="all"]').click()
 
                                 page.locator("#task-search").fill("bfs-row-000100")
                                 assert page.locator("button.task-dot").count() == 1
