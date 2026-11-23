@@ -15,7 +15,13 @@ The [first live Gemini provider token-count run](https://github.com/fraware/mode
 
 The longer prompt exceeds the declared context limit by **371,207 input tokens**, even if zero output tokens are reserved. This invalidates that candidate for the prescribed execution configuration. Shrinking the output cap cannot repair an input-only overflow. The token plan reports **one of two blocked** and a combined hypothetical worst-case reservation of **$5.570481**; this is *not* observed billing, authorization, or evidence of generation. The original JSON token plan has SHA-256 `552f98fd33a53f585362abaee989c601c7754f48008792255c963cd45449f92f` and is retained as the run's redacted Actions artifact. A byte-identical, hash-tested copy is permanently [committed to the repository](../evidence/graphwalks/gemini-4-neon-two-task-token-plan-2026-11-23.json).
 
-These values establish feasibility for **two selected candidates only**. They do not identify Google's private 200-task selection, validate the publisher's exact input construction or imply a model F1 result. A [separate prespecified 20-task non-generative scan](../.github/workflows/graphwalks-live-token-count.yml) will examine the extent of the constraint, along with the provider-advertised model limits.
+These two values establish feasibility for the selected candidates only. They do not identify Google's private 200-task selection, validate the publisher's exact input construction or imply a model F1 result.
+
+## Follow-up live feasibility scan — 20 source-bound tasks
+
+The independently authenticated [20-task token-count run](https://github.com/fraware/model-claim-replay/actions/runs/45158739147) selected ten evenly spaced BFS prompts from each of the public source-length bands. **All ten shorter prompts fit** the declared combined-token headroom (input range **354,061–355,228**); **all ten longer prompts exceed** the provider-reported input limit even with no future output (input range **1,419,201–1,420,389**). Google's metadata endpoint independently reported **1,048,576 input** and **65,536 output** tokens for the selected model.
+
+The raw prompt content, reference answers and API key remain outside the redacted downloadable receipt. The run incurred no model generation and did not reproduce the published score. The plan's **$55.695444** value is a hypothetical worst-case generation reservation, **not actual spending**. A subsequent [complete 200-task non-generative scan](../.github/workflows/graphwalks-live-token-count.yml) will determine the full public-candidate feasibility denominator.
 
 ## Inputs and trust boundaries
 
