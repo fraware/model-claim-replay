@@ -1,8 +1,8 @@
-name: GraphWalks one-time real provider token-count diagnostic
+name: GraphWalks source-bound Gemini context feasibility scan
 
-# Operational source-bound experiment, not model inference. The initial
-# default-branch merge triggers this once; no generic push, PR, or schedule.
-# Another run requires an explicit change to this workflow by a maintainer.
+# Operational source-bound experiment, not model inference. This
+# default-branch workflow update triggers an explicitly reviewed scan.
+# Another run requires another explicit workflow change on main.
 on:
   push:
     branches:
@@ -36,6 +36,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
         run: python scripts/graphwalks_select_gemini_secret.py
+      - name: Record authenticated provider-advertised input and output limits
+        run: |
+          python scripts/graphwalks_model_capabilities.py \
+            --out .runs/private/graphwalks-live/model-capabilities.json
       - name: Verify full original public dataset and source index bytes
         run: |
           python scripts/graphwalks_data_audit.py \
@@ -44,19 +48,21 @@ jobs:
             --size-bytes 296903814 \
             --retain-parquet \
             --out .runs/private/graphwalks-live
-      - name: Count exactly two original prompts from both context bands
+      - name: Count 20 prespecified original prompts across both context bands
         run: |
           claim-replay plan-graphwalks \
             --parquet .runs/private/graphwalks-live/graphwalks_256k_to_1mil.parquet \
             --index .runs/private/graphwalks-live/graphwalks-bfs-reference-index.jsonl \
-            --max-tasks 2 --max-output-tokens 8192 \
+            --max-tasks 20 --max-output-tokens 8192 \
             --thinking-level xhigh \
             --out .runs/private/graphwalks-live/token-plan.json
       - name: Upload strictly redacted token-count evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v6
         with:
-          name: graphwalks-real-provider-token-count-only
-          path: .runs/private/graphwalks-live/token-plan.json
+          name: graphwalks-20-task-real-token-count-and-model-limits
+          path: |
+            .runs/private/graphwalks-live/token-plan.json
+            .runs/private/graphwalks-live/model-capabilities.json
           if-no-files-found: warn
           retention-days: 90
