@@ -5,10 +5,10 @@ on:
   workflow_dispatch:
     inputs:
       tasks:
-        description: "Verified BFS tasks (2 includes both context-length groups)"
+        description: "Pinned BFS tasks (1 short-context default; larger cohorts subject to context gate)"
         type: choice
         required: true
-        default: "2"
+        default: "1"
         options:
           - "1"
           - "2"
