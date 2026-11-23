@@ -8,7 +8,7 @@ Google DeepMind's 18 November 2026 [Gemini 4 Neon model card](https://deepmind.g
 
 Our [authenticated, source-verified Gemini token-count diagnostic](https://github.com/fraware/model-claim-replay/actions/runs/45156733056) measured 355,124 input tokens for `bfs-row-000100` and 1,419,783 for `bfs-row-000300`, with no generated output. Under the runner's declared 1,048,576-token context limit, the second prompt is **371,207 input tokens over the limit**, even with zero output allowance. The original public source/index SHA-256 commitments and a redacted token-plan receipt are available in that run. This finding applies to the **sampled public candidate**, not necessarily to the unpublished 200-task cohort selected by Google.
 
-A separate, prespecified 20-task scan is configured to test the extent of the candidate-source feasibility problem. Provider-advertised limits are retained separately; neither token-count run is a score reproduction.
+The [byte-identical, hash-tested source-bound token plan](../evidence/graphwalks/gemini-4-neon-two-task-token-plan-2026-11-23.json) is permanently preserved with the original run URL. A separate, prespecified 20-task scan is configured to test the extent of the candidate-source feasibility problem. Provider-advertised limits are retained separately; neither token-count run is a score reproduction.
 
 ## Why this is an important second candidate
 
