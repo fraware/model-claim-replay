@@ -75,7 +75,7 @@ def read_model_capabilities(
         ),
         "generation_performed": False,
         "limitations": (
-            "Metadata is an unauthenticated public diagnostic of the API-key "
+            "Authenticated model-metadata access is a provider self-report for the API-key "
             "account's reported model; it does not establish billed capacity, "
             "a successful generative request or the publisher's protocol. "
             "InputTokenLimit is distinct from outputTokenLimit; the runner "
