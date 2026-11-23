@@ -84,7 +84,7 @@ Both records and the revision marker above are **synthetic**. The 5/6 F1 is a fi
 
 ## Explore the verified GraphWalks source data
 
-The [interactive 200-task GraphWalks audit](https://fraware.github.io/model-claim-replay/graphwalks.html) visualizes the complete SHA-256-verified candidate BFS cohort. Explore source row identities, input sizes and task-level prompt commitments without downloading the original large dataset, revealing raw benchmark prompts, or confusing publisher-reported performance with independent testing. The underlying static JSON is reproducibly generated from the pinned 200-task reference index by `scripts/publish_graphwalks_summary.py`.
+The [interactive 200-task GraphWalks audit](https://fraware.github.io/model-claim-replay/graphwalks.html) visualizes the complete SHA-256-verified candidate BFS cohort. Explore source row identities, input sizes and task-level prompt commitments without downloading the original large dataset, revealing raw benchmark prompts, or confusing publisher-reported performance with independent testing. The source-explorer JSON is reproducibly generated from the pinned 200-task reference index by `scripts/publish_graphwalks_summary.py`. Its separate [provider count receipt](website/graphwalks-gemini-feasibility.json) contains all 200 measured token counts in that index order and identifies the byte-identical [original GitHub Actions token plan](evidence/graphwalks/gemini-4-neon-full-200-token-plan-2026-11-23.json) by SHA-256; no prompts, answers, or generated completions are published.
 
 ## First complete public-data control — 200/200 tasks
 
