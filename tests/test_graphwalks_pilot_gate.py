@@ -107,7 +107,7 @@ class GraphWalksPilotGateTests(unittest.TestCase):
         preflight = (ROOT / ".github/workflows/graphwalks-token-preflight.yml").read_text()
         paid = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
         self.assertIn('default: "1"', preflight)
-        self.assertIn('default: "2"', paid)
+        self.assertIn('default: "1"', paid)
         self.assertIn('          - "2"', preflight)
         self.assertIn('          - "65536"', preflight)
         self.assertIn('          - "65536"', paid)
