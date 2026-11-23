@@ -39,7 +39,7 @@ jobs:
       - name: Record authenticated provider-advertised input and output limits
         run: |
           python scripts/graphwalks_model_capabilities.py \
-            --out .runs/private/graphwalks-live/model-capabilities.json
+            --out .runs/private/graphwalks-model-capabilities.json
       - name: Verify full original public dataset and source index bytes
         run: |
           python scripts/graphwalks_data_audit.py \
@@ -63,6 +63,6 @@ jobs:
           name: graphwalks-20-task-real-token-count-and-model-limits
           path: |
             .runs/private/graphwalks-live/token-plan.json
-            .runs/private/graphwalks-live/model-capabilities.json
+            .runs/private/graphwalks-model-capabilities.json
           if-no-files-found: warn
           retention-days: 90
