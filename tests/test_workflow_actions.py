@@ -23,7 +23,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
 
     def test_every_referenced_first_party_action_uses_node24_release(self) -> None:
         files = sorted(WORKFLOWS.glob("*.yml"))
-        self.assertEqual(len(files), 8)
+        self.assertEqual(len(files), 9)
         seen: set[str] = set()
         for file in files:
             text = file.read_text(encoding="utf-8")
