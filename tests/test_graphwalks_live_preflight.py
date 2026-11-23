@@ -95,7 +95,7 @@ class GeminiSecretSelectionTests(unittest.TestCase):
         self.assertNotIn("  pull_request:", workflow)
         self.assertNotIn("  schedule:", workflow)
         self.assertNotIn("  workflow_dispatch:", workflow)
-        self.assertIn("--max-tasks 20 --max-output-tokens 8192", workflow)
+        self.assertIn("--max-tasks 200 --max-output-tokens 8192", workflow)
         self.assertIn("scripts/graphwalks_model_capabilities.py", workflow)
         # The source audit explicitly refuses any preexisting output directory.
         # The independent metadata receipt must not create that directory first.
