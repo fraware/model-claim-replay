@@ -48,19 +48,19 @@ jobs:
             --size-bytes 296903814 \
             --retain-parquet \
             --out .runs/private/graphwalks-live
-      - name: Count 20 prespecified original prompts across both context bands
+      - name: Count all 200 pinned public BFS prompts across both context bands
         run: |
           claim-replay plan-graphwalks \
             --parquet .runs/private/graphwalks-live/graphwalks_256k_to_1mil.parquet \
             --index .runs/private/graphwalks-live/graphwalks-bfs-reference-index.jsonl \
-            --max-tasks 20 --max-output-tokens 8192 \
+            --max-tasks 200 --max-output-tokens 8192 \
             --thinking-level xhigh \
             --out .runs/private/graphwalks-live/token-plan.json
       - name: Upload strictly redacted token-count evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v6
         with:
-          name: graphwalks-20-task-real-token-count-and-model-limits
+          name: graphwalks-200-task-real-token-count-and-model-limits
           path: |
             .runs/private/graphwalks-live/token-plan.json
             .runs/private/graphwalks-model-capabilities.json
