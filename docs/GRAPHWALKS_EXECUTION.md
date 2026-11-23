@@ -15,7 +15,7 @@ The [first live Gemini provider token-count run](https://github.com/fraware/mode
 
 The longer prompt exceeds the declared context limit by **371,207 input tokens**, even if zero output tokens are reserved. This invalidates that candidate for the prescribed execution configuration. Shrinking the output cap cannot repair an input-only overflow. The token plan reports **one of two blocked** and a combined hypothetical worst-case reservation of **$5.570481**; this is *not* observed billing, authorization, or evidence of generation. The original JSON token plan has SHA-256 `552f98fd33a53f585362abaee989c601c7754f48008792255c963cd45449f92f` and is retained as the run's redacted Actions artifact.
 
-These values establish feasibility for **two selected candidates only**. They do not identify Google's private 200-task selection, validate the publisher's exact input construction or imply a model F1 result. A [separate prespecified 20-task non-generative scan](../../.github/workflows/graphwalks-live-token-count.yml) will examine the extent of the constraint, along with the provider-advertised model limits.
+These values establish feasibility for **two selected candidates only**. They do not identify Google's private 200-task selection, validate the publisher's exact input construction or imply a model F1 result. A [separate prespecified 20-task non-generative scan](../.github/workflows/graphwalks-live-token-count.yml) will examine the extent of the constraint, along with the provider-advertised model limits.
 
 ## Inputs and trust boundaries
 
