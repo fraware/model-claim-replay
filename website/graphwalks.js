@@ -12,6 +12,7 @@
   let selected = null;
   let tasks = [];
   let controlById = new Map();
+  let providerById = new Map();
 
   function showTask(task) {
     selected = task.id;
@@ -35,7 +36,11 @@
     for (const [name, val] of [
       ['ORIGINAL PROMPT LENGTH', `${fmt(task.prompt_chars)} characters`],
       ['REFERENCE ANSWER SIZE', `${fmt(task.answer_node_count)} nodes`],
-      ['SOURCE ROW INDEX', String(task.source_row_index)]
+      ['SOURCE ROW INDEX', String(task.source_row_index)],
+      ...(providerById.has(task.id) ? [
+        ['GEMINI INPUT TOKENS / LIVE PROVIDER', fmt(providerById.get(task.id).tokens)],
+        ['GEMINI INPUT FEASIBILITY', providerById.get(task.id).fits ? 'WITHIN INPUT LIMIT' : 'EXCEEDS INPUT LIMIT']
+      ] : [['GEMINI INPUT FEASIBILITY', 'Provider receipt unavailable']])
     ]) {
       const block = document.createElement('div');
       const l = document.createElement('small');
@@ -132,7 +137,7 @@
       }
       tasks = data.tasks;
       draw();
-      return fetch('./graphwalks-control.json')
+      const controlEvidence = fetch('./graphwalks-control.json')
         .then(response => { if (!response.ok) throw Error('Missing control evidence'); return response.json(); })
         .then(control => {
           if (control.schema_version !== 'graphwalks-algorithmic-control-v1' ||
@@ -154,6 +159,41 @@
           if (selectedTask) showTask(selectedTask);
         })
         .catch(() => { controlById = new Map(); });
+      const providerEvidence = fetch('./graphwalks-gemini-feasibility.json')
+        .then(response => { if (!response.ok) throw Error('Missing provider feasibility receipt'); return response.json(); })
+        .then(proof => {
+          const counts = proof.input_token_counts_in_pinned_index_order;
+          if (proof.schema_version !== 'graphwalks-gemini-source-bound-feasibility-v1' ||
+              proof.model !== 'gemini-4-neon' ||
+              proof.source_dataset_revision !== data.source.revision ||
+              proof.source_parquet_sha256 !== data.source.parquet_sha256_verified ||
+              proof.reference_index_sha256 !== data.source.reference_index_sha256 ||
+              proof.original_token_plan_sha256 !== '4d6d9167c14a4dd15dc50506c848259ec2d66a8c779232ca0234d1987da97a83' ||
+              proof.original_model_capabilities_sha256 !== '6825572fc93ff41c7a74ce3b19cdf01b6640d741890554765c591b59f5158069' ||
+              proof.provider_input_token_limit !== 1048576 ||
+              proof.provider_output_token_limit !== 65536 ||
+              proof.reserved_future_output_tokens !== 8192 ||
+              proof.candidate_source_task_count !== 200 ||
+              proof.fits_context_with_output_allowance !== 100 ||
+              proof.exceeds_provider_input_limit !== 100 ||
+              proof.model_generation_performed !== false ||
+              proof.published_claim_reproduced !== false ||
+              !Array.isArray(counts) || counts.length !== 200 ||
+              counts.some((n, i) => !Number.isSafeInteger(n) || n <= 0 ||
+                (i < 100 ? n + 8192 > 1048576 : n <= 1048576))) {
+            throw Error('Provider feasibility receipt does not match the pinned public source and limits');
+          }
+          providerById = new Map(tasks.map((task, i) =>
+            [task.id, {tokens: counts[i], fits: counts[i] + 8192 <= 1048576}]));
+          const current = tasks.find(task => task.id === selected);
+          if (current) showTask(current);
+        })
+        .catch(() => {
+          providerById = new Map();
+          const current = tasks.find(task => task.id === selected);
+          if (current) showTask(current);
+        });
+      return Promise.all([controlEvidence, providerEvidence]);
     })
     .catch(() => {
       ROOT.innerHTML = '<p class="loading">The explorer data could not be loaded. The source audit is still available through GitHub.</p>';
