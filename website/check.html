@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Check Model Claim Replay file commitments locally in your browser. No uploads or API keys.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <link rel="canonical" href="https://fraware.github.io/model-claim-replay/check.html">
+  <title>Check an evidence bundle — Model Claim Replay</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./check.css">
+  <script src="./check.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to bundle checker</a>
+  <header class="site-header"><div class="wrap header-inside">
+    <a class="brand" href="./index.html"><span class="brand-mark" aria-hidden="true">[=]</span><span>Model Claim Replay</span></a>
+    <nav class="navigation" aria-label="Main navigation"><a href="./index.html#install">Install</a><a href="./graphwalks.html">GraphWalks</a><a class="github-link" href="https://github.com/fraware/model-claim-replay">GitHub</a></nav>
+  </div></header>
+  <main id="main" class="wrap checker">
+    <p class="section-label">Local evidence tools</p>
+    <h1>Check an evidence bundle</h1>
+    <p class="checker-lede">Match the original files against the SHA-256 commitments in a Model Claim Replay run manifest. The selected bytes stay in this browser tab. No uploads, storage, or model calls.</p>
+    <div class="checker-layout">
+      <section class="checker-panel" aria-labelledby="files-heading">
+        <h2 id="files-heading">Select original files</h2>
+        <p class="checker-note">Supports portable-text v1 and Inspect v1 run manifests. Maximum 16 MiB per file. Choose the original bytes, not reformatted copies.</p>
+        <form id="bundle-form">
+          <label for="run-file">Run manifest <code>run/run.json</code></label>
+          <input id="run-file" type="file" accept=".json,application/json" required>
+          <label for="claim-file">Claim manifest <code>claim.json</code></label>
+          <input id="claim-file" type="file" accept=".json,application/json" required>
+          <label for="results-file">Recorded results <code>run/results.jsonl</code></label>
+          <input id="results-file" type="file" accept=".jsonl,.ndjson" required>
+          <label for="tasks-file">Task data <code>tasks.jsonl</code> (required for portable-text)</label>
+          <input id="tasks-file" type="file" accept=".jsonl,.ndjson">
+          <label for="source-file">Original Inspect log (optional for Inspect v1)</label>
+          <input id="source-file" type="file">
+          <div class="checker-actions"><button class="button button-dark" type="submit" id="check-submit">Check file commitments</button><button class="button button-light" type="reset">Clear files</button></div>
+        </form>
+      </section>
+      <section class="checker-panel" aria-labelledby="results-heading">
+        <h2 id="results-heading">Check results</h2>
+        <p id="check-status" role="status">Select a bundle to check its commitments.</p>
+        <dl id="bundle-summary" hidden></dl>
+        <div id="check-results" aria-live="polite"></div>
+        <div class="trust-note">
+          <h3>What this check establishes</h3>
+          <p>Matching digests establish consistency with the supplied manifest only. The manifest itself is untrusted. This tool does not validate the full schema, authenticate a provider, recompute scores, or reproduce a benchmark claim.</p>
+          <p>Use the CLI for the complete bundle validation and scoring procedure.</p>
+        </div>
+      </section>
+    </div>
+    <section class="checker-help">
+      <h2>Try a real file-integrity check</h2>
+      <p>Generate the packaged synthetic bundle locally. Then select its four files above. Modify one byte of a copy of the results file and check again to see the mismatch.</p>
+      <pre><code>python -m pip install "git+https://github.com/fraware/model-claim-replay.git"
+claim-replay demo
+claim-replay verify .runs/demo/run --claim .runs/demo/claim.json --tasks .runs/demo/tasks.jsonl</code></pre>
+      <p>The fixture produces 2/3 exact matches; it contains no real model responses. For Inspect bundles, use the <a href="https://github.com/fraware/model-claim-replay#import-an-official-inspect-ai-evaluation-log">Inspect import and validation guide</a>.</p>
+      <p>Did the check work with your bundle? <a href="https://github.com/fraware/model-claim-replay/issues/new?template=developer-replay-feedback.yml">Report your experience</a>. Never include your private evaluation files or credentials in a public issue.</p>
+    </section>
+  </main>
+  <footer class="footer"><div class="wrap footer-inner"><span class="footer-brand">Model Claim Replay</span><span>Local file checks · Open source · MIT</span></div></footer>
+</body>
+</html>

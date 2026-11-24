@@ -27,7 +27,7 @@ body:
     id: elapsed
     attributes:
       label: Approximate elapsed time in minutes
-      description: Include installation and opening the report, or time until stopping.
+      description: Include installation and opening the report, or time until stopping. Leave blank only if no attempt was made.
   - type: textarea
     id: blockers
     attributes:
@@ -40,6 +40,14 @@ body:
     attributes:
       label: What does the GraphWalks finding establish in your own words?
       description: "Inspect the 200-task explorer first. This is a comprehension check, not a test of technical expertise."
+  - type: dropdown
+    id: local_checker
+    attributes:
+      label: Optional browser checker outcome
+      options:
+        - Checked the original local demo bundle successfully
+        - Tried but encountered a problem
+        - Did not attempt
   - type: textarea
     id: use_case
     attributes:

@@ -15,13 +15,17 @@ claim-replay demo
 
 Open `.runs/demo/report.html` in a browser. The bundled three-task exercise imports fixed responses, recomputes exact-match scores, checks SHA-256 integrity, and creates independent HTML/JSON reports. Its **2/3 score is synthetic** and cannot be used to support any published model claim. Run `claim-replay demo --out another-directory` to create a second exercise; the command never overwrites an existing bundle.
 
-**Help test the first release:** [Report your offline replay experience](https://github.com/fraware/model-claim-replay/issues/new?template=developer-replay-feedback.yml). All outcomes are useful, including failed installs. [Release acceptance criteria](docs/RELEASE_ACCEPTANCE.md).
-
-[Live website](https://fraware.github.io/model-claim-replay/) · [Explore 200 verified GraphWalks tasks](https://fraware.github.io/model-claim-replay/graphwalks.html) · [Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [GraphWalks research](docs/GRAPHWALKS.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
+[Live website](https://fraware.github.io/model-claim-replay/) · [Explore 200 verified GraphWalks tasks](https://fraware.github.io/model-claim-replay/graphwalks.html) · [Download the input-feasibility figure](website/graphwalks-input-feasibility.svg) · [Website source](website/) · [Methodology](docs/METHODOLOGY.md) · [Chartography research](docs/CHARTOGRAPHY.md) · [GraphWalks research](docs/GRAPHWALKS.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md)
 
 > **Project status — foundation, not a completed benchmark replication.** The CLI executes pinned *portable text* fixtures, imports scored Inspect AI logs from an official evaluation, verifies local evidence hashes, compares compatible runs on identical task/epoch pairs, and generates standalone HTML/JSON reports. The registered Chartography and Gemini 4 Neon / GraphWalks claims are real published statements, **not** completed reproductions. Dataset access, licensing, model settings, judge protocol, and budget still need to be resolved before real comparison is justified. No provider result is invented.
 
 **Live interactive website:** [fraware.github.io/model-claim-replay](https://fraware.github.io/model-claim-replay/), published automatically from `website/` through GitHub Pages. The web demonstrations use fixed synthetic data; real evaluation and report generation run locally.
+
+**Help validate the first release:** try the offline CLI, then [report your experience](https://github.com/fraware/model-claim-replay/issues/new?template=developer-replay-feedback.yml), including unsuccessful attempts. [Release criteria and test protocol](docs/RELEASE_ACCEPTANCE.md).
+
+## Check your bundle in a browser
+
+[Open the local evidence checker](https://fraware.github.io/model-claim-replay/check.html). Select the original run manifest, claim manifest and results file; portable-text bundles also require the original task data. Inspect bundles support an optional original log check. The browser compares SHA-256 commitments locally with no file upload. It does not authenticate execution, validate the full schema or recompute scores. Use `claim-replay verify` for full CLI validation.
 
 ## The ambition
 

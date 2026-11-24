@@ -18,7 +18,6 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "claim-row" + (selectedId === record.id ? " selected" : "");
-      button.style.cssText = "width:100%;text-align:left;border-left:0;border-right:0;border-top:0;color:inherit;font:inherit";
       button.setAttribute("aria-expanded", String(selectedId === record.id));
       button.innerHTML = `<span class="claim-marker">${String(index+1).padStart(2,"0")}</span><span><span class="tag">${record.kind === "published" ? "PUBLISHED CLAIM" : "SYNTHETIC FIXTURE"}</span><h3>${escape(record.title)}</h3><p>${escape(record.subtitle)}</p></span><span class="claim-status">${escape(record.state)} <span aria-hidden="true">↗</span></span>`;
       button.addEventListener("click", () => { selectedId = selectedId === record.id ? null : record.id; renderClaims(); });
@@ -108,6 +107,22 @@
     byId("pair-protocol-check").textContent = scenario.protocol;
     byId("pair-status-label").classList.toggle("blocked", control.dataset.scenario !== "matched");
   }));
+  const findingText = "Model Claim Replay (23 Nov 2026): 100 of 200 original public GraphWalks BFS candidate prompts exceed Gemini 4 Neon's provider-reported input limit of 1,048,576 tokens. These are API token counts, not model scores; equivalence to Google's publisher-selected cohort is unverified. Source: https://fraware.github.io/model-claim-replay/graphwalks.html";
+  byId("copy-finding").addEventListener("click", async () => {
+    const status = byId("finding-copy-status");
+    const fallback = byId("finding-copy-fallback");
+    try {
+      await navigator.clipboard.writeText(findingText);
+      status.textContent = "Copied with limitations and source.";
+      fallback.hidden = true;
+    } catch {
+      fallback.value = findingText;
+      fallback.hidden = false;
+      fallback.focus();
+      fallback.select();
+      status.textContent = "Select and copy the finding below.";
+    }
+  });
   byId("copy-command").addEventListener("click", async () => {
     const value = byId("install-code").textContent;
     try { await navigator.clipboard.writeText(value); byId("copy-command").textContent="Copied ✓"; }

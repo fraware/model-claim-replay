@@ -38,6 +38,7 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
         "index.html", "app.js", "style.css", "graphwalks.html",
         "graphwalks.js", "graphwalks.css", "graphwalks-audit.json",
         "graphwalks-control.json", "graphwalks-gemini-feasibility.json",
+        "graphwalks-input-feasibility.svg", "check.html",
     )
     for filename in required:
         if not (site / filename).is_file():
@@ -75,8 +76,25 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 timeout=30_000,
                             )
                             assert response is not None and response.status == 200
+                            # Verify the shared neutral, sans-serif interface and
+                            # reject regressions to decorative italic headings.
+                            typography = page.evaluate("""() => ({
+                                body: getComputedStyle(document.body).fontFamily,
+                                background: getComputedStyle(document.body).backgroundColor,
+                                headings: [...document.querySelectorAll('h1,h2,h3,em')].map(
+                                    el => [getComputedStyle(el).fontFamily, getComputedStyle(el).fontStyle])
+                            })""")
+                            assert typography["background"] == "rgb(255, 255, 255)"
+                            assert typography["body"].startswith("Arial")
+                            assert all(family.startswith("Arial") and style == "normal"
+                                       for family, style in typography["headings"])
+                            assert page.locator("h1 em, h2 em").count() == 0
 
                             if name == "graphwalks":
+                                figure = page.locator(".evidence-figure img")
+                                assert figure.is_visible()
+                                assert figure.evaluate("(img) => img.complete && img.naturalWidth === 1200")
+                                assert page.get_by_text("Download figure (SVG)").get_attribute("href") == "./graphwalks-input-feasibility.svg"
                                 page.wait_for_function(
                                     "document.querySelectorAll('button.task-dot').length === 200"
                                 )
@@ -118,11 +136,38 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 assert page.locator("button.task-dot").count() == 1
                                 page.locator("#task-search").fill("")
                                 assert page.locator("button.task-dot").count() == 200
+
+                                # A shared task link must restore the actual selected
+                                # record and both asynchronously loaded receipts.
+                                page.goto(f"{origin}/graphwalks.html?task=bfs-row-000300#audit")
+                                page.wait_for_function(
+                                    "document.querySelector('#record')?.textContent?.includes('1,419,783')"
+                                )
+                                assert "EXCEEDS INPUT LIMIT" in page.locator("#record").inner_text()
+                                page.locator(".control-task").wait_for()
+                                assert page.locator('button.task-dot[aria-pressed="true"]').get_attribute("data-id") == "bfs-row-000300"
+                                assert page.locator(".task-permalink").get_attribute("href") == f"{origin}/graphwalks.html?task=bfs-row-000300#audit"
+                                page.locator('button.task-dot[data-id="bfs-row-000100"]').click()
+                                assert "?task=bfs-row-000100#audit" in page.url
+                                page.reload()
+                                page.wait_for_function(
+                                    "document.querySelector('#record')?.textContent?.includes('355,124')"
+                                )
+                                assert "WITHIN INPUT LIMIT" in page.locator("#record").inner_text()
+                                page.goto(f"{origin}/graphwalks.html?task=unknown#audit")
+                                page.wait_for_function(
+                                    "document.querySelector('#task-link-status')?.textContent?.includes('Unknown task ID')"
+                                )
+                                assert page.locator('button.task-dot[aria-pressed="true"]').count() == 0
                             else:
                                 page.wait_for_function(
                                     "document.querySelectorAll('.claim-row').length === 3"
                                 )
+                                assert page.get_by_role("link", name="Open local checker").get_attribute("href") == "./check.html"
+                                assert page.get_by_role("link", name="Report a replay attempt").get_attribute("href") == "https://github.com/fraware/model-claim-replay/issues/new?template=developer-replay-feedback.yml"
+                                assert page.request.get(f"{origin}/check.html").ok
                                 featured = page.locator(".evidence-plate")
+                                assert featured.get_by_text("Download evidence figure (SVG)").get_attribute("href") == "./graphwalks-input-feasibility.svg"
                                 assert featured.is_visible()
                                 assert "100 of 200 public candidate prompts exceed" in featured.inner_text()
                                 assert "1,048,576 tokens" in featured.inner_text()
@@ -137,6 +182,18 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 assert receipt["candidate_source_task_count"] == 200
                                 assert receipt["model_generation_performed"] is False
                                 assert featured.get_by_text("Original Actions run").get_attribute("href") == receipt["provider_run"]
+                                assert page.get_by_text("Inspect a task over the limit").get_attribute("href") == "./graphwalks.html?task=bfs-row-000300#audit"
+                                # Test the no-clipboard fallback, including its
+                                # source and non-reproduction qualification.
+                                page.evaluate("Object.defineProperty(navigator, 'clipboard', {value: undefined, configurable: true})")
+                                page.locator("#copy-finding").click()
+                                fallback = page.locator("#finding-copy-fallback")
+                                assert fallback.is_visible()
+                                copied = fallback.input_value()
+                                assert "100 of 200 original public GraphWalks BFS candidate prompts" in copied
+                                assert "not model scores" in copied
+                                assert "publisher-selected cohort is unverified" in copied
+                                assert "https://fraware.github.io/model-claim-replay/graphwalks.html" in copied
                                 page.locator(".claim-row").nth(1).click()
                                 assert page.locator("#claim-detail").is_visible()
                                 page.locator(".filter[data-filter='published']").click()

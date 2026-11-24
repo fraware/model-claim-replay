@@ -13,9 +13,27 @@
   let tasks = [];
   let controlById = new Map();
   let providerById = new Map();
+  const linkStatus = document.getElementById('task-link-status');
 
-  function showTask(task) {
+  function taskURL(id) {
+    const url = new URL(window.location.href);
+    url.search = '';
+    if (id) url.searchParams.set('task', id);
+    url.hash = 'audit';
+    return url;
+  }
+
+  function setTaskURL(id) {
+    const url = taskURL(id);
+    if (url.href !== window.location.href) history.replaceState(null, '', url);
+  }
+
+  function showTask(task, updateURL = false) {
     selected = task.id;
+    if (updateURL) {
+      setTaskURL(task.id);
+      linkStatus.textContent = '';
+    }
     ROOT.querySelectorAll('button.task-dot').forEach(el => {
       const on = el.dataset.id === selected;
       el.classList.toggle('selected', on);
@@ -66,6 +84,26 @@
       catch { copy.textContent = 'Select digest above to copy'; }
     });
     right.append(hashLabel, hash, copy);
+    const permalink = document.createElement('a');
+    permalink.className = 'task-permalink';
+    permalink.href = taskURL(task.id).href;
+    permalink.textContent = 'Permalink to this task';
+    const share = document.createElement('button');
+    share.type = 'button';
+    share.className = 'record-action';
+    share.textContent = 'Copy task link';
+    share.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(permalink.href);
+        linkStatus.textContent = 'Task link copied.';
+      } catch {
+        linkStatus.textContent = 'Use the permalink to copy the task URL.';
+      }
+    });
+    const links = document.createElement('div');
+    links.className = 'task-share';
+    links.append(permalink, share);
+    right.append(links);
     const measured = controlById.get(task.id);
     if (measured) {
       const evidence = document.createElement('div');
@@ -99,7 +137,7 @@
       btn.setAttribute('aria-pressed', String(selected === task.id));
       btn.title = `${task.id} · ${fmt(task.prompt_chars)} characters`;
       if (selected === task.id) btn.classList.add('selected');
-      btn.addEventListener('click', () => showTask(task));
+      btn.addEventListener('click', () => showTask(task, true));
       fragment.append(btn);
     }
     ROOT.replaceChildren(fragment);
@@ -110,7 +148,11 @@
       ROOT.append(empty);
     }
     if (!matches.some(t => t.id === selected)) {
-      selected = null;
+      if (selected) {
+        selected = null;
+        setTaskURL(null);
+        linkStatus.textContent = '';
+      }
       RECORD.innerHTML = '<div class="record-placeholder">Select one of the marks to inspect its source record.</div>';
     }
   }
@@ -137,6 +179,12 @@
       }
       tasks = data.tasks;
       draw();
+      const requested = new URL(window.location.href).searchParams.get('task');
+      if (requested !== null) {
+        const task = tasks.find(row => row.id === requested);
+        if (task) showTask(task);
+        else linkStatus.textContent = 'Unknown task ID. Select an available source record.';
+      }
       const controlEvidence = fetch('./graphwalks-control.json')
         .then(response => { if (!response.ok) throw Error('Missing control evidence'); return response.json(); })
         .then(control => {

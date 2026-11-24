@@ -7,7 +7,7 @@ Decision record, 23 November 2026. GitHub Trending Daily is an aspiration; never
 | Gate | Acceptance criterion | Current evidence |
 | --- | --- | --- |
 | Real-model experiment | At least one independently initiated successful generation on a prespecified source-bound task, with model ID, protocol, usage, finish state and original grader recorded. A single task is a diagnostic, never a population estimate. | Blocked: explicit dispatch and spending approval pending. |
-| Independent scoring and inspectability | A third party recomputes the diagnostic score from permitted original responses and references, or the project documents why raw outputs are unavailable; a redacted consistency check alone does not qualify as independent rescoring. Every task outcome and exclusion is accounted for. | Partial: 200-task algorithmic control, provider token counts, public receipts; no model scores. |
+| Independent scoring and inspectability | A third party recomputes the diagnostic score from permitted original responses and references. If raw responses are unavailable, document the access restriction and keep this gate open until authorized independent rescoring occurs; redacted consistency checks alone do not qualify. Every task outcome and exclusion is accounted for. | Partial: 200-task algorithmic control, provider token counts, public receipts; no model scores. |
 | Installation | Wheel and clean-environment installation, offline CLI demonstration, desktop/mobile website tests; at least four of five independent users complete onboarding in five minutes or less, with no private credentials needed. | Automated coverage exists; external sessions not yet performed. |
 | External testing | Five independent developers or evaluation researchers, recruited for task-relevant expertise. Record all attempts including failures, time to first report, usability issues, and whether they would use the tool on another claim. No reward tied to stars or positive feedback. | Not started. |
 | Differentiation | Review existing execution frameworks and claim databases; at least three external testers identify a task they would use this workflow for, with a specific reason. No blanket novelty claim. | Initial desk review below; user validation outstanding. |
@@ -40,7 +40,20 @@ The proposed differentiator is a practical workflow from a specific published cl
 
 ## External testing protocol
 
+Use the deployed website and the installed wheel or Git checkout. Testers should start in a clean environment where possible; the timer starts when opening the repository quickstart and stops when the generated HTML report opens, including installation time. Record OS, Python version, installation path, whether all steps succeeded, and the elapsed time. A non-attempt is recorded separately and excluded from the timed completion denominator; recruit replacements until five attempts exist. The tester should then inspect the source-task example and, optionally, use the browser checker on the locally generated bundle. Ask the tester to describe what was established by each check before explaining the intended answer. Never classify a maintainer's automated test or a simulated session as external feedback.
+
 Send the [onboarding feedback form](https://github.com/fraware/model-claim-replay/issues/new?template=developer-replay-feedback.yml) to five relevant independent testers. Ask them to start from the repository homepage, run the offline demo on their own machine, open its report, then inspect the public GraphWalks finding and identify its scope. Observe or request elapsed time, errors, and their own interpretation. Never request secrets, raw private logs, or positive public endorsements. Record unsuccessful sessions alongside successful ones.
+
+### Pilot dispatch checklist
+
+Open the [manual paid GraphWalks diagnostic workflow](https://github.com/fraware/model-claim-replay/actions/workflows/graphwalks-paid-pilot.yml) on main. An authorized maintainer must select these exact inputs:
+
+- `tasks`: `1`
+- `output_tokens`: `65536`
+- `max_spend_usd`: `5`
+- `approval`: `AUTHORIZE_PAID_GEMINI`
+
+The runner independently verifies the source, obtains fresh provider input counts and checks the reservation before generation. The earlier 355,124-token measurement is a planning observation, not a charge or guarantee of the fresh count. Record the workflow run ID, actual completion state, artifact commitments, usage and limitations. Do not retry an ambiguous paid request or reuse approval through the Actions rerun control. A new explicit dispatch is needed after reviewing prior charges and evidence. No such diagnostic is asserted to have run.
 
 ## Timing and distribution
 

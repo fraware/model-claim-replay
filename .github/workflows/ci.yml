@@ -143,6 +143,10 @@ jobs:
           fi
       - name: Test desktop/mobile interactions and source-data receipts
         run: python scripts/visual_smoke.py --site website --out .runs/visual-smoke
+      - name: Test local file commitments using a real packaged CLI bundle
+        run: |
+          python -m pip install -e .
+          python scripts/check_browser.py --site website
       - name: Retain offline screenshots when browser QA fails
         if: ${{ failure() }}
         uses: actions/upload-artifact@v6

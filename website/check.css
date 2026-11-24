@@ -1,0 +1,29 @@
+.checker { padding-top:38px; padding-bottom:40px; }
+.checker-lede { max-width:750px; color:var(--muted); margin:12px 0 24px; }
+.checker-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; align-items:start; }
+.checker-panel { border:1px solid var(--line); border-radius:4px; padding:22px; min-width:0; }
+.checker-panel h2,.checker-help h2 { font-size:23px; margin-bottom:10px; }
+.checker-note,.trust-note p,.checker-help p { font-size:13px; color:var(--muted); margin:8px 0 12px; }
+#bundle-form label { display:block; margin:14px 0 5px; font-size:13px; font-weight:600; }
+#bundle-form label code { font:12px var(--mono); color:var(--muted); }
+#bundle-form input { display:block; width:100%; min-width:0; border:1px solid var(--line); border-radius:3px; padding:7px; font-size:12px; background:var(--surface); }
+#bundle-form input::file-selector-button { border:1px solid var(--line); background:var(--white); padding:5px 8px; margin-right:8px; border-radius:3px; cursor:pointer; }
+.checker-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+#check-status { color:var(--muted); font-size:14px; font-weight:600; }
+#check-status[data-outcome="match"] { color:var(--accent); }
+#check-status[data-outcome="mismatch"],#check-status[data-outcome="error"] { color:var(--warning); }
+#bundle-summary { margin:12px 0; display:grid; grid-template-columns:100px minmax(0,1fr); gap:5px 10px; font-size:12px; }
+#bundle-summary[hidden] { display:none; }
+#bundle-summary dt { color:var(--muted); }
+#bundle-summary dd { margin:0; overflow-wrap:anywhere; }
+.check-row { border-top:1px solid var(--line); padding:10px 0; font-size:12px; }
+.check-row strong { display:block; font-size:13px; }
+.check-row[data-result="mismatch"] strong { color:var(--warning); }
+.check-row[data-result="match"] strong { color:var(--accent); }
+.check-row code { display:block; overflow-wrap:anywhere; font:11px/1.5 var(--mono); }
+.trust-note { margin-top:20px; padding:12px; background:var(--surface); border-left:3px solid var(--line); }
+.trust-note h3 { font-size:14px; }
+.trust-note p:last-child { margin-bottom:0; }
+.checker-help { border-top:1px solid var(--line); margin-top:28px; padding-top:24px; }
+.checker-help pre { background:var(--surface); border:1px solid var(--line); padding:14px; overflow-x:auto; font:12px/1.7 var(--mono); }
+@media(max-width:700px) { .checker-layout { grid-template-columns:minmax(0,1fr); } .checker { padding-top:24px; } .checker-panel { padding:15px; } }
