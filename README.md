@@ -21,6 +21,10 @@ Open `.runs/demo/report.html` in a browser. The bundled three-task exercise impo
 
 **Live interactive website:** [fraware.github.io/model-claim-replay](https://fraware.github.io/model-claim-replay/), published automatically from `website/` through GitHub Pages. The web demonstrations use fixed synthetic data; real evaluation and report generation run locally.
 
+## Check your bundle in a browser
+
+[Open the local evidence checker](https://fraware.github.io/model-claim-replay/check.html). Select the original run manifest, claim manifest and results file; portable-text bundles also require the original task data. Inspect bundles support an optional original log check. The browser compares SHA-256 commitments locally with no file upload. It does not authenticate execution, validate the full schema or recompute scores. Use `claim-replay verify` for full CLI validation.
+
 ## The ambition
 
 A public claim should lead to a public experiment. We aim to make the following routine for any significant model launch:
