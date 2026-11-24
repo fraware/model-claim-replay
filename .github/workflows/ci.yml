@@ -4,6 +4,14 @@ on:
   pull_request:
 permissions:
   contents: read
+
+# Only the newest commit on a given branch or PR should occupy CI runners.
+# A PR and a branch push have distinct groups, avoiding cross-event cancellation.
+# Paid, provider-readiness and deployment workflows are unaffected.
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
