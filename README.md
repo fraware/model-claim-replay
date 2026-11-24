@@ -68,6 +68,10 @@ python -m model_claim_replay.openai_graphwalks_verify \
 
 Use the directory containing `plan.json`, `intent.json`, `outcome.json` and `scoring-evidence.json`. Verification checks the reference-index hash, source task and prompt commitments, receipt digests and exact F1. It neither authenticates the provider response nor proves that the disclosed line was faithfully extracted from the full answer. External independent rescoring is still required.
 
+### First-generation pilot
+
+The [one-time authorization record](evidence/graphwalks/openai-first-generation-authorization.json) permits one GPT-6.2 Sol generation on the already measured source task with a $5 reservation ceiling and restricted final-line publication. Its dedicated main-push workflow checks the exact record, first introduction in Git history, and initial run attempt before obtaining credentials. No recurring paid trigger, automatic retry, or reusable authorization is introduced. Future runs use the manual workflow. The reservation is an estimate, not a provider-enforced account spending cap. New runs reserve $20/M output as an extra margin above the documented $15/M long-context Standard rate. The earlier preflight's $2.26103 remains its original recorded estimate; at the revised rates the same measured input reserves $2.58871. No generation result is asserted until the run completes.
+
 ## Score GraphWalks responses offline
 
 A dedicated `grade-graphwalks` CLI command follows the published GraphWalks final-line answer parser and node-set F1. It checks the supplied BFS reference-index SHA-256 and scores recorded model outputs **without making API calls**. Original dataset rows and prompt input fidelity still need separate verification, and the resulting report is never labeled a publisher reproduction.

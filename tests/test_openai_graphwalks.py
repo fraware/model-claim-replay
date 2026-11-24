@@ -16,7 +16,7 @@ class OpenAIDiagnosticTests(unittest.TestCase):
         for approval,budget in [("NO","5"),(APPROVAL,"0"),(APPROVAL,"NaN"),(APPROVAL,"101")]:
             with self.assertRaises(ReplayError):
                 authorization(approval,budget)
-        self.assertEqual(reservation(355124, 65536), Decimal("2.758660"))
+        self.assertEqual(reservation(355124, 65536), Decimal("3.086340"))
 
     def test_default_preflight_never_generates_even_when_within_budget(self):
         self.assertEqual(dispatch_mode(PREFLIGHT, "5"), (False, Decimal("5")))
