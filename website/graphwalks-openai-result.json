@@ -6,7 +6,7 @@
   "dataset_revision": "be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7",
   "parquet_sha256": "537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911",
   "reference_index_sha256": "250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee",
-  "prompt_sha256": "8dff8adf1268f8298451e4e5c17d5f911c2cf1e5e3dab1a17cbe5ed9348956e6",
+  "prompt_sha256": "8dff8adf1268f8298451e4e5c17d5f811c2cf1e5e3dab1a17cbe5ed9348956e6",
   "execution_commit": "a3e9d484dabf02b34ddbd86ae633f50ffabbc0f1",
   "run": "https://github.com/fraware/model-claim-replay/actions/runs/45398852989",
   "artifact_id": 14922527165,
