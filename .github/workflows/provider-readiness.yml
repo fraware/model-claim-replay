@@ -26,11 +26,8 @@ jobs:
           python-version: '3.12'
       - name: Install the dependency-free provider probe
         run: python -m pip install -e .
-      - name: Check Gemini target model, or fall back to OpenAI model catalog
+      - name: Check exact default OpenAI model metadata
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          GOOGLE_GENAI_API_KEY: ${{ secrets.GOOGLE_GENAI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
         run: |

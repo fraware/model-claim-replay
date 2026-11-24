@@ -1,10 +1,4 @@
-"""Metadata-only provider readiness with a clearly labeled OpenAI fallback.
-
-This probe makes at most one HTTPS GET to Gemini model metadata and one to
-OpenAI's models endpoint. It never sends prompts, creates completions, invokes
-Interactions/Responses, counts tokens, or accesses secret values beyond request
-headers. It cannot establish permission or capacity for a billable evaluation.
-"""
+"""Metadata-only OpenAI readiness. No prompts or model generation."""
 
 from __future__ import annotations
 
@@ -15,12 +9,10 @@ import os
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from model_claim_replay.graphwalks_runtime import MODEL as GEMINI_CLAIM_MODEL
+from model_claim_replay.openai_graphwalks import MODEL as DEFAULT_MODEL
 
-_GEMINI_HOST = "generativelanguage.googleapis.com"
 _OPENAI_HOST = "api.openai.com"
-_GEMINI_PATH = "/v1beta/models/" + GEMINI_CLAIM_MODEL
-_OPENAI_PATH = "/v1/models"
+_OPENAI_PATH = "/v1/models/" + DEFAULT_MODEL
 _MAX_METADATA_BYTES = 2 * 1024 * 1024
 _TIMEOUT_SECONDS = 15
 _ProviderRequest = Callable[[str, str, Mapping[str, str]], tuple[int, Any]]
@@ -71,81 +63,43 @@ def probe_providers(
     *,
     request: _ProviderRequest | None = None,
 ) -> dict[str, Any]:
-    """Select usable metadata access: Gemini claim model, then OpenAI fallback.
-
-    Model-list metadata access is a credential/API availability diagnostic only.
-    An OpenAI result cannot reproduce a Google Gemini publisher claim.
-    """
+    """Check OpenAI only; never silently substitute a different provider."""
     if request is None:
         request = _metadata_get
     selected = None
-    gemini: dict[str, Any] = {"status": "credential_missing"}
-    openai: dict[str, Any] = {"status": "not_checked"}
-    gemini_keys = _credentials(
-        environ, "GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENAI_API_KEY",
-    )
-    for key in gemini_keys:
+    openai: dict[str, Any] = {"status": "credential_missing"}
+    for key in _credentials(environ, "OPENAI_API_KEY", "OPENAI_KEY"):
         try:
             status, payload = request(
-                _GEMINI_HOST, _GEMINI_PATH,
-                {"x-goog-api-key": key, "Accept": "application/json"},
+                _OPENAI_HOST, _OPENAI_PATH,
+                {"Authorization": "Bearer " + key, "Accept": "application/json"},
             )
         except ProviderProbeError:
-            gemini = {"status": "transport_or_response_error"}
+            openai = {"status": "transport_or_response_error"}
         else:
-            if status == 200:
-                if (
-                    isinstance(payload, dict)
-                    and payload.get("name") == "models/" + GEMINI_CLAIM_MODEL
-                ):
-                    gemini = {"status": "model_metadata_available", "http_status": 200}
-                    selected = "gemini"
-                    break
-                gemini = {"status": "unexpected_model_metadata", "http_status": 200}
-            else:
-                gemini = {"status": "http_error", "http_status": status}
-
-    if selected is None:
-        openai_keys = _credentials(environ, "OPENAI_API_KEY", "OPENAI_KEY")
-        openai = {"status": "credential_missing"} if not openai_keys else openai
-        for key in openai_keys:
-            try:
-                status, payload = request(
-                    _OPENAI_HOST, _OPENAI_PATH,
-                    {"Authorization": "Bearer " + key, "Accept": "application/json"},
-                )
-            except ProviderProbeError:
-                openai = {"status": "transport_or_response_error"}
-            else:
-                if status == 200:
-                    models = payload.get("data") if isinstance(payload, dict) else None
-                    if isinstance(models, list) and any(
-                        isinstance(row, dict) and isinstance(row.get("id"), str)
-                        and bool(row["id"])
-                        for row in models
-                    ):
-                        openai = {"status": "model_catalog_available", "http_status": 200}
-                        selected = "openai"
-                        break
-                    openai = {"status": "unexpected_model_catalog", "http_status": 200}
-                else:
-                    openai = {"status": "http_error", "http_status": status}
+            if status != 200:
+                openai = {"status": "http_error", "http_status": status}
+                continue
+            if isinstance(payload, dict) and payload.get("id") == DEFAULT_MODEL:
+                openai = {"status": "model_metadata_available", "http_status": 200}
+                selected = "openai"
+                break
+            openai = {"status": "unexpected_model_metadata", "http_status": 200}
     return {
-        "schema_version": "model-claim-replay-provider-readiness-v1",
+        "schema_version": "model-claim-replay-provider-readiness-v2",
         "mode": "metadata_only_no_generation",
-        "preferred": "gemini",
-        "fallback": "openai",
+        "preferred": "openai",
+        "fallback": None,
         "selected": selected,
-        "gemini_claim_model": GEMINI_CLAIM_MODEL,
-        "gemini": gemini,
+        "default_model": DEFAULT_MODEL,
+        "gemini": {"status": "not_checked"},
         "openai": openai,
         "generative_request_performed": False,
         "benchmark_claim_reproduced": False,
         "limitations": (
-            "HTTP model metadata/list access is not a generation test, quota "
-            "validation, context-capacity test or provider execution receipt. "
-            "OpenAI fallback is for operational readiness only; it does not "
-            "reproduce or validate the published Gemini GraphWalks claim."
+            "Exact model metadata access is not a generation test, quota "
+            "validation, context-capacity test or execution receipt. "
+            "No other provider is contacted."
         ),
     }
 

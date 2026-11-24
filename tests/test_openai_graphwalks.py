@@ -1,0 +1,82 @@
+"""Exercise the OpenAI diagnostic with injected transport and fixture source."""
+from __future__ import annotations
+
+import json
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+from model_claim_replay.core import ReplayError, sha256_bytes
+from model_claim_replay.openai_graphwalks import APPROVAL, MODEL, TASK, diagnostic, reservation, authorization
+
+
+class OpenAIDiagnosticTests(unittest.TestCase):
+    def test_authorization(self):
+        for approval,budget in [("NO","5"),(APPROVAL,"0"),(APPROVAL,"NaN"),(APPROVAL,"101")]:
+            with self.assertRaises(ReplayError):
+                authorization(approval,budget)
+        self.assertEqual(str(reservation(355124,65536)), "2.403536")
+
+    def test_one_request_and_redacted_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            index = root / "index.jsonl"
+            prompt = "fixture prompt"
+            index.write_text(json.dumps({"id":TASK,"prompt_sha256":sha256_bytes(prompt.encode()),"answer_nodes":["a"]})+"\n")
+            calls = []
+            def request(path,payload,key):
+                calls.append(path)
+                self.assertEqual(key,"fixture-key")
+                if path.startswith("/v1/models/"):
+                    return {"id":MODEL}
+                if path.endswith("input_tokens"):
+                    self.assertEqual(payload["input"],prompt)
+                    return {"object":"response.input_tokens","input_tokens":355124}
+                self.assertEqual(payload["input"],prompt)
+                self.assertFalse(payload["store"])
+                self.assertEqual(payload["tools"],[])
+                self.assertEqual(payload["truncation"],"disabled")
+                self.assertEqual(payload["service_tier"],"default")
+                self.assertTrue((root/"out/public/intent.json").is_file())
+                return {"status":"completed","model":MODEL,"service_tier":"default",
+                        "usage":{"input_tokens":355124,"output_tokens":10,"total_tokens":355134},
+                        "output":[{"type":"message","role":"assistant","status":"completed",
+                                   "content":[{"type":"output_text","text":"Final Answer: [a]"}]}]}
+            kw = dict(approval=APPROVAL,budget="5",environ={"OPENAI_API_KEY":"fixture-key"},
+                      request=request,source_reader=lambda *_:{TASK:prompt})
+            result = diagnostic(root/"unused",index,root/"out",**kw)
+            self.assertEqual(result["grade"]["f1"],1)
+            self.assertFalse(result["published_claim_reproduced"])
+            self.assertEqual(calls.count("/v1/responses"),1)
+            self.assertNotIn("Final Answer", (root/"out/public/outcome.json").read_text())
+            with self.assertRaises(ReplayError):
+                diagnostic(root/"unused",index,root/"out",**kw)
+            self.assertEqual(calls.count("/v1/responses"),1)
+
+    def test_budget_context_and_uncertain_request(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            index = root/"index.jsonl"
+            prompt = "fixture"
+            index.write_text(json.dumps({"id":TASK,"prompt_sha256":sha256_bytes(prompt.encode()),"answer_nodes":["a"]})+"\n")
+            for tokens,budget,paid in [(950000,"100",False),(355124,"1",False),(355124,"5",True)]:
+                out = root/f"out-{budget}-{tokens}"
+                calls = []
+                def request(path,payload,key):
+                    calls.append(path)
+                    if path.startswith("/v1/models/"): return {"id":MODEL}
+                    if path.endswith("input_tokens"): return {"object":"response.input_tokens","input_tokens":tokens}
+                    raise ReplayError("ambiguous")
+                with self.assertRaises(ReplayError):
+                    diagnostic(root/"unused",index,out,approval=APPROVAL,budget=budget,
+                               environ={"OPENAI_KEY":"fixture"},request=request,source_reader=lambda *_:{TASK:prompt})
+                self.assertEqual("/v1/responses" in calls,paid)
+                if paid:
+                    self.assertEqual(json.loads((out/"public/outcome.json").read_text())["status"],"generation_or_accounting_uncertain")
+                else:
+                    self.assertFalse(out.exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

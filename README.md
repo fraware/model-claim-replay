@@ -48,30 +48,11 @@ The long-term product is a **living, versioned claim registry** plus reproducibl
 
 Neither headline has been independently reproduced. [Our byte-verified 200-task BFS index](https://github.com/fraware/model-claim-replay/actions/runs/44746523023) is available as a reproducible CI artifact. The GraphWalks scorer is distinct from the Chartography Inspect importer. Neither component authenticates the model provider.
 
-## Provider credential readiness and fallback
+## OpenAI default provider
 
-The [provider-readiness workflow](.github/workflows/provider-readiness.yml)
-runs after pushes to `main`, where GitHub Actions repository secrets are
-available. It sends a **metadata-only GET**, first for the exact Gemini
-GraphWalks claim model and, if that request fails or the secret is absent, for
-the OpenAI model catalog. It recognizes `GEMINI_API_KEY` (also
-`GOOGLE_API_KEY` or `GOOGLE_GENAI_API_KEY`) and `OPENAI_API_KEY` (also
-`OPENAI_KEY`). Secrets stay in the GitHub runner and are never recorded in
-the artifact or logs. The workflow publishes only redacted provider status.
+The generic CLI already uses the OpenAI endpoint. The protected-main readiness workflow now checks the exact `gpt-6.2-sol` model using `OPENAI_API_KEY` or `OPENAI_KEY`; it never probes Gemini or substitutes another provider. Metadata access is not proof of inference readiness.
 
-```bash
-# Optional local metadata-only check using the same environment-variable keys:
-python scripts/provider_readiness.py --out .runs/provider-readiness.json
-```
-
-**An OpenAI fallback confirms only metadata access to a different provider.**
-It is deliberately excluded from the Gemini 4 Neon GraphWalks experiment,
-whose model identity, tokenizer, context capacity, pricing, and score protocol
-are fixed. The fallback does not execute model generation, validate spending
-access, establish usable benchmark model availability, or reproduce a Google
-claim. Paid GraphWalks inference continues to require its separate manual
-approval and explicit spending ceiling. A successful readiness receipt is not
-a model-performance result.
+The [OpenAI GraphWalks diagnostic workflow](https://github.com/fraware/model-claim-replay/actions/workflows/graphwalks-openai-paid.yml) is a separate, single-task Responses API experiment on pinned public candidate task `bfs-row-000100`, at `xhigh` reasoning and 65,536 output tokens. Explicitly authorize a new main-branch dispatch with `AUTHORIZE_PAID_OPENAI` and a positive USD ceiling (suggested $5). It obtains fresh OpenAI token counts, uses conservative standard long-context rates, refuses infeasible or over-budget input, writes a durable intent, and never retries a billable generation. No raw response is uploaded. The result is not a reproduction of Google's Gemini claim. That historical investigation remains separate.
 
 ## Score GraphWalks responses offline
 
