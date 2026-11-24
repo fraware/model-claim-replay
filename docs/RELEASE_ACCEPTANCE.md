@@ -17,7 +17,7 @@ The thresholds are predeclared operational targets, not statistically representa
 
 ## Provider policy and first GraphWalks experiment
 
-OpenAI is now the default provider. The separate GPT-6.2 Sol one-task diagnostic uses the OpenAI Responses API and requires `AUTHORIZE_PAID_OPENAI` with a positive USD ceiling. It does not substitute for the historical Gemini-specific investigation. See the README for the new workflow. No result has been produced.
+OpenAI is now the default provider. The separate GPT-6.2 Sol one-task diagnostic uses the OpenAI Responses API and uses a safe default `PREFLIGHT_ONLY` for token counting. Select `AUTHORIZE_PAID_OPENAI` explicitly in the workflow dropdown with a positive USD ceiling for actual generation. It does not substitute for the historical Gemini-specific investigation. See the README for the new workflow. No result has been produced.
 
 The [Google methodology PDF](https://deepmind.google/models/evals-methodology/gemini-4-neon/) (printed pp. 1, 3, 5) identifies a 200-problem long-context cohort, a high-thinking Gemini API protocol, and a 95.2% BFS F1 result. It does not enumerate the source-row identities or give an exact output/continuation configuration for GraphWalks. The [Epoch AI review](https://epoch.ai/benchmarks/graphwalks/review) independently flags public task/solution availability, version drift and long-context output constraints.
 

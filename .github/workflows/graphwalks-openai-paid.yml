@@ -3,15 +3,24 @@ on:
   workflow_dispatch:
     inputs:
       approval:
-        description: "Type AUTHORIZE_PAID_OPENAI for a billable GPT-6.2 Sol diagnostic"
+        description: "Choose PREFLIGHT_ONLY (no generation) or explicitly authorize one paid GPT-6.2 Sol generation"
         required: true
-        default: "NO"
-        type: string
+        default: "PREFLIGHT_ONLY"
+        type: choice
+        options:
+          - PREFLIGHT_ONLY
+          - AUTHORIZE_PAID_OPENAI
       max_spend_usd:
-        description: "Positive USD reservation ceiling, maximum 100"
+        description: "USD planning ceiling for preflight; spending ceiling only if paid mode selected"
         required: true
-        default: "0"
-        type: string
+        default: "5"
+        type: choice
+        options:
+          - "5"
+          - "10"
+          - "25"
+          - "50"
+          - "100"
 permissions:
   contents: read
 concurrency:
@@ -31,19 +40,19 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install -e '.[graphwalks]'
-      - name: Check explicit approval before source download or credential access
+      - name: Validate mode and ceiling before source download or credential access
         env:
           APPROVAL: ${{ inputs.approval }}
           BUDGET: ${{ inputs.max_spend_usd }}
         run: |
-          python -c 'import os; from model_claim_replay.openai_graphwalks import authorization; authorization(os.environ["APPROVAL"], os.environ["BUDGET"])'
+          python -c 'import os; from model_claim_replay.openai_graphwalks import dispatch_mode; dispatch_mode(os.environ["APPROVAL"], os.environ["BUDGET"])'
       - name: Independently verify pinned public dataset
         run: |
           python scripts/graphwalks_data_audit.py \
             --revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 \
             --sha256 537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911 \
             --size-bytes 296903814 --retain-parquet --out .runs/private/openai-source
-      - name: Count exact OpenAI tokens, reserve budget and execute once
+      - name: Count exact OpenAI tokens and generate only in authorized paid mode
         env:
           APPROVAL: ${{ inputs.approval }}
           BUDGET: ${{ inputs.max_spend_usd }}
@@ -59,6 +68,10 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: openai-graphwalks-redacted-diagnostic
-          path: .runs/openai-diagnostic/public/
-          if-no-files-found: ignore
+          path: |
+            .runs/openai-diagnostic/public/plan.json
+            .runs/openai-diagnostic/public/intent.json
+            .runs/openai-diagnostic/public/outcome.json
+          include-hidden-files: true
+          if-no-files-found: warn
           retention-days: 14
