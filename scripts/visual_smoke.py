@@ -164,6 +164,7 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                     "document.querySelectorAll('.claim-row').length === 3"
                                 )
                                 assert page.get_by_role("link", name="Open local checker").get_attribute("href") == "./check.html"
+                                assert page.get_by_role("link", name="Report a replay attempt").get_attribute("href") == "https://github.com/fraware/model-claim-replay/issues/new?template=developer-replay-feedback.yml"
                                 assert page.request.get(f"{origin}/check.html").ok
                                 featured = page.locator(".evidence-plate")
                                 assert featured.get_by_text("Download evidence figure (SVG)").get_attribute("href") == "./graphwalks-input-feasibility.svg"
