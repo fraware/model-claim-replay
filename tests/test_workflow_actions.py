@@ -72,7 +72,11 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertIn("dispatch_mode(", paid)
         self.assertIn("include-hidden-files: true", paid)
         upload = paid.split("name: Retain redacted evidence only", 1)[1]
-        for name in ("plan.json", "intent.json", "outcome.json"):
+        self.assertIn('default: "REDACTED_ONLY"', paid)
+        self.assertIn("- PUBLISH_FINAL_LINE", paid)
+        self.assertIn("validate_publication(", paid)
+        self.assertIn('--publication "$PUBLICATION"', paid)
+        for name in ("plan.json", "intent.json", "outcome.json", "scoring-evidence.json"):
             self.assertIn(".runs/openai-diagnostic/public/" + name, upload)
         self.assertNotIn("/private/", upload)
         self.assertNotIn("response.json", upload)

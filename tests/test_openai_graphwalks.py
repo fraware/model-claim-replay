@@ -103,6 +103,8 @@ class OpenAIDiagnosticTests(unittest.TestCase):
             self.assertFalse(result["published_claim_reproduced"])
             self.assertEqual(calls.count("/v1/responses"),1)
             self.assertNotIn("Final Answer", (root/"out/public/outcome.json").read_text())
+            self.assertEqual(result["scoring_evidence_status"], "withheld_by_policy")
+            self.assertFalse((root/"out/public/scoring-evidence.json").exists())
             with self.assertRaises(ReplayError):
                 diagnostic(root/"unused",index,root/"out",**kw)
             self.assertEqual(calls.count("/v1/responses"),1)
