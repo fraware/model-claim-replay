@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import tempfile
 import threading
@@ -33,6 +34,30 @@ def main() -> None:
             data = json.loads((bundle / "run/run.json").read_bytes())
             data["claim_id"] = "different-claim"
             wrong_run.write_text(json.dumps(data), encoding="utf-8")
+            # Deliberately synthetic Inspect-shaped commitment fixtures:
+            # these exercise the browser's byte-check branch, not its CLI
+            # import, scorer, or a real Inspect provider execution.
+            inspect_claim = Path(directory) / "inspect-claim.json"
+            inspect_results = Path(directory) / "inspect-results.jsonl"
+            inspect_source = Path(directory) / "inspect-source.bin"
+            inspect_run = Path(directory) / "inspect-run.json"
+            inspect_claim.write_text(json.dumps({
+                "schema_version": "1", "id": "inspect-fixture", "kind": "synthetic",
+                "protocol": {"mode": "external"},
+            }), encoding="utf-8")
+            inspect_results.write_bytes(b'{"status":"pass"}\\n')
+            inspect_source.write_bytes(b"synthetic log bytes")
+            def sha(path: Path) -> str:
+                return hashlib.sha256(path.read_bytes()).hexdigest()
+            inspect_run.write_text(json.dumps({
+                "schema_version": "inspect-v1", "claim_id": "inspect-fixture",
+                "manifest_sha256": sha(inspect_claim),
+                "results_sha256": sha(inspect_results),
+                "source_log_sha256": sha(inspect_source),
+                "provenance": "self_reported_unattested",
+            }), encoding="utf-8")
+            malformed = Path(directory) / "malformed.json"
+            malformed.write_bytes(b'{"schema_version":')
             browser = api.chromium.launch(headless=True, args=["--no-sandbox"])
             try:
                 for width,height in ((1440,900),(390,844)):
@@ -63,6 +88,29 @@ def main() -> None:
                     assert page.locator("#run-file").input_value() == ""
                     assert page.locator(".check-row").count() == 0
                     assert page.locator('#check-status[data-outcome="idle"]').count() == 1
+
+                    page.locator("#run-file").set_input_files(inspect_run)
+                    page.locator("#claim-file").set_input_files(inspect_claim)
+                    page.locator("#results-file").set_input_files(inspect_results)
+                    page.locator("#check-submit").click()
+                    page.locator('#check-status[data-outcome="match"]').wait_for()
+                    assert page.locator('.check-row[data-result="match"]').count() == 2
+                    assert page.locator('.check-row[data-result="unchecked"]').count() == 1
+                    assert "Original Inspect log not checked" in page.locator("#check-status").inner_text()
+                    page.locator("#source-file").set_input_files(inspect_source)
+                    page.locator("#check-submit").click()
+                    page.locator('#check-status[data-outcome="match"]').wait_for()
+                    assert page.locator('.check-row[data-result="match"]').count() == 3
+                    assert page.locator('.check-row[data-result="unchecked"]').count() == 0
+                    page.locator("#source-file").set_input_files(tampered)
+                    page.locator("#check-submit").click()
+                    page.locator('#check-status[data-outcome="mismatch"]').wait_for()
+                    assert page.locator('.check-row[data-result="mismatch"]').count() == 1
+                    page.locator("#run-file").set_input_files(malformed)
+                    page.locator("#check-submit").click()
+                    page.locator('#check-status[data-outcome="error"]').wait_for()
+                    assert "valid UTF-8 JSON" in page.locator("#check-status").inner_text()
+                    assert page.locator(".check-row").count() == 0
                     assert page.evaluate("document.documentElement.scrollWidth - innerWidth") <= 1
                     assert not errors, errors
                     # After page load the file-check workflow issues no network
