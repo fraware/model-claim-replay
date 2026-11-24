@@ -52,8 +52,9 @@
     </section>
     <section class="work wrap" id="audit">
       <div class="section-index"><span>THE SOURCE / 001</span><span>PINNED PUBLIC DATA</span></div>
-      <div class="section-heading"><h2>Inspect the 200 tasks.</h2><p>The chart encodes original prompt lengths in <strong>characters</strong>. Select a task to inspect its source commitment, independent BFS control and <strong>real provider-reported Gemini input tokens</strong>. The marks show source character bands, not token counts.</p></div>
+      <div class="section-heading"><h2>Inspect the 200 tasks</h2><p>Choose any task to inspect its original prompt digest, deterministic BFS score and provider-reported input tokens. The matrix encodes character-length bands, not token counts.</p></div>
       <div class="inspector">
+        <div class="example-links"><span>Start with a real example:</span><a href="?task=bfs-row-000100#audit" data-task-link="bfs-row-000100">355,124 tokens · fits</a><a href="?task=bfs-row-000300#audit" data-task-link="bfs-row-000300">1,419,783 tokens · exceeds limit</a></div>
         <div class="controls"><div class="filter-group" role="group" aria-label="Filter by input length">
           <button class="filter active" type="button" data-filter="all" aria-pressed="true">All <span>200</span></button>
           <button class="filter" type="button" data-filter="short" aria-pressed="false">Shorter <span>100</span></button>
@@ -61,7 +62,7 @@
         </div><label class="search-wrap"><span>Find task</span><input type="search" id="task-search" placeholder="bfs-row-000100" autocomplete="off" spellcheck="false"></label></div>
         <div class="legend"><span><i class="key short"></i> Below 1M characters</span><span><i class="key long"></i> At least 1M characters</span><span class="results" id="result-count" aria-live="polite">200 / 200 tasks</span></div>
         <div class="task-matrix" id="task-matrix" role="group" aria-label="Select any indexed BFS task"><p class="loading">Loading the verified reference index…</p></div>
-        <div class="record" id="record" aria-live="polite"><div class="record-placeholder">Select one of the marks to inspect its source record.</div></div>
+        <div class="record" id="record" aria-live="polite"><div class="record-placeholder">Select one of the marks to inspect its source record.</div></div><p id="task-link-status" class="task-link-status" role="status"></p>
       </div>
       <div class="statistics" id="statistics"><div><span>MINIMUM PROMPT LENGTH</span><strong>437,563</strong><small>characters</small></div><div><span>MEDIAN PROMPT LENGTH</span><strong>1,092,964</strong><small>characters, rounded</small></div><div><span>MAXIMUM PROMPT LENGTH</span><strong>1,748,364</strong><small>characters</small></div></div>
     </section>
