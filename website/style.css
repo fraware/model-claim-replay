@@ -182,3 +182,9 @@ button:disabled { cursor: default; opacity: .55; }
 .finding-share [role=status] { font-size:12px; color:var(--muted); }
 .finding-share textarea { width:100%; font:12px/1.5 var(--sans); border:1px solid var(--line); padding:8px; resize:vertical; }
 .contribute-copy { color:var(--muted); margin-top:10px; font-size:14px; }
+
+.local-tool { display:flex; align-items:center; justify-content:space-between; gap:24px; padding-top:28px; padding-bottom:28px; border-top:1px solid var(--line); }
+.local-tool h2 { font-size:24px; }
+.local-tool p { font-size:14px; color:var(--muted); max-width:660px; margin-top:8px; }
+.local-tool .button { flex-shrink:0; }
+@media(max-width:700px) { .local-tool { align-items:flex-start; flex-direction:column; gap:14px; } }

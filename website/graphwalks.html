@@ -16,7 +16,7 @@
   <a class="skip" href="#audit">Skip to source-data explorer</a>
   <header class="masthead wrap">
     <a class="brand" href="./index.html"><span class="brand-mark" aria-hidden="true">[=]</span><span>Model Claim Replay</span></a>
-    <nav aria-label="Page navigation"><a href="./index.html#claims">Claim registry</a><a href="#audit">Explore dataset</a><a href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
+    <nav aria-label="Page navigation"><a href="./index.html#claims">Claim registry</a><a href="#audit">Explore dataset</a><a href="./check.html">Check files</a><a href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
   </header>
   <main>
     <section class="intro wrap">
@@ -49,6 +49,10 @@
           <div class="provider-method"><span>GEMINI 4 NEON</span><strong>1,048,576</strong><p>Provider-reported maximum input tokens. 65,536 is the separate output cap. The 8,192-token future output reservation was never generated.</p></div>
         </div>
       </div>
+    </section>
+    <section class="figure-section wrap" aria-labelledby="figure-heading">
+      <div class="figure-header"><h2 id="figure-heading">Input-token ranges</h2><a href="./graphwalks-input-feasibility.svg" download>Download figure (SVG)</a></div>
+      <figure class="evidence-figure"><img src="./graphwalks-input-feasibility.svg" width="1200" height="620" alt="100 original public candidate prompts contain 354,061–355,496 input tokens; 100 contain 1,419,001–1,420,682. The Gemini 4 Neon input limit is 1,048,576. Token counts only; no model generation."><figcaption>Linear token scale. Each marker represents a narrow observed group range. The source and methodological limitation are included in the downloadable figure.</figcaption></figure>
     </section>
     <section class="work wrap" id="audit">
       <div class="section-index"><span>THE SOURCE / 001</span><span>PINNED PUBLIC DATA</span></div>

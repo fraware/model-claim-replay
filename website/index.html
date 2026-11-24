@@ -19,7 +19,7 @@
   <a class="skip" href="#main">Skip to content</a>
   <header class="site-header"><div class="wrap header-inside">
     <a class="brand" href="#top" aria-label="Model Claim Replay home"><span class="brand-mark" aria-hidden="true">[=]</span><span>Model Claim Replay</span></a>
-    <nav class="navigation" aria-label="Main navigation"><a href="#claims">Claims</a><a href="./graphwalks.html">GraphWalks</a><a href="#install">Install</a><a class="github-link" href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav>
+    <nav class="navigation" aria-label="Main navigation"><a href="#claims">Claims</a><a href="./graphwalks.html">GraphWalks</a><a href="./check.html">Check files</a><a href="#install">Install</a><a class="github-link" href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav>
   </div></header>
   <main id="main">
     <section class="hero wrap" id="top">
@@ -37,7 +37,7 @@
         <div class="finding-labels"><span>100 within input limit</span><span>100 exceed input limit</span></div>
         <p class="finding-limit">Provider-reported input limit: <strong>1,048,576 tokens</strong></p>
         <p class="plate-note">Original public candidate prompts, counted using the Gemini API. No model generation. Equivalence to Google's publisher-selected cohort is unverified.</p>
-        <div class="finding-links"><a href="./graphwalks.html">Explore all 200 tasks</a><a href="./graphwalks-gemini-feasibility.json">Download measurements (JSON)</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/45159511810">Original Actions run</a></div>
+        <div class="finding-links"><a href="./graphwalks.html">Explore all 200 tasks</a><a href="./graphwalks-input-feasibility.svg" download>Download evidence figure (SVG)</a><a href="./graphwalks-gemini-feasibility.json">Download measurements (JSON)</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/45159511810">Original Actions run</a></div>
         <div class="finding-share"><button type="button" id="copy-finding" class="button button-light">Copy finding with source</button><span id="finding-copy-status" role="status"></span><textarea id="finding-copy-fallback" aria-label="Finding text to copy" readonly hidden rows="4"></textarea></div>
       </article>
     </section>
@@ -45,6 +45,7 @@
     <section class="install wrap" id="install"><div class="section-label"><span class="rule"></span> Quickstart</div><div class="install-grid"><div><h2>Run locally</h2><p>Python 3.10+ and Git. Install in an isolated environment if needed. Generate a standalone HTML report from three fixed example responses.</p><a href="https://github.com/fraware/model-claim-replay#run-your-first-evidence-replay" class="text-link" target="_blank" rel="noopener noreferrer">Complete installation guide ↗</a></div><div class="install-terminal"><div class="terminal-top"><span>TERMINAL</span><button id="copy-command" type="button">Copy command <span aria-hidden="true">↗</span></button></div><pre><code id="install-code">python -m pip install "git+https://github.com/fraware/model-claim-replay.git"
 claim-replay demo
 # Open .runs/demo/report.html</code></pre><p>No API key, paid inference or telemetry. Expected offline result: 2/3 exact matches from fixed synthetic responses.</p></div></div></section>
+    <section class="local-tool wrap" id="check"><div><h2>Check your own evidence bundle</h2><p>Compare original file bytes against a replay manifest's SHA-256 commitments in your browser. No upload or API key. Score computation stays in the CLI.</p></div><a class="button button-dark" href="./check.html">Open local checker</a></section>
     <section class="work wrap" id="claims"><div class="work-header"><div><h2>Current investigations</h2></div><p>Two published claims under investigation. Select a record to inspect its source and unresolved conditions.</p></div>
       <div class="filter-bar" role="group" aria-label="Filter the claim registry"><button type="button" class="filter active" data-filter="all" aria-pressed="true">All records <span>03</span></button><button type="button" class="filter" data-filter="published" aria-pressed="false">Published claims <span>02</span></button><button type="button" class="filter" data-filter="synthetic" aria-pressed="false">Test fixtures <span>01</span></button></div>
       <div id="claim-items" class="claim-items"><article class="claim-row"><span class="claim-marker">01</span><div><span class="tag">PUBLISHED CLAIM</span><h3>Claude Fable 5.2 / Chartography</h3><p>73.4% publisher-reported score. Independent reproduction pending.</p></div><span class="claim-status">PROTOCOL REVIEW <span aria-hidden="true">↗</span></span></article></div>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title description">
+  <title id="title">GraphWalks input feasibility: 100 of 200 candidate prompts exceed the Gemini 4 Neon input limit</title>
+  <desc id="description">Linear token axis from zero to 1.5 million. 100 prompts have 354,061–355,496 input tokens; 100 have 1,419,001–1,420,682. The provider-reported input limit is 1,048,576. Token counts only; no model generation or published-claim reproduction.</desc>
+  <rect width="1200" height="620" fill="#fff"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#17212d">
+    <text x="48" y="40" font-size="18" font-weight="700">MODEL CLAIM REPLAY / GRAPHWALKS BFS</text>
+    <text x="1152" y="40" text-anchor="end" font-size="17" fill="#526071">23 Nov 2026</text>
+    <text x="48" y="90" font-size="36" font-weight="700">100 of 200 candidate prompts exceed the input limit</text>
+    <text x="48" y="125" font-size="20" fill="#526071">Gemini 4 Neon · original public GraphWalks BFS prompts · provider token-count API</text>
+    <line x1="803.032" x2="803.032" y1="170" y2="388" stroke="#17212d" stroke-width="2" stroke-dasharray="6 5" id="input-limit"/>
+    <text x="803.032" y="158" text-anchor="middle" font-size="18" font-weight="700" id="limit-label">1,048,576 input-token limit</text>
+    <g id="group-0" data-count="100" data-min="354061" data-max="355496">
+      <line x1="90" x2="1110" y1="218" y2="218" stroke="#e2e7ee"/>
+      <line x1="330.761" x2="331.737" y1="218" y2="218" stroke="#174ea6" stroke-width="7" class="range"/>
+      <circle cx="331.249" cy="218" r="6" fill="#174ea6"/>
+      <text x="90" y="202" text-anchor="start" font-size="20" font-weight="700" fill="#174ea6">100 prompts · within input limit</text>
+      <text x="90" y="248" text-anchor="start" font-size="18" fill="#526071">354,061–355,496 input tokens</text>
+    </g>
+    <g id="group-1" data-count="100" data-min="1419001" data-max="1420682">
+      <line x1="90" x2="1110" y1="318" y2="318" stroke="#e2e7ee"/>
+      <line x1="1054.921" x2="1056.064" y1="318" y2="318" stroke="#963b16" stroke-width="7" class="range"/>
+      <circle cx="1055.492" cy="318" r="6" fill="#963b16"/>
+      <text x="1110" y="302" text-anchor="end" font-size="20" font-weight="700" fill="#963b16">100 prompts · exceeds input limit</text>
+      <text x="1110" y="348" text-anchor="end" font-size="18" fill="#526071">1,419,001–1,420,682 input tokens</text>
+    </g>
+    <line x1="90" x2="1110" y1="388" y2="388" stroke="#526071"/>
+    <g><line x1="90.000" x2="90.000" y1="388" y2="395" stroke="#526071"/><text x="90.000" y="420" text-anchor="middle" font-size="15" fill="#526071">0</text></g>
+    <g><line x1="260.000" x2="260.000" y1="388" y2="395" stroke="#526071"/><text x="260.000" y="420" text-anchor="middle" font-size="15" fill="#526071">250,000</text></g>
+    <g><line x1="430.000" x2="430.000" y1="388" y2="395" stroke="#526071"/><text x="430.000" y="420" text-anchor="middle" font-size="15" fill="#526071">500,000</text></g>
+    <g><line x1="600.000" x2="600.000" y1="388" y2="395" stroke="#526071"/><text x="600.000" y="420" text-anchor="middle" font-size="15" fill="#526071">750,000</text></g>
+    <g><line x1="770.000" x2="770.000" y1="388" y2="395" stroke="#526071"/><text x="770.000" y="420" text-anchor="middle" font-size="15" fill="#526071">1,000,000</text></g>
+    <g><line x1="940.000" x2="940.000" y1="388" y2="395" stroke="#526071"/><text x="940.000" y="420" text-anchor="middle" font-size="15" fill="#526071">1,250,000</text></g>
+    <g><line x1="1110.000" x2="1110.000" y1="388" y2="395" stroke="#526071"/><text x="1110.000" y="420" text-anchor="middle" font-size="15" fill="#526071">1,500,000</text></g>
+    <text x="600" y="452" text-anchor="middle" font-size="17" fill="#526071">Provider-reported input tokens (linear scale; markers denote group ranges)</text>
+    <rect x="48" y="472" width="1104" height="76" rx="4" fill="#f4f6f9" stroke="#d5dce5"/>
+    <text x="64" y="497" font-size="18" font-weight="700">Token-count audit only. No model generation.</text>
+    <text x="64" y="525" font-size="17">Google's publisher-selected cohort is unverified; the reported 95.2% F1 is neither confirmed nor refuted.</text>
+    <text x="48" y="579" font-size="15" fill="#526071">Source: github.com/fraware/model-claim-replay/actions/runs/45159511810</text>
+    <text x="48" y="600" font-size="15" fill="#174ea6">fraware.github.io/model-claim-replay/graphwalks.html</text>
+  </g>
+</svg>

@@ -168,3 +168,11 @@ footer { border-top:1px solid var(--line); }
 .task-share { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:12px; font-size:12px; }
 .task-share .record-action { margin:0; }
 .task-link-status:not(:empty) { margin:0 14px 14px; color:var(--muted); font-size:12px; }
+
+.figure-section { padding-top:8px; padding-bottom:20px; }
+.figure-header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.figure-header h2 { font-size:23px; }
+.figure-header a { font-size:13px; }
+.evidence-figure { margin:12px 0 0; border:1px solid var(--line); padding:8px; border-radius:4px; }
+.evidence-figure img { display:block; width:100%; height:auto; }
+.evidence-figure figcaption { color:var(--muted); font-size:12px; padding:8px 10px; }
