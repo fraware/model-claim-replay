@@ -1,5 +1,7 @@
 # GraphWalks: a deterministic graph control
 
+[Documentation home](README.md) · [GraphWalks dossier](GRAPHWALKS.md)
+
 This experiment evaluates **a specialized graph algorithm** on the pinned public GraphWalks BFS tasks. It is **not** an evaluation of Gemini 4 Neon, a reproduction of its reported 95.2% F1, or a new method for graph solving. It supplies a control for interpreting the benchmark: which source tasks are recoverable from the prompt by direct edge parsing and ordinary breadth-first search?
 
 The public source is independently bound to the same 296,903,814-byte Parquet at [revision `be6cc6ec...`](https://huggingface.co/datasets/openai/graphwalks/tree/be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7) and SHA-256 `537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911`, with the same 200-task BFS reference index digest `250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee`.

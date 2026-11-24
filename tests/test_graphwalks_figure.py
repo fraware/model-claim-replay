@@ -21,7 +21,7 @@ class GraphWalksFigureTests(unittest.TestCase):
         self.assertFalse(receipt["published_claim_reproduced"])
 
         def x(token_count: int | float) -> float:
-            return 90 + 1020 * token_count / 1_500_000
+            return 350 + 790 * token_count / 1_500_000
 
         threshold = tree.find(".//s:line[@id='input-limit']", NS)
         self.assertIsNotNone(threshold)
@@ -44,6 +44,8 @@ class GraphWalksFigureTests(unittest.TestCase):
                 self.assertAlmostEqual(float(group.find("s:circle", NS).attrib["cx"]),
                                        x((min(band) + max(band)) / 2), places=3)
                 self.assertIn(f"{min(band):,}–{max(band):,}", "".join(group.itertext()))
+        self.assertEqual(tree.getroot().attrib["viewBox"], "0 0 1200 440")
+        self.assertEqual(tree.getroot().attrib["role"], "img")
         text = "".join(tree.getroot().itertext())
         self.assertIn("100 of 200 candidate prompts", text)
         self.assertIn("No model generation", text)

@@ -1,4 +1,8 @@
-# GraphWalks: controlled Gemini 4 Neon execution
+# GraphWalks: historical Gemini 4 Neon execution guide
+
+[Documentation home](README.md) · [Current OpenAI campaign](OPENAI_CAMPAIGN.md)
+
+This guide describes the Gemini-specific runner and its historical feasibility work. OpenAI is the default provider for new general-purpose investigations. The manual Gemini diagnostic has no standing paid authorization. Keep the two provider protocols separate.
 
 **Status as of 23 November 2026: source-bound Gemini token counting succeeded for two public candidate prompts; no model generation performed. One long-context candidate exceeds the model's declared context limit.**
 
@@ -149,7 +153,7 @@ These tests exercise the gate without a provider account.
 
 ## Stage 2: explicit, sequential paid execution
 
-**Never run this stage without inspecting the plan and authorizing an explicit financial ceiling.** No paid calls are made in the project's CI workflows. For a one-task pilot:
+**Never run this stage without inspecting the plan and authorizing an explicit financial ceiling.** Ordinary regression CI is non-generative. Dedicated, explicitly authorized experiment workflows are separate. For a one-task pilot:
 
 ```bash
 claim-replay execute-graphwalks \

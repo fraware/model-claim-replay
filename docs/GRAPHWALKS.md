@@ -1,4 +1,8 @@
-# Gemini 4 Neon / GraphWalks long-context BFS
+# GraphWalks research dossier
+
+[Documentation home](README.md) · [OpenAI campaign](OPENAI_CAMPAIGN.md) · [Live explorer](https://fraware.github.io/model-claim-replay/graphwalks.html)
+
+This dossier preserves the Gemini claim investigation and its source history. The separate GPT-6.2 Sol diagnostic completed on 24 November 2026. See the [original archive](../evidence/graphwalks/openai-first-generation-2026-11-24/README.md) and [current campaign guide](OPENAI_CAMPAIGN.md) for OpenAI execution evidence.
 
 **Source-registered candidate, not a reproduced result — updated 23 November 2026.**
 
@@ -32,7 +36,7 @@ The data is not automatically equivalent to Google's evaluated population. We ve
 4. Implement a separate GraphWalks adapter (do not route this claim through the Chartography Inspect importer), with deterministic output parsing, per-task traces and score verification.
 5. Run a declared, inexpensive integration pilot. Only consider a full 200-task comparison if the previous gates have passed, with results reported regardless of agreement.
 
-**Current status:** original claim sourced, all 296,903,814 bytes of the candidate long-context Parquet independently verified, 200 BFS task references extracted and the upstream grader tested offline. No model inference or publisher-equivalent reproduction has been completed.
+**Current status:** original claim sourced, all 296,903,814 bytes of the candidate long-context Parquet independently verified, 200 BFS task references extracted and the upstream grader tested offline. No Gemini model inference or publisher-equivalent reproduction has been completed.
 
 ## Source records
 
@@ -175,7 +179,7 @@ is acknowledged as adjacent prior art.
 
 ## Live OpenAI preflight — 24 November 2026 UTC
 
-The [successful original run](https://github.com/fraware/model-claim-replay/actions/runs/45337852354) verified the same pinned Parquet and reference-index bytes and counted the original candidate `bfs-row-000100` with GPT-6.2 Sol. OpenAI reported **255,598 input tokens**; the earlier Gemini receipt reports **355,124** for the same source task. With the 65,536 output-token allowance and conservative $5/M input and $15/M output reservation rates, the OpenAI estimated maximum generation reservation is **$2.26103**. The $5 planning ceiling was hypothetical and did not authorize generation. The [log-derived receipt](../website/graphwalks-openai-preflight.json) records the run, prompt commitment and GitHub-reported artifact digest. It is not a byte-identical archival copy of the artifact. These measurements establish neither model accuracy nor equivalence to Google's unpublished evaluation population. A separately authorized OpenAI generation is pending.
+The [successful original run](https://github.com/fraware/model-claim-replay/actions/runs/45337852354) verified the same pinned Parquet and reference-index bytes and counted the original candidate `bfs-row-000100` with GPT-6.2 Sol. OpenAI reported **255,598 input tokens**; the earlier Gemini receipt reports **355,124** for the same source task. With the 65,536 output-token allowance and conservative $5/M input and $15/M output reservation rates, the OpenAI estimated maximum generation reservation is **$2.26103**. The $5 planning ceiling was hypothetical and did not authorize generation. The [log-derived receipt](../website/graphwalks-openai-preflight.json) records the run, prompt commitment and GitHub-reported artifact digest. It is not a byte-identical archival copy of the artifact. These measurements establish neither model accuracy nor equivalence to Google's unpublished evaluation population. This historical preflight preceded the separately authorized OpenAI diagnostic documented below.
 
 ## First paid OpenAI diagnostic — 24 November 2026 UTC
 

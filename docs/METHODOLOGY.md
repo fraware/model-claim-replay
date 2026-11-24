@@ -1,5 +1,9 @@
 # Methodology and evidence standard
 
+[Documentation home](README.md) · [Current empirical evidence](GRAPHWALKS.md)
+
+The evidence hierarchy applies separately to every claim and every execution protocol. The published OpenAI diagnostic includes a restricted final-line score cross-check; that does not authenticate provider execution or prove faithful extraction from the full response.
+
 Model Claim Replay measures whether a *specific published numerical statement* can be independently examined under the relevant protocol. It does not assume a headline score is replicable from a few API calls.
 
 ## Claims and protocols

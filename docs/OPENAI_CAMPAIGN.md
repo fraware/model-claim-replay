@@ -1,5 +1,7 @@
 # Frozen 16-task OpenAI GraphWalks campaign
 
+[Documentation home](README.md) · [GraphWalks dossier](GRAPHWALKS.md)
+
 [Prespecified protocol and selection](https://github.com/fraware/model-claim-replay/issues/42) · [Original live preflight](https://github.com/fraware/model-claim-replay/actions/runs/45401394821) · [Original preflight ZIP](../evidence/graphwalks/openai-campaign-preflight-2026-11-24.zip)
 
 The preflight completed 24 November 2026 UTC. All 16 counts were observed. Eight shorter inputs fit (255,149–255,652 tokens); all eight longer inputs exceed the 922,000 input limit (1,022,153–1,022,892 tokens). Feasible generation reservation: **$20.699335** at $5/M input and $20/M output planning rates. No model generation occurred in that preflight. The ZIP is byte-identical to the downloaded original artifact (SHA-256 `622dc133c231e7f14562037f4d2094916054aae991b43fd83ab31dcbf27ac853`).
