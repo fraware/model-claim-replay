@@ -31,15 +31,15 @@ CONTEXT_LIMIT = 1_050_000
 INPUT_RATE = Decimal("5")
 OUTPUT_RATE = Decimal("15")
 APPROVAL = "AUTHORIZE_PAID_OPENAI"
+PREFLIGHT = "PREFLIGHT_ONLY"
 MAX_BUDGET = Decimal("100")
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 PRICE_SOURCE = "https://developers.openai.com/api/docs/models/gpt-6.2-sol"
 Request = Callable[[str, dict[str, Any] | None, str], dict[str, Any]]
 
 
-def authorization(approval: str, budget: str) -> Decimal:
-    if approval != APPROVAL:
-        raise ReplayError("Exact OpenAI paid authorization phrase is absent")
+def _budget(budget: str) -> Decimal:
+    """Validate the planning or authorization ceiling as exact decimal USD."""
     try:
         value = Decimal(budget)
     except (InvalidOperation, ValueError, TypeError):
@@ -47,6 +47,20 @@ def authorization(approval: str, budget: str) -> Decimal:
     if not value.is_finite() or not 0 < value <= MAX_BUDGET:
         raise ReplayError("USD ceiling must be positive and at most $100")
     return value
+
+
+def authorization(approval: str, budget: str) -> Decimal:
+    """Retain strict paid authorization for programmatic callers."""
+    if approval != APPROVAL:
+        raise ReplayError("Exact OpenAI paid authorization phrase is absent")
+    return _budget(budget)
+
+
+def dispatch_mode(approval: str, budget: str) -> tuple[bool, Decimal]:
+    """Validate an explicit mode. A preflight ceiling never authorizes payment."""
+    if approval == PREFLIGHT:
+        return False, _budget(budget)
+    return True, authorization(approval, budget)
 
 
 def _request(path: str, payload: dict[str, Any] | None, key: str) -> dict[str, Any]:
@@ -116,7 +130,7 @@ def diagnostic(
     environ: dict[str, str], request: Request = _request,
     source_reader: Callable[..., dict[str, str]] = verified_prompts,
 ) -> dict[str, Any]:
-    ceiling = authorization(approval, budget)
+    paid, ceiling = dispatch_mode(approval, budget)
     if out.exists() or out.is_symlink():
         raise ReplayError("Output already exists; never resume a paid diagnostic")
     prompts = source_reader(parquet, index)
@@ -133,15 +147,20 @@ def diagnostic(
         raise ReplayError("Unexpected token count response")
     tokens = _int(counted.get("input_tokens"), "input token count")
     reserved = reservation(tokens, OUTPUT_LIMIT)
-    if not tokens or tokens > INPUT_LIMIT or tokens + OUTPUT_LIMIT > CONTEXT_LIMIT:
+    if not tokens:
+        raise ReplayError("OpenAI reported zero input tokens for a nonempty prompt")
+    fits = tokens <= INPUT_LIMIT and tokens + OUTPUT_LIMIT <= CONTEXT_LIMIT
+    affordable = reserved <= ceiling
+    if paid and not fits:
         raise ReplayError("Original prompt exceeds the OpenAI input or context bound")
-    if reserved > ceiling:
+    if paid and not affordable:
         raise ReplayError("OpenAI token reservation exceeds authorized ceiling")
     out.mkdir(parents=True, exist_ok=False)
     public = out / "public"
     private = out / "private"
     public.mkdir()
-    private.mkdir(mode=0o700)
+    if paid:
+        private.mkdir(mode=0o700)
     plan = {
         "schema_version": "graphwalks-openai-single-task-v1",
         "model": MODEL, "task_id": TASK, "prompt_sha256": digest,
@@ -152,12 +171,29 @@ def diagnostic(
         "service_tier": "default",
         "input_limit": INPUT_LIMIT, "context_limit": CONTEXT_LIMIT,
         "input_usd_per_million_upper": str(INPUT_RATE), "output_usd_per_million_upper": str(OUTPUT_RATE),
-        "reservation_usd": str(reserved), "authorized_ceiling_usd": str(ceiling),
+        "reservation_usd": str(reserved),
+        "mode": "paid_diagnostic" if paid else "token_count_preflight",
+        "planning_ceiling_usd": str(ceiling),
+        "authorized_ceiling_usd": str(ceiling) if paid else None,
+        "fits_context": fits, "within_planning_ceiling": affordable,
         "price_source": PRICE_SOURCE, "pricing_checked_utc_date": "2026-11-24",
         "created_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
         "comparison_status": "not_comparable", "published_claim_reproduced": False,
     }
     _write(public / "plan.json", plan)
+    if not paid:
+        result = {
+            "schema_version": "graphwalks-openai-preflight-v1",
+            "status": "preflight_ready" if fits and affordable else "preflight_blocked",
+            "model": MODEL, "task_id": TASK,
+            "plan_sha256": sha256_bytes((public / "plan.json").read_bytes()),
+            "input_tokens": tokens, "reservation_usd": str(reserved),
+            "fits_context": fits, "within_planning_ceiling": affordable,
+            "generation_performed": False, "published_claim_reproduced": False,
+            "limitations": "Provider token count only; no model score or paid authorization.",
+        }
+        _write(public / "outcome.json", result)
+        return result
     _write(public / "intent.json", {"status": "generation_intent", "plan_sha256": sha256_bytes((public / "plan.json").read_bytes())})
     try:
         response = request("/v1/responses", {
@@ -231,11 +267,16 @@ def main() -> int:
     parser.add_argument("--max-spend-usd", required=True)
     args = parser.parse_args()
     try:
-        diagnostic(args.parquet, args.index, args.out, approval=args.approval,
-                   budget=args.max_spend_usd, environ=dict(os.environ))
+        result = diagnostic(args.parquet, args.index, args.out, approval=args.approval,
+                            budget=args.max_spend_usd, environ=dict(os.environ))
     except ReplayError as exc:
         parser.exit(2, f"OpenAI diagnostic: {exc}\n")
-    print("Single-task OpenAI diagnostic graded; no publisher replication asserted.")
+    if args.approval == PREFLIGHT:
+        print(f"OpenAI {result['status']}: {result['input_tokens']} input tokens; "
+              f"estimated maximum generation reservation USD {result['reservation_usd']}. "
+              "No generation performed. No payment authorization recorded.")
+    else:
+        print("Single-task OpenAI diagnostic graded; no publisher replication asserted.")
     return 0
 
 

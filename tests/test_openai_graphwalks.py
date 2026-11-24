@@ -8,7 +8,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from model_claim_replay.core import ReplayError, sha256_bytes
-from model_claim_replay.openai_graphwalks import APPROVAL, MODEL, TASK, diagnostic, reservation, authorization
+from model_claim_replay.openai_graphwalks import APPROVAL, MODEL, PREFLIGHT, TASK, diagnostic, reservation, authorization, dispatch_mode
 
 
 class OpenAIDiagnosticTests(unittest.TestCase):
@@ -17,6 +17,58 @@ class OpenAIDiagnosticTests(unittest.TestCase):
             with self.assertRaises(ReplayError):
                 authorization(approval,budget)
         self.assertEqual(reservation(355124, 65536), Decimal("2.758660"))
+
+    def test_default_preflight_never_generates_even_when_within_budget(self):
+        self.assertEqual(dispatch_mode(PREFLIGHT, "5"), (False, Decimal("5")))
+        self.assertEqual(dispatch_mode(APPROVAL, "5"), (True, Decimal("5")))
+        for mode in ("NO", "", "true", "paid"):
+            with self.assertRaises(ReplayError):
+                dispatch_mode(mode, "5")
+        with self.assertRaises(ReplayError):
+            authorization(PREFLIGHT, "5")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            index = root / "index.jsonl"
+            prompt = "fixture"
+            index.write_text(json.dumps({"id": TASK, "prompt_sha256": sha256_bytes(prompt.encode()),
+                                         "answer_nodes": ["a"]}) + "\n")
+            for tokens, budget, expected in (
+                (355124, "5", "preflight_ready"),
+                (355124, "1", "preflight_blocked"),
+                (950000, "100", "preflight_blocked"),
+            ):
+                with self.subTest(tokens=tokens, budget=budget):
+                    calls = []
+                    def request(path, payload, key):
+                        calls.append(path)
+                        if path.startswith("/v1/models/"):
+                            return {"id": MODEL}
+                        if path == "/v1/responses/input_tokens":
+                            return {"object": "response.input_tokens", "input_tokens": tokens}
+                        self.fail("Preflight reached generation endpoint")
+                    out = root / f"preflight-{tokens}-{budget}"
+                    result = diagnostic(root / "unused", index, out, approval=PREFLIGHT,
+                                        budget=budget, environ={"OPENAI_API_KEY": "fixture"},
+                                        request=request, source_reader=lambda *_: {TASK: prompt})
+                    self.assertEqual(result["status"], expected)
+                    self.assertFalse(result["generation_performed"])
+                    self.assertNotIn("grade", result)
+                    self.assertEqual(calls, ["/v1/models/" + MODEL, "/v1/responses/input_tokens"])
+                    self.assertFalse((out / "public/intent.json").exists())
+                    self.assertFalse((out / "private").exists())
+                    plan = json.loads((out / "public/plan.json").read_text())
+                    self.assertIsNone(plan["authorized_ceiling_usd"])
+
+    def test_invalid_dispatch_never_reads_source_or_contacts_provider(self):
+        def forbidden(*args):
+            self.fail("Invalid approval reached source or provider")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with self.assertRaises(ReplayError):
+                diagnostic(root / "unused", root / "unused", root / "out",
+                           approval="NO", budget="0", environ={},
+                           request=forbidden, source_reader=forbidden)
+            self.assertFalse((root / "out").exists())
 
     def test_one_request_and_redacted_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:

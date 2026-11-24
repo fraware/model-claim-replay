@@ -63,6 +63,20 @@ class WorkflowRuntimeTests(unittest.TestCase):
                 self.assertNotIn("\n  pull_request:", paid)
                 self.assertNotIn("cancel-in-progress: true", paid)
 
+    def test_openai_default_dispatch_is_preflight_only(self) -> None:
+        paid = (WORKFLOWS / "graphwalks-openai-paid.yml").read_text()
+        self.assertIn('default: "PREFLIGHT_ONLY"', paid)
+        self.assertIn("type: choice", paid)
+        self.assertIn("- AUTHORIZE_PAID_OPENAI", paid)
+        self.assertIn('default: "5"', paid)
+        self.assertIn("dispatch_mode(", paid)
+        self.assertIn("include-hidden-files: true", paid)
+        upload = paid.split("name: Retain redacted evidence only", 1)[1]
+        for name in ("plan.json", "intent.json", "outcome.json"):
+            self.assertIn(".runs/openai-diagnostic/public/" + name, upload)
+        self.assertNotIn("/private/", upload)
+        self.assertNotIn("response.json", upload)
+
     def test_provider_readiness_never_runs_with_secrets_in_pull_requests(self) -> None:
         readiness = (WORKFLOWS / "provider-readiness.yml").read_text()
         self.assertIn("branches:\n      - main", readiness)
