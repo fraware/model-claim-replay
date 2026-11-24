@@ -20,6 +20,8 @@ jobs:
         python-version: ['3.10', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -35,6 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -52,6 +56,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           path: model-claim-replay
+          persist-credentials: false
       - uses: actions/checkout@v5
         with:
           repository: surge-ai/chartography
@@ -84,6 +89,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -123,6 +130,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -161,6 +170,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -184,3 +195,39 @@ jobs:
           claim-replay audit-graphwalks --help
           claim-replay verify-graphwalks-public --help
           claim-replay report-graphwalks-public --help
+
+  dependency-audit:
+    # Separate dependency advisory check from experimental workflows.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Resolve optional integrations in an isolated environment
+        run: |
+          mkdir -p .runs/dependency-audit
+          python -m venv "$RUNNER_TEMP/target"
+          "$RUNNER_TEMP/target/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/target/bin/python" -m pip install '.[inspect,graphwalks]' 'playwright>=1.56,<2'
+          "$RUNNER_TEMP/target/bin/python" -m pip check
+          "$RUNNER_TEMP/target/bin/python" -m pip list --format=freeze > .runs/dependency-audit/resolved.txt
+          "$RUNNER_TEMP/target/bin/python" -m pip list --format=freeze --exclude model-claim-replay > .runs/dependency-audit/third-party.txt
+      - name: Audit exact resolved third-party versions
+        run: |
+          python -m venv "$RUNNER_TEMP/auditor"
+          "$RUNNER_TEMP/auditor/bin/python" -m pip install -r requirements-audit.txt
+          "$RUNNER_TEMP/auditor/bin/python" -m pip_audit --strict --no-deps --disable-pip --progress-spinner off \
+            -r .runs/dependency-audit/third-party.txt --format json --output .runs/dependency-audit/advisories.json
+      - name: Retain dependency snapshot and advisory report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: dependency-audit
+          path: .runs/dependency-audit/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
