@@ -385,7 +385,10 @@ class RuntimeTests(unittest.TestCase):
         """Malformed private metadata must not produce an AttributeError."""
         plan = self._plan(max_tasks=2)
         one_request_budget = plan["planned_tasks"][0]["maximum_reserved_cost_usd"]
-        self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
+        with self.assertRaisesRegex(
+            ReplayError, "Provider request or token accounting failed",
+        ):
+            self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
         (self.root / "private-run" / "run.json").write_text("[]")
         with self.assertRaisesRegex(ReplayError, "resume cannot change"):
             self._run(
@@ -401,7 +404,10 @@ class RuntimeTests(unittest.TestCase):
         """Unexpected prior artifacts cannot be ignored when billing resumes."""
         plan = self._plan(max_tasks=2)
         one_request_budget = plan["planned_tasks"][0]["maximum_reserved_cost_usd"]
-        self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
+        with self.assertRaisesRegex(
+            ReplayError, "Provider request or token accounting failed",
+        ):
+            self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
         extra = self.root / "private-run" / "attempts" / "untracked.json"
         extra.write_text("{}")
         with self.assertRaisesRegex(ReplayError, "unexpected attempt artifact"):
