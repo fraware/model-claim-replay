@@ -107,6 +107,22 @@
     byId("pair-protocol-check").textContent = scenario.protocol;
     byId("pair-status-label").classList.toggle("blocked", control.dataset.scenario !== "matched");
   }));
+  const findingText = "Model Claim Replay (23 Nov 2026): 100 of 200 original public GraphWalks BFS candidate prompts exceed Gemini 4 Neon's provider-reported input limit of 1,048,576 tokens. These are API token counts, not model scores; equivalence to Google's publisher-selected cohort is unverified. Source: https://fraware.github.io/model-claim-replay/graphwalks.html";
+  byId("copy-finding").addEventListener("click", async () => {
+    const status = byId("finding-copy-status");
+    const fallback = byId("finding-copy-fallback");
+    try {
+      await navigator.clipboard.writeText(findingText);
+      status.textContent = "Copied with limitations and source.";
+      fallback.hidden = true;
+    } catch {
+      fallback.value = findingText;
+      fallback.hidden = false;
+      fallback.focus();
+      fallback.select();
+      status.textContent = "Select and copy the finding below.";
+    }
+  });
   byId("copy-command").addEventListener("click", async () => {
     const value = byId("install-code").textContent;
     try { await navigator.clipboard.writeText(value); byId("copy-command").textContent="Copied ✓"; }

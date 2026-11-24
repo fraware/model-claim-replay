@@ -161,3 +161,10 @@ footer { border-top:1px solid var(--line); }
   .record { padding:12px; }
   .record-meta { grid-template-columns:minmax(0,1fr); }
 }
+
+.example-links { display:flex; flex-wrap:wrap; align-items:center; gap:7px 14px; padding:12px 14px; font-size:12px; border-bottom:1px solid var(--line); }
+.example-links span { color:var(--muted); }
+.example-links a,.task-permalink { text-decoration:underline; text-underline-offset:3px; }
+.task-share { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:12px; font-size:12px; }
+.task-share .record-action { margin:0; }
+.task-link-status:not(:empty) { margin:0 14px 14px; color:var(--muted); font-size:12px; }
