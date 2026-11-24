@@ -75,10 +75,41 @@ class GeminiSecretSelectionTests(unittest.TestCase):
                     return_value=("GOOGLE_API_KEY", "fixture-private-key-1234567890"),
                 ):
                     with redirect_stdout(transcript):
-                        self.assertEqual(main(), 0)
+                        self.assertEqual(main([]), 0)
             self.assertEqual(target.read_text(), "GEMINI_API_KEY=fixture-private-key-1234567890\n")
             self.assertNotIn("fixture-private-key-1234567890", transcript.getvalue())
             self.assertIn("GOOGLE_API_KEY", transcript.getvalue())
+
+    def test_alias_only_emits_name_and_never_credential(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "github-output"
+            env_target = Path(directory) / "github-env"
+            transcript = io.StringIO()
+            with patch.dict(os.environ, {
+                "GITHUB_OUTPUT": str(target), "GITHUB_ENV": str(env_target),
+            }, clear=True):
+                with patch(
+                    "graphwalks_select_gemini_secret.select_gemini_secret",
+                    return_value=("GOOGLE_API_KEY", "fixture-private-key-1234567890"),
+                ):
+                    with redirect_stdout(transcript):
+                        self.assertEqual(main(["--alias-only"]), 0)
+            self.assertEqual(target.read_text(), "alias=GOOGLE_API_KEY\n")
+            self.assertFalse(env_target.exists())
+            self.assertNotIn("fixture-private-key-1234567890", transcript.getvalue())
+
+    def test_alias_only_rejects_missing_output_or_unexpected_name(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            with patch("graphwalks_select_gemini_secret.select_gemini_secret",
+                       side_effect=AssertionError("unexpected network access")):
+                self.assertEqual(main(["--alias-only"]), 2)
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "output"
+            with patch.dict(os.environ, {"GITHUB_OUTPUT": str(target)}, clear=True):
+                with patch("graphwalks_select_gemini_secret.select_gemini_secret",
+                           return_value=("INVALID", "private-fixture")):
+                    self.assertEqual(main(["--alias-only"]), 2)
+            self.assertFalse(target.exists())
 
     def test_missing_github_env_fails_before_key_selection(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
@@ -86,7 +117,7 @@ class GeminiSecretSelectionTests(unittest.TestCase):
                 "graphwalks_select_gemini_secret.select_gemini_secret",
                 side_effect=AssertionError("unexpected key access"),
             ):
-                self.assertEqual(main(), 2)
+                self.assertEqual(main([]), 2)
 
     def test_one_time_source_workflow_is_safe_and_pinned(self) -> None:
         workflow = (ROOT / ".github/workflows/graphwalks-live-token-count.yml").read_text()
@@ -118,4 +149,4 @@ class GeminiSecretSelectionTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main([])

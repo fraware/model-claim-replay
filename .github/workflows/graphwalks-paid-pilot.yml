@@ -60,21 +60,21 @@ jobs:
           python-version: '3.12'
       - name: Install pinned source reader and official token-count dependency
         run: python -m pip install -e '.[graphwalks]'
-      - name: Refuse unauthorized, unbounded, or uncredentialed execution before download
+      - name: Refuse unauthorized, unbounded execution before credential selection
         env:
           APPROVAL: ${{ inputs.approval }}
           MAX_SPEND_USD: ${{ inputs.max_spend_usd }}
           TASKS: ${{ inputs.tasks }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           python scripts/graphwalks_pilot_gate.py \
             --approval "$APPROVAL" --max-spend-usd "$MAX_SPEND_USD" --tasks "$TASKS"
-          python - <<'PY'
-          import os
-          if not os.environ.get('GEMINI_API_KEY'):
-              raise SystemExit('Missing GEMINI_API_KEY Actions secret')
-          print('API credential present; credential bytes never printed')
-          PY
+      - name: Select authenticated Gemini credential before source download
+        id: gemini_credential
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_GENAI_API_KEY: ${{ secrets.GOOGLE_GENAI_API_KEY }}
+        run: python scripts/graphwalks_select_gemini_secret.py --alias-only
       - name: Independently download and verify original public benchmark bytes
         run: |
           python scripts/graphwalks_data_audit.py \
@@ -85,7 +85,7 @@ jobs:
             --out .runs/private/pilot-source
       - name: Count original provider tokens without generation
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: ${{ (steps.gemini_credential.outputs.alias == 'GEMINI_API_KEY' && secrets.GEMINI_API_KEY) || (steps.gemini_credential.outputs.alias == 'GOOGLE_API_KEY' && secrets.GOOGLE_API_KEY) || (steps.gemini_credential.outputs.alias == 'GOOGLE_GENAI_API_KEY' && secrets.GOOGLE_GENAI_API_KEY) || '' }}
           TASKS: ${{ inputs.tasks }}
           OUTPUT_TOKENS: ${{ inputs.output_tokens }}
         run: |
@@ -111,7 +111,7 @@ jobs:
         # Preserve time for a post-failure audit of durable request intents.
         timeout-minutes: 330
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: ${{ (steps.gemini_credential.outputs.alias == 'GEMINI_API_KEY' && secrets.GEMINI_API_KEY) || (steps.gemini_credential.outputs.alias == 'GOOGLE_API_KEY' && secrets.GOOGLE_API_KEY) || (steps.gemini_credential.outputs.alias == 'GOOGLE_GENAI_API_KEY' && secrets.GOOGLE_GENAI_API_KEY) || '' }}
           MAX_SPEND_USD: ${{ inputs.max_spend_usd }}
         run: |
           claim-replay execute-graphwalks \

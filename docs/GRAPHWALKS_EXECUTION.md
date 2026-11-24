@@ -50,7 +50,7 @@ Download and extract `graphwalks-bfs-reference-index.jsonl` from the verified Gi
 
 The repository includes a manually triggered
 [GraphWalks Gemini token preflight workflow](https://github.com/fraware/model-claim-replay/actions/workflows/graphwalks-token-preflight.yml).
-Add a repository Actions secret named `GEMINI_API_KEY` through
+Add a repository Actions secret named `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or `GOOGLE_GENAI_API_KEY` through
 **Settings → Secrets and variables → Actions → New repository secret**,
 then choose **Actions → GraphWalks Gemini token preflight → Run workflow**.
 The default counts **one** pinned BFS task. Other explicit choices count
@@ -67,8 +67,12 @@ plan, retained for up to 90 days (subject to repository retention settings);
 no source Parquet, reference answers,
 source prompt text or API keys are included in the uploaded artifact.
 
-**Security and limitation:** The secret is passed only to the token-count
-step. GitHub-hosted runners and the provider process the prompt text under
+**Security and limitation:** The selector authenticates the pinned model using
+metadata only, tries the supported Gemini aliases in order, and emits only
+the selected alias. The selected credential is injected into the token-count
+step; neither the dataset downloader nor the artifact uploader receives it
+through job-wide environment variables. OpenAI is never a substitute for
+the Gemini model. GitHub-hosted runners and the provider process the prompt text under
 their respective terms. The workflow does not claim that token counting
 has zero provider-side cost; it performs no inference request. API access,
 quotas, provider availability, and precise token accounting remain external.
@@ -99,7 +103,7 @@ export, and the original F1 scorer. **This workflow has not been executed
 against the live provider.** It is deployed infrastructure, not experimental
 evidence of any model's performance.
 
-Set a repository Actions secret named `GEMINI_API_KEY`, then navigate
+Set one of the supported Gemini Actions secrets, then navigate
 to **Actions → GraphWalks paid diagnostic → Run workflow**. The form
 defaults to `approval=NO` and `max_spend_usd=0`, deliberately
 blocking billable requests. To authorize one run, set a **positive
@@ -117,8 +121,11 @@ Review prior evidence and potential charges, then initiate a new manual
 dispatch with a new explicit budget approval if another attempt is justified.
 A rejected rerun does not upload a replacement evidence artifact.
 
-The first check rejects missing consent, invalid budgets and missing
-credentials *before downloading the approximately 297 MB public source*.
+The first check rejects missing consent and invalid budgets before credential
+selection. The metadata selector then rejects unavailable Gemini credentials
+before downloading the approximately 297 MB public source. The same selected
+alias is used for token counting and paid execution; metadata access does not
+guarantee generation or billing access.
 After SHA-256 validation and provider-side token counting, the second
 check rejects any infeasible context, mismatched cohort size or total
 maximum cost reservation above the authorized budget. The paid runner

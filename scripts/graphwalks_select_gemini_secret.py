@@ -3,11 +3,14 @@
 Only fixed-host, non-generative model metadata GET requests are issued.
 No secret material is logged, included in receipts or returned to stdout.
 The selected credential is handed to a later GitHub Actions step via the
-runner's private GITHUB_ENV file; it is not committed or uploaded.
+runner's private GITHUB_ENV file in the legacy live scan. Manual workflows
+use --alias-only to emit a nonsecret allowlisted name to GITHUB_OUTPUT and
+inject the corresponding secret only into provider-facing steps.
 """
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 from pathlib import Path
@@ -59,11 +62,16 @@ def select_gemini_secret(
     return None
 
 
-def main() -> int:
-    """Make a fixed-host credential check and set the next Actions step's key."""
-    env_file = os.environ.get("GITHUB_ENV")
+def main(argv: list[str] | None = None) -> int:
+    """Select the credential; optionally return only its allowlisted alias."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--alias-only", action="store_true",
+                        help="Emit only the selected secret name to GITHUB_OUTPUT")
+    args = parser.parse_args(argv)
+    target_name = "GITHUB_OUTPUT" if args.alias_only else "GITHUB_ENV"
+    env_file = os.environ.get(target_name)
     if not env_file:
-        print("Missing private GitHub Actions environment file", file=sys.stderr)
+        print("Missing private GitHub Actions " + target_name + " file", file=sys.stderr)
         return 2
     candidate = select_gemini_secret(os.environ)
     if candidate is None:
@@ -82,6 +90,16 @@ def main() -> int:
         return 2
 
     alias, secret = candidate
+    if alias not in _ALIASES:
+        print("Unexpected credential alias", file=sys.stderr)
+        return 2
+    if args.alias_only:
+        # The workflow uses this fixed allowlisted name to inject a secret
+        # only into the specific steps that need it. Never emit secret bytes.
+        with Path(env_file).open("a", encoding="utf-8") as stream:
+            stream.write("alias=" + alias + "\n")
+        print("Pinned Gemini model metadata authenticated using " + alias)
+        return 0
     # Secrets must be one-line keys. GITHUB_ENV lives on the ephemeral runner
     # and is intentionally omitted from all public artifacts.
     with Path(env_file).open("a", encoding="utf-8") as stream:
