@@ -25,9 +25,10 @@ TASK = "bfs-row-000100"
 OUTPUT_LIMIT = 65_536
 INPUT_LIMIT = 922_000
 CONTEXT_LIMIT = 1_050_000
-# Upper standard long-context rates, including the full-request surcharge
-# above 272K input tokens. No cache discount assumed.
-INPUT_RATE = Decimal("4")
+# Standard long-context input rate is $4/M; 30-minute cache writes cost
+# $5/M. Explicit-only caching with no breakpoints disables implicit writes.
+# Reserve the higher write rate for all input tokens as a precaution.
+INPUT_RATE = Decimal("5")
 OUTPUT_RATE = Decimal("15")
 APPROVAL = "AUTHORIZE_PAID_OPENAI"
 MAX_BUDGET = Decimal("100")
@@ -147,6 +148,8 @@ def diagnostic(
         "dataset_revision": DATASET_REVISION, "parquet_sha256": DATASET_SHA256,
         "reference_index_sha256": INDEX_SHA256, "input_tokens": tokens,
         "max_output_tokens": OUTPUT_LIMIT, "reasoning_effort": "xhigh",
+        "prompt_cache_options": {"mode": "explicit", "ttl": "30m"},
+        "service_tier": "default",
         "input_limit": INPUT_LIMIT, "context_limit": CONTEXT_LIMIT,
         "input_usd_per_million_upper": str(INPUT_RATE), "output_usd_per_million_upper": str(OUTPUT_RATE),
         "reservation_usd": str(reserved), "authorized_ceiling_usd": str(ceiling),
@@ -160,6 +163,7 @@ def diagnostic(
         response = request("/v1/responses", {
             **count_payload, "max_output_tokens": OUTPUT_LIMIT,
             "store": False, "service_tier": "default", "tools": [],
+            "prompt_cache_options": {"mode": "explicit", "ttl": "30m"},
         }, key)
         # Never upload raw response content or reasoning to a public artifact.
         _write(private / "response.json", response)
@@ -173,7 +177,7 @@ def diagnostic(
             raise ReplayError("Provider accounting differs from approved reservation")
         if response.get("status") != "completed" or response.get("model") != MODEL:
             raise ReplayError("Incomplete response or unexpected model identity")
-        if response.get("service_tier") not in ("default", "auto"):
+        if response.get("service_tier") != "default":
             raise ReplayError("Unexpected service tier")
         texts = []
         items = response.get("output")

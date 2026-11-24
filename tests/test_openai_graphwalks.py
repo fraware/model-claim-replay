@@ -16,7 +16,7 @@ class OpenAIDiagnosticTests(unittest.TestCase):
         for approval,budget in [("NO","5"),(APPROVAL,"0"),(APPROVAL,"NaN"),(APPROVAL,"101")]:
             with self.assertRaises(ReplayError):
                 authorization(approval,budget)
-        self.assertEqual(str(reservation(355124,65536)), "2.403536")
+        self.assertEqual(str(reservation(355124,65536)), "2.758660")
 
     def test_one_request_and_redacted_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -38,6 +38,7 @@ class OpenAIDiagnosticTests(unittest.TestCase):
                 self.assertEqual(payload["tools"],[])
                 self.assertEqual(payload["truncation"],"disabled")
                 self.assertEqual(payload["service_tier"],"default")
+                self.assertEqual(payload["prompt_cache_options"],{"mode":"explicit","ttl":"30m"})
                 self.assertTrue((root/"out/public/intent.json").is_file())
                 return {"status":"completed","model":MODEL,"service_tier":"default",
                         "usage":{"input_tokens":355124,"output_tokens":10,"total_tokens":355134},
