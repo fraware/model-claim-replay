@@ -38,6 +38,7 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
         "index.html", "app.js", "style.css", "graphwalks.html",
         "graphwalks.js", "graphwalks.css", "graphwalks-audit.json",
         "graphwalks-control.json", "graphwalks-gemini-feasibility.json",
+        "graphwalks-input-feasibility.svg", "check.html",
     )
     for filename in required:
         if not (site / filename).is_file():
@@ -90,6 +91,10 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                             assert page.locator("h1 em, h2 em").count() == 0
 
                             if name == "graphwalks":
+                                figure = page.locator(".evidence-figure img")
+                                assert figure.is_visible()
+                                assert figure.evaluate("(img) => img.complete && img.naturalWidth === 1200")
+                                assert page.get_by_text("Download figure (SVG)").get_attribute("href") == "./graphwalks-input-feasibility.svg"
                                 page.wait_for_function(
                                     "document.querySelectorAll('button.task-dot').length === 200"
                                 )
@@ -158,7 +163,10 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 page.wait_for_function(
                                     "document.querySelectorAll('.claim-row').length === 3"
                                 )
+                                assert page.get_by_role("link", name="Open local checker").get_attribute("href") == "./check.html"
+                                assert page.request.get(f"{origin}/check.html").ok
                                 featured = page.locator(".evidence-plate")
+                                assert featured.get_by_text("Download evidence figure (SVG)").get_attribute("href") == "./graphwalks-input-feasibility.svg"
                                 assert featured.is_visible()
                                 assert "100 of 200 public candidate prompts exceed" in featured.inner_text()
                                 assert "1,048,576 tokens" in featured.inner_text()
