@@ -13,7 +13,10 @@ from pathlib import Path
 from typing import Any
 
 from .core import ReplayError, read_bytes, read_json, sha256_bytes
-from .graphwalks_runtime import DATASET_REVISION, MODEL, _load_plan
+from .graphwalks_runtime import (
+    DATASET_REVISION, MODEL, _USAGE_OVERRUN_ERROR, _load_plan,
+    _reported_usage_exceeds_reservation,
+)
 
 _USAGE_FIELDS = frozenset({
     "total_input_tokens", "total_output_tokens", "total_thought_tokens",
@@ -108,6 +111,23 @@ def audit_graphwalks_run(plan_path: Path, index_path: Path, run_dir: Path) -> di
         for value in result["usage"].values():
             if value is not None and (type(value) is not int or value < 0):
                 raise ReplayError(f"Invalid provider token usage for {task_id}")
+        overrun = _reported_usage_exceeds_reservation(
+            result["usage"],
+            planned_input=task["input_tokens"],
+            output_allowance=plan["max_output_tokens"],
+        )
+        if overrun and (
+            result["status"] != "error"
+            or result.get("error_type") != _USAGE_OVERRUN_ERROR
+        ):
+            raise ReplayError(
+                f"Provider usage exceeds the approved reservation without "
+                f"quarantine for {task_id}"
+            )
+        if not overrun and result.get("error_type") == _USAGE_OVERRUN_ERROR:
+            raise ReplayError(
+                f"Unsubstantiated provider usage overrun marker for {task_id}"
+            )
         if result["status"] == "ok":
             if not isinstance(result.get("output"), str) or result.get("error_type") is not None:
                 raise ReplayError(f"Successful response lacks valid text for {task_id}")
