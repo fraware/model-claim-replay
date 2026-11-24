@@ -75,6 +75,19 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 timeout=30_000,
                             )
                             assert response is not None and response.status == 200
+                            # Verify the shared neutral, sans-serif interface and
+                            # reject regressions to decorative italic headings.
+                            typography = page.evaluate("""() => ({
+                                body: getComputedStyle(document.body).fontFamily,
+                                background: getComputedStyle(document.body).backgroundColor,
+                                headings: [...document.querySelectorAll('h1,h2,h3,em')].map(
+                                    el => [getComputedStyle(el).fontFamily, getComputedStyle(el).fontStyle])
+                            })""")
+                            assert typography["background"] == "rgb(255, 255, 255)"
+                            assert typography["body"].startswith("Arial")
+                            assert all(family.startswith("Arial") and style == "normal"
+                                       for family, style in typography["headings"])
+                            assert page.locator("h1 em, h2 em").count() == 0
 
                             if name == "graphwalks":
                                 page.wait_for_function(

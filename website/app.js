@@ -18,7 +18,6 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "claim-row" + (selectedId === record.id ? " selected" : "");
-      button.style.cssText = "width:100%;text-align:left;border-left:0;border-right:0;border-top:0;color:inherit;font:inherit";
       button.setAttribute("aria-expanded", String(selectedId === record.id));
       button.innerHTML = `<span class="claim-marker">${String(index+1).padStart(2,"0")}</span><span><span class="tag">${record.kind === "published" ? "PUBLISHED CLAIM" : "SYNTHETIC FIXTURE"}</span><h3>${escape(record.title)}</h3><p>${escape(record.subtitle)}</p></span><span class="claim-status">${escape(record.state)} <span aria-hidden="true">↗</span></span>`;
       button.addEventListener("click", () => { selectedId = selectedId === record.id ? null : record.id; renderClaims(); });

@@ -14,16 +14,15 @@
 </head>
 <body>
   <a class="skip" href="#audit">Skip to source-data explorer</a>
-  <div class="topline"><span>PUBLIC EVIDENCE RECORD&nbsp; / &nbsp;002</span><span>23 NOV 2026 &nbsp;·&nbsp; SOURCE + PROVIDER AUDIT</span></div>
   <header class="masthead wrap">
-    <a class="brand" href="./index.html"><span class="brandmark">M<span>/</span>CR</span><span class="brandtext">MODEL CLAIM<br>REPLAY</span></a>
+    <a class="brand" href="./index.html"><span class="brand-mark" aria-hidden="true">[=]</span><span>Model Claim Replay</span></a>
     <nav aria-label="Page navigation"><a href="./index.html#claims">Claim registry</a><a href="#audit">Explore dataset</a><a href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav>
   </header>
   <main>
     <section class="intro wrap">
       <div class="eyebrow"><i aria-hidden="true"></i> GRAPHWALKS / GEMINI 4 NEON</div>
       <div class="intro-grid"><div>
-        <h1>200 problems.<br><em>One claim.</em><br>Open evidence.</h1>
+        <h1>GraphWalks: Gemini 4 Neon</h1>
         <p class="lede">Google reports 95.2% on long-context GraphWalks BFS. We verified the public candidate source and counted all 200 original prompts with Gemini. Half exceed the model's input limit. The published score remains unreproduced.</p>
       </div><div class="state-box"><span class="box-label">CURRENT EVIDENCE STATUS</span><span class="box-status"><span aria-hidden="true">○</span> Source verified</span><p>All 200 candidate inputs have source-bound provider token counts. Google's actual benchmark selection and evaluation settings remain unconfirmed.</p><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS.md">Read the research dossier ↗</a></div></div>
     </section>
@@ -38,7 +37,7 @@
       <div class="provider-layout">
         <div class="provider-story">
           <div class="eyebrow">MODEL INPUT FEASIBILITY / ORIGINAL PUBLIC CANDIDATE</div>
-          <h2 id="provider-title">100 prompts fit.<br><em>100 exceed the limit.</em></h2>
+          <h2 id="provider-title">100 prompts fit. 100 exceed the limit.</h2>
           <p>We sent every original public candidate prompt to Gemini 4 Neon's token-count endpoint. Google reports a maximum of <strong>1,048,576 input tokens</strong> for this model. Every longer-band prompt exceeds that ceiling, even if no tokens are reserved for output.</p>
           <p class="provider-caveat">This tests the pinned public candidate dataset, not Google's unpublished benchmark cohort. Token counting is not model inference and does not confirm or refute the reported 95.2% F1.</p>
           <div class="provider-links"><a href="./graphwalks-gemini-feasibility.json">Examine all 200 token counts ↗</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/45159511810" target="_blank" rel="noopener noreferrer">Original provider run ↗</a><a href="https://github.com/fraware/model-claim-replay/blob/main/evidence/graphwalks/gemini-4-neon-full-200-token-plan-2026-11-23.json" target="_blank" rel="noopener noreferrer">Original SHA-256-bound receipt ↗</a></div>
@@ -48,22 +47,6 @@
           <div class="provider-figure"><span>SHORTER INPUTS / WITHIN MODEL LIMIT</span><strong>100 <small>/ 100</small></strong><p>354,061–355,496 provider-reported input tokens</p></div>
           <div class="provider-figure over"><span>LONGER INPUTS / OVER MODEL LIMIT</span><strong>100 <small>/ 100</small></strong><p>1,419,001–1,420,682 input tokens, minimum excess 370,425</p></div>
           <div class="provider-method"><span>GEMINI 4 NEON</span><strong>1,048,576</strong><p>Provider-reported maximum input tokens. 65,536 is the separate output cap. The 8,192-token future output reservation was never generated.</p></div>
-        </div>
-      </div>
-    </section>
-    <section class="control-panel wrap" id="control">
-      <div class="control-header"><span class="control-label">INDEPENDENT ALGORITHMIC CONTROL / 21 NOVEMBER 2026</span><span class="control-flag">200 / 200 SOURCE TASKS</span></div>
-      <div class="control-layout">
-        <div>
-          <h2>A graph algorithm<br>gets every answer right.</h2>
-          <p>We parsed the original public prompts, reconstructed directed graphs, and executed ordinary breadth-first search. All 200 tasks scored F1 = 1.0 under the source's grading convention, including the 100 longer-context cases. No AI model was called.</p>
-          <p>This is an <strong>algorithmic reference control</strong>. It checks the public dataset and graph-operation implementation. It does not reproduce or invalidate the publisher's Gemini 4 Neon result, because a specialized parser and an LLM are different systems.</p>
-          <div class="control-links"><a href="./graphwalks-control.json" download>Inspect 200 task results ↗</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/44884895995">Independent CI execution ↗</a><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_CONTROL.md">Read methodology ↗</a></div>
-        </div>
-        <div class="control-measures">
-          <div><span>MEAN F1 / DETERMINISTIC CONTROL</span><strong>1.000</strong><small>200 graded / 0 parse failures</small></div>
-          <div><span>LONG-CONTEXT GROUP</span><strong>100 / 100</strong><small>all task F1 values = 1.0</small></div>
-          <div><span>GEMINI INPUT FEASIBILITY</span><strong>100 / 200</strong><small>Real token counts; no generated answers</small></div>
         </div>
       </div>
     </section>
@@ -82,14 +65,31 @@
       </div>
       <div class="statistics" id="statistics"><div><span>MINIMUM PROMPT LENGTH</span><strong>437,563</strong><small>characters</small></div><div><span>MEDIAN PROMPT LENGTH</span><strong>1,092,964</strong><small>characters, rounded</small></div><div><span>MAXIMUM PROMPT LENGTH</span><strong>1,748,364</strong><small>characters</small></div></div>
     </section>
-    <section class="provenance"><div class="wrap provenance-grid"><div><span class="section-index light">THE RECORD / 002</span><h2>Verifiable<br>down to the byte.</h2><p>Original Parquet bytes were downloaded and hashed independently in GitHub Actions. Task answers and original prompts are omitted from this public explorer. Its data is derived deterministically from the verified source index.</p></div><div class="receipt">
+    <section class="control-panel wrap" id="control">
+      <div class="control-header"><span class="control-label">INDEPENDENT ALGORITHMIC CONTROL / 21 NOVEMBER 2026</span><span class="control-flag">200 / 200 SOURCE TASKS</span></div>
+      <div class="control-layout">
+        <div>
+          <h2>Deterministic BFS control</h2>
+          <p>We parsed the original public prompts, reconstructed directed graphs, and executed ordinary breadth-first search. All 200 tasks scored F1 = 1.0 under the source's grading convention, including the 100 longer-context cases. No AI model was called.</p>
+          <p>This is an <strong>algorithmic reference control</strong>. It checks the public dataset and graph-operation implementation. It does not reproduce or invalidate the publisher's Gemini 4 Neon result, because a specialized parser and an LLM are different systems.</p>
+          <div class="control-links"><a href="./graphwalks-control.json" download>Inspect 200 task results ↗</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/44884895995">Independent CI execution ↗</a><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_CONTROL.md">Read methodology ↗</a></div>
+        </div>
+        <div class="control-measures">
+          <div><span>MEAN F1 / DETERMINISTIC CONTROL</span><strong>1.000</strong><small>200 graded / 0 parse failures</small></div>
+          <div><span>LONG-CONTEXT GROUP</span><strong>100 / 100</strong><small>all task F1 values = 1.0</small></div>
+          <div><span>GEMINI INPUT FEASIBILITY</span><strong>100 / 200</strong><small>Real token counts; no generated answers</small></div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="provenance"><div class="wrap provenance-grid"><div><span class="section-index light">THE RECORD / 002</span><h2>Source provenance</h2><p>Original Parquet bytes were downloaded and hashed independently in GitHub Actions. Task answers and original prompts are omitted from this public explorer. Its data is derived deterministically from the verified source index.</p></div><div class="receipt">
       <div class="receipt-row"><span>ORIGINAL DATASET</span><strong>openai/graphwalks</strong></div>
       <div class="receipt-row"><span>PARQUET SOURCE REVISION</span><code>be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7</code></div>
       <div class="receipt-row"><span>PARQUET SHA-256 (VERIFIED)</span><code>537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911</code></div>
       <div class="receipt-row"><span>200-TASK REFERENCE INDEX SHA-256</span><code>250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee</code></div>
       <div class="receipt-links"><a href="https://github.com/fraware/model-claim-replay/actions/runs/44746523023">Verified GitHub Actions run ↗</a><a href="https://huggingface.co/datasets/openai/graphwalks">Original MIT-licensed dataset ↗</a></div>
     </div></div></section>
-    <section class="next wrap"><div class="section-index"><span>THE NEXT EXPERIMENT / 003</span><span>GENERATIVE MODEL TEST PENDING</span></div><h2>Source access is solved.<br><em>Execution is next.</em></h2><div class="next-grid"><p>All 200 public candidate inputs have now been counted by the Gemini API: the shorter 100 fit, and the longer 100 exceed the reported input limit. The budget-controlled inference runner is restricted to context-feasible tasks and independently reviewed authorization. The published 95.2% remains unverified until a protocol-matched model experiment produces real evidence.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
+    <section class="next wrap"><div class="section-index"><span>THE NEXT EXPERIMENT / 003</span><span>GENERATIVE MODEL TEST PENDING</span></div><h2>Pending model experiment</h2><div class="next-grid"><p>All 200 public candidate inputs have now been counted by the Gemini API: the shorter 100 fit, and the longer 100 exceed the reported input limit. The budget-controlled inference runner is restricted to context-feasible tasks and independently reviewed authorization. The published 95.2% remains unverified until a protocol-matched model experiment produces real evidence.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
   </main>
   <footer><div class="wrap footer"><strong>MODEL CLAIM REPLAY</strong><span>Real source data and algorithmic controls. No independently reproduced model score.</span><a href="./index.html">Back to registry ↑</a></div></footer>
 </body>

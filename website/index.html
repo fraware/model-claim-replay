@@ -17,21 +17,20 @@
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
-  <div class="ribbon"><div class="wrap ribbon-inside"><span><span class="signal"></span> OPEN-SOURCE RESEARCH INFRASTRUCTURE</span><span>EARLY ACCESS / NOV 2026</span></div></div>
   <header class="site-header"><div class="wrap header-inside">
-    <a class="brand" href="#top" aria-label="Model Claim Replay home"><span class="brand-glyph">M<span class="slash">/</span>CR</span><span class="brand-name">MODEL CLAIM<br>REPLAY</span></a>
-    <nav class="navigation" aria-label="Main navigation"><a href="#method">The method</a><a href="#claims">Claim registry</a><a href="#replay">Try a replay</a><a href="#comparison">Compare runs</a><a class="github-link" href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav>
+    <a class="brand" href="#top" aria-label="Model Claim Replay home"><span class="brand-mark" aria-hidden="true">[=]</span><span>Model Claim Replay</span></a>
+    <nav class="navigation" aria-label="Main navigation"><a href="#claims">Claims</a><a href="./graphwalks.html">GraphWalks</a><a href="#install">Install</a><a class="github-link" href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav>
   </div></header>
   <main id="main">
     <section class="hero wrap" id="top">
-      <div class="hero-copy"><div class="section-label"><span class="rule"></span> AN OPEN LAB FOR MODEL CLAIMS</div>
-        <h1>They published<br>the <em>score.</em><br>Show the <em>experiment.</em></h1>
-        <p class="intro">Investigate published model scores using pinned benchmark data, provider measurements and reproducible scoring. Start with our live GraphWalks input-feasibility audit.</p>
+      <div class="hero-copy"><div class="section-label">Open-source evaluation tools</div>
+        <h1>Replay published<br class="desktop-break"> AI benchmark claims.</h1>
+        <p class="intro">Inspect benchmark inputs, reproduce scoring and verify evaluation conditions. Run locally or explore the evidence from our latest investigation.</p>
         <div class="hero-actions"><a class="button button-dark" href="./graphwalks.html">Inspect all 200 tasks <span>↗</span></a><a class="button button-light" href="#install">Run the CLI locally <span>↓</span></a></div>
       </div>
       <article class="hero-plate evidence-plate" aria-labelledby="featured-finding">
-        <div class="plate-top"><span class="plate-index">FIELD NOTE / 23 NOV 2026</span><span class="plate-stamp">LIVE TOKEN COUNTS</span></div>
-        <p class="plate-kicker">GEMINI 4 NEON / GRAPHWALKS BFS</p>
+        <div class="plate-top"><span class="plate-index">GraphWalks BFS · 23 Nov 2026</span><span class="plate-stamp">Token-count audit</span></div>
+        <p class="plate-kicker">Gemini 4 Neon</p>
         <h2 id="featured-finding" class="finding-headline">100 of 200 public candidate prompts exceed the reported input limit.</h2>
         <div class="finding-number" aria-hidden="true">100<span> / 200</span></div>
         <div class="finding-bar" aria-hidden="true"><span></span><span></span></div>
@@ -41,20 +40,23 @@
         <div class="finding-links"><a href="./graphwalks-gemini-feasibility.json">Download measurements (JSON)</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/45159511810">Original Actions run</a></div>
       </article>
     </section>
-    <section class="manifesto" id="method"><div class="wrap manifesto-grid"><div class="section-label light-label">01 / THE PRINCIPLE</div><div><h2>A number is the beginning<br>of a question.</h2><p>Did the model receive the same tasks? Was the grader identical? How many failures were omitted? Was the comparison run under the stated conditions?</p><p>Make the methodology inspectable. Put the underlying evidence in developers’ hands. Publish inconclusive results as inconclusive.</p><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/METHODOLOGY.md" target="_blank" rel="noopener noreferrer">Read our evidence standard <span aria-hidden="true">↗</span></a></div></div></section>
-    <section class="work wrap" id="claims"><div class="work-header"><div><div class="section-label"><span class="rule"></span> 02 / THE CLAIM REGISTRY</div><h2>Follow the evidence.</h2></div><p>Published claims and local demonstrations, separated by what has actually been established.</p></div>
+    
+    <section class="install wrap" id="install"><div class="section-label"><span class="rule"></span> Quickstart</div><div class="install-grid"><div><h2>Run locally</h2><p>Python 3.10+, a zero-dependency core and an optional official Inspect AI log importer. Local evidence and standalone reports, with no account or telemetry.</p><a href="https://github.com/fraware/model-claim-replay#try-it-now--fully-offline" class="text-link" target="_blank" rel="noopener noreferrer">Complete installation guide ↗</a></div><div class="install-terminal"><div class="terminal-top"><span>TERMINAL</span><button id="copy-command" type="button">Copy command <span aria-hidden="true">↗</span></button></div><pre><code id="install-code">python -m pip install "git+https://github.com/fraware/model-claim-replay.git"
+claim-replay demo
+# Open .runs/demo/report.html</code></pre><p>No API key, paid inference or telemetry. The generated 2/3 result is strictly synthetic; published-claim reproduction remains pending.</p></div></div></section>
+    <section class="work wrap" id="claims"><div class="work-header"><div><div class="section-label"><span class="rule"></span> Claim registry</div><h2>Current investigations</h2></div><p>Published claims and local demonstrations, separated by what has actually been established.</p></div>
       <div class="filter-bar" role="group" aria-label="Filter the claim registry"><button type="button" class="filter active" data-filter="all" aria-pressed="true">All records <span>03</span></button><button type="button" class="filter" data-filter="published" aria-pressed="false">Published claims <span>02</span></button><button type="button" class="filter" data-filter="synthetic" aria-pressed="false">Test fixtures <span>01</span></button></div>
       <div id="claim-items" class="claim-items"><article class="claim-row"><span class="claim-marker">01</span><div><span class="tag">PUBLISHED CLAIM</span><h3>Claude Fable 5.2 / Chartography</h3><p>73.4% publisher-reported score. Independent reproduction pending.</p></div><span class="claim-status">PROTOCOL REVIEW <span aria-hidden="true">↗</span></span></article></div>
       <div id="claim-detail" class="claim-detail" aria-live="polite"></div>
     </section>
-    <section class="lab-section" id="replay"><div class="wrap"><div class="work-header"><div><div class="section-label"><span class="rule"></span> 03 / A WORKING DEMONSTRATION</div><h2>See every decision.</h2></div><p>Three deliberately synthetic tasks illustrate our scoring and evidence workflow. This is not a frontier-model evaluation.</p></div>
+    <section class="lab-section" id="replay"><div class="wrap"><div class="work-header"><div><div class="section-label"><span class="rule"></span> Interactive demo</div><h2>Replay a scored task</h2></div><p>Three deliberately synthetic tasks illustrate our scoring and evidence workflow. This is not a frontier-model evaluation.</p></div>
       <div class="lab-grid"><div class="lab-console"><div class="console-bar"><span><span class="console-dot"></span> LOCAL EVIDENCE REPLAY</span><span>FIXTURE / DEMO-001</span></div><div class="console-body"><div class="console-label">CURRENT TASK <span id="step-counter">01 / 03</span></div><p class="task-prompt" id="task-prompt">Answer with exactly the word alpha.</p><div class="answer-grid"><div><span>EXPECTED</span><code id="expected">alpha</code></div><div><span>RECORDED RESPONSE</span><code id="response">—</code></div></div><div class="verdict" id="verdict" aria-live="polite">Awaiting replay</div></div><div class="console-footer"><button class="button button-accent" type="button" id="next-step">Reveal response <span>→</span></button><button type="button" class="reset-button" id="reset-demo">Reset ↺</button></div></div>
       <aside class="lab-summary"><p class="mono muted">RUN SUMMARY / SYNTHETIC</p><div class="score-value" id="score-display">—<span> / 3</span></div><p class="score-caption">Successful exact matches</p><div class="progress-track"><div id="progress-fill"></div></div><div class="summary-meta"><div><span>TASKS ASSESSED</span><strong id="assessed-display">0 of 3</strong></div><div><span>PROTOCOL</span><strong>Exact match · strip</strong></div><div><span>PROVENANCE</span><strong>Predefined fixture</strong></div></div><p class="summary-disclaimer">No API requests occur in this demo. All answers are fixed, illustrative data. Full evaluation uses the local CLI and explicit artifact hashes.</p></aside></div>
     </div></section>
 
     <section class="compare-section" id="comparison" aria-labelledby="compare-title"><div class="wrap">
-      <div class="compare-intro"><div><div class="section-label"><span class="rule"></span> 04 / THE COMPARISON GATE</div>
-      <h2 id="compare-title">A score gap is not<br>the whole story.</h2></div>
+      <div class="compare-intro"><div><div class="section-label"><span class="rule"></span> Protocol compatibility</div>
+      <h2 id="compare-title">Compare two evaluation runs</h2></div>
       <p>Two runs need the same tasks, the same judge, and the same trial design. Change one condition and the difference loses its meaning. Explore the test below.</p></div>
       <div class="compare-workspace">
         <div class="scenario-heading"><strong>EXPERIMENT / SYNTHETIC PAIR</strong><span>THREE ARTIFICIAL TASKS · ONE TRIAL EACH</span></div>
@@ -74,10 +76,9 @@
           <a href="https://github.com/fraware/model-claim-replay#compare-two-original-inspect-run-logs" target="_blank" rel="noopener noreferrer">Compare your Inspect logs <span aria-hidden="true">↗</span></a></div>
       </div>
     </div></section>
-    <section class="install wrap" id="install"><div class="section-label"><span class="rule"></span> 05 / USE IT LOCALLY</div><div class="install-grid"><div><h2>Inspect. Run.<br>Verify. Report.</h2><p>Python 3.10+, a zero-dependency core and an optional official Inspect AI log importer. Local evidence and standalone reports, with no account or telemetry.</p><a href="https://github.com/fraware/model-claim-replay#try-it-now--fully-offline" class="text-link" target="_blank" rel="noopener noreferrer">Complete installation guide ↗</a></div><div class="install-terminal"><div class="terminal-top"><span>TERMINAL</span><button id="copy-command" type="button">Copy command <span aria-hidden="true">↗</span></button></div><pre><code id="install-code">python -m pip install "git+https://github.com/fraware/model-claim-replay.git"
-claim-replay demo
-# Open .runs/demo/report.html</code></pre><p>No API key, paid inference or telemetry. The generated 2/3 result is strictly synthetic; published-claim reproduction remains pending.</p></div></div></section>
-    <section class="closing"><div class="wrap closing-inner"><div class="section-label light-label">THE LONG-TERM COMMITMENT</div><h2>Every major model claim.<br>One inspectable path<br>to the evidence.</h2><div class="closing-links"><a class="button button-paper" href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">Contribute on GitHub <span>↗</span></a><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/ROADMAP.md" target="_blank" rel="noopener noreferrer">Read the roadmap ↗</a></div></div></section>
+    
+    <section class="manifesto" id="method"><div class="wrap manifesto-grid"><div class="section-label light-label">Methodology</div><div><h2>What gets verified</h2><p>Replay checks the task identities, grading protocol, recorded model settings, missing trials and artifact digests.</p><p>Publisher-reported scores, local observations and synthetic fixtures are recorded separately.</p><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/METHODOLOGY.md" target="_blank" rel="noopener noreferrer">Read our evidence standard <span aria-hidden="true">↗</span></a></div></div></section>
+    <section class="closing"><div class="wrap closing-inner"><div class="section-label light-label">Contribute</div><h2>Investigate a new claim</h2><div class="closing-links"><a class="button button-paper" href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">Contribute on GitHub <span>↗</span></a><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/ROADMAP.md" target="_blank" rel="noopener noreferrer">Read the roadmap ↗</a></div></div></section>
   </main>
-  <footer class="footer"><div class="wrap footer-inner"><span class="brand-glyph">M<span class="slash">/</span>CR</span><span>Independent evidence for published model claims.</span><span>Open source · MIT · 2026</span></div></footer>
+  <footer class="footer"><div class="wrap footer-inner"><span class="footer-brand">Model Claim Replay</span><span>Independent evidence for published model claims.</span><span>Open source · MIT · 2026</span></div></footer>
 </body></html>
