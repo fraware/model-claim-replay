@@ -131,6 +131,30 @@ class GraphWalksPilotGateTests(unittest.TestCase):
         )
         self.assertIn("if: ${{ !cancelled() && github.run_attempt == 1 }}", workflow)
 
+    def test_manual_workflows_scope_the_same_authenticated_key(self) -> None:
+        paid = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
+        preflight = (ROOT / ".github/workflows/graphwalks-token-preflight.yml").read_text()
+        selector = "scripts/graphwalks_select_gemini_secret.py --alias-only"
+        self.assertLess(paid.index("--approval \\"$APPROVAL\\""), paid.index(selector))
+        for workflow, expected_uses, download in (
+            (paid, 2, "Independently download and verify"),
+            (preflight, 1, "Verify complete public source"),
+        ):
+            self.assertLess(workflow.index(selector), workflow.index(download))
+            self.assertEqual(workflow.count("id: gemini_credential"), 1)
+            self.assertNotIn("secrets.OPENAI", workflow)
+            self.assertNotIn("GITHUB_ENV", workflow)
+            for alias in ("GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENAI_API_KEY"):
+                self.assertEqual(workflow.count("secrets." + alias), 1 + expected_uses)
+                self.assertEqual(
+                    workflow.count("steps.gemini_credential.outputs.alias == '" + alias + "'"),
+                    expected_uses,
+                )
+            self.assertEqual(
+                workflow.count("GEMINI_API_KEY: ${{ (steps.gemini_credential.outputs.alias"),
+                expected_uses,
+            )
+
     def test_non_generating_preflight_covers_paid_pilot_settings(self) -> None:
         """Avoid UI/runner drift at the exact pilot cohort and output limit."""
         preflight = (ROOT / ".github/workflows/graphwalks-token-preflight.yml").read_text()
