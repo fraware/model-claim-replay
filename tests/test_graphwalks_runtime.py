@@ -201,13 +201,15 @@ class RuntimeTests(unittest.TestCase):
 
     def test_completed_generation_without_usage_is_not_a_scored_success(self):
         plan = self._plan(max_tasks=1)
-        result = self._run(
-            plan,
-            lambda *_: SimpleNamespace(
-                status="completed", output_text="Final Answer: [node-0]", usage=None,
-            ),
-        )
-        self.assertEqual(result["successful_attempts"], 0)
+        with self.assertRaisesRegex(
+            ReplayError, "Provider request or token accounting failed",
+        ):
+            self._run(
+                plan,
+                lambda *_: SimpleNamespace(
+                    status="completed", output_text="Final Answer: [node-0]", usage=None,
+                ),
+            )
         stored = json.loads(
             (self.root / "private-run" / "attempts" / "bfs-row-000000.result.json").read_text()
         )
@@ -383,7 +385,10 @@ class RuntimeTests(unittest.TestCase):
         """Malformed private metadata must not produce an AttributeError."""
         plan = self._plan(max_tasks=2)
         one_request_budget = plan["planned_tasks"][0]["maximum_reserved_cost_usd"]
-        self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
+        with self.assertRaisesRegex(
+            ReplayError, "Provider request or token accounting failed",
+        ):
+            self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
         (self.root / "private-run" / "run.json").write_text("[]")
         with self.assertRaisesRegex(ReplayError, "resume cannot change"):
             self._run(
@@ -399,7 +404,10 @@ class RuntimeTests(unittest.TestCase):
         """Unexpected prior artifacts cannot be ignored when billing resumes."""
         plan = self._plan(max_tasks=2)
         one_request_budget = plan["planned_tasks"][0]["maximum_reserved_cost_usd"]
-        self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
+        with self.assertRaisesRegex(
+            ReplayError, "Provider request or token accounting failed",
+        ):
+            self._run(plan, lambda *_: 1 / 0, budget=one_request_budget)
         extra = self.root / "private-run" / "attempts" / "untracked.json"
         extra.write_text("{}")
         with self.assertRaisesRegex(ReplayError, "unexpected attempt artifact"):
@@ -449,11 +457,13 @@ class RuntimeTests(unittest.TestCase):
                 status="completed", output_text="Final Answer: [node-100]",
                 usage=SimpleNamespace(total_input_tokens=100, total_output_tokens=9),
             )
-        resumed = self._run(plan, next_task_only)
-        self.assertEqual(resumed["new_requests"], 1)
-        self.assertEqual(len(calls), 1)
-        self.assertEqual(calls[0], "Synthetic GraphWalks task 100")
-        self.assertEqual(resumed["unresolved_attempts_without_results"], 1)
+        with self.assertRaisesRegex(ReplayError, "request remains unresolved"):
+            self._run(plan, next_task_only)
+        self.assertEqual(calls, [])
+        self.assertFalse(
+            (self.root / "private-run" / "attempts" /
+             "bfs-row-000100.intent.json").exists()
+        )
 
     def test_provider_usage_overrun_stops_paid_run_and_blocks_resume(self):
         """Answer + thinking tokens exceeding the cap stop the run durably."""
@@ -576,23 +586,97 @@ class RuntimeTests(unittest.TestCase):
 
     def test_interrupted_request_is_not_repeated(self):
         plan = self._plan(max_tasks=1)
-        self._run(plan, lambda *_: SimpleNamespace(status="completed", output_text="Final Answer: [node-0]", usage=None))
+        with self.assertRaisesRegex(ReplayError, "Provider request or token accounting failed"):
+            self._run(plan, lambda *_: SimpleNamespace(
+                status="completed", output_text="Final Answer: [node-0]", usage=None,
+            ))
         prior = self.root / "private-run" / "attempts" / "bfs-row-000000.result.json"
         prior.unlink()  # Simulates process interruption after provider received request.
         def fail(*_):
             raise AssertionError("Duplicate paid call attempted")
-        result = self._run(plan, fail)
-        self.assertEqual(result["new_requests"], 0)
-        self.assertEqual(result["unresolved_attempts_without_results"], 1)
+        with self.assertRaisesRegex(ReplayError, "request remains unresolved"):
+            self._run(plan, fail)
+        self.assertFalse(
+            (self.root / "private-run" / "attempts" /
+             "bfs-row-000000.result.json").exists()
+        )
 
     def test_errors_consume_budget_and_remain_unscored(self):
         plan = self._plan(max_tasks=1)
-        self._run(plan, lambda *_: 1/0)
+        with self.assertRaisesRegex(ReplayError, "Provider request or token accounting failed"):
+            self._run(plan, lambda *_: 1/0)
         result = json.loads((self.root / "private-run" / "attempts" / "bfs-row-000000.result.json").read_text())
         self.assertEqual(result["status"], "error")
         self.assertNotIn("output", result)
-        with self.assertRaisesRegex(ReplayError, "reservations exceed"):
+        with self.assertRaisesRegex(ReplayError, "Prior provider request ended with an uncertain error"):
             self._run(plan, lambda *_: 1/0, budget="0.000001")
+
+    def test_transport_error_halts_before_next_paid_task_and_blocks_resume(self):
+        """Unknown request/billing outcome must not authorize another call."""
+        from model_claim_replay.gemini_rest import ProviderStatusError
+
+        plan = self._plan(max_tasks=2)
+        attempted = []
+        def failing(*args):
+            attempted.append(args)
+            raise ProviderStatusError(429)
+
+        with self.assertRaisesRegex(
+            ReplayError, "Provider request or token accounting failed",
+        ):
+            self._run(plan, failing)
+        self.assertEqual(len(attempted), 1)
+        folder = self.root / "private-run" / "attempts"
+        first = json.loads((folder / "bfs-row-000000.result.json").read_text())
+        self.assertEqual(first["status"], "error")
+        self.assertEqual(first["error_type"], "ProviderHTTP_429")
+        self.assertNotIn("output", first)
+        self.assertFalse((folder / "bfs-row-000100.intent.json").exists())
+
+        with self.assertRaisesRegex(
+            ReplayError, "Prior provider request ended with an uncertain error",
+        ):
+            self._run(
+                plan,
+                lambda *_: self.fail("Resumed an uncertain paid request"),
+            )
+
+    def test_completed_missing_text_or_invalid_usage_stops_subsequent_calls(self):
+        """No second request after a malformed provider-declared completion."""
+        import shutil
+
+        cases = (
+            SimpleNamespace(
+                status="completed", output_text=None,
+                usage=SimpleNamespace(total_input_tokens=100, total_output_tokens=2),
+            ),
+            SimpleNamespace(
+                status="completed", output_text="Final Answer: [node-0]",
+                usage=SimpleNamespace(total_input_tokens=100,
+                                      total_output_tokens=True),
+            ),
+        )
+        for response in cases:
+            with self.subTest(response=response):
+                plan = self._plan(max_tasks=2)
+                calls = []
+                def generate(*args):
+                    calls.append(args)
+                    return response
+
+                with self.assertRaisesRegex(
+                    ReplayError, "Provider request or token accounting failed",
+                ):
+                    self._run(plan, generate)
+                self.assertEqual(len(calls), 1)
+                attempts = self.root / "private-run" / "attempts"
+                self.assertFalse((attempts / "bfs-row-000100.intent.json").exists())
+                with self.assertRaisesRegex(
+                    ReplayError, "Prior provider request ended with an uncertain error",
+                ):
+                    self._run(plan, lambda *_: self.fail("Unexpected second request"))
+                shutil.rmtree(self.root / "private-run")
+                (self.root / "plan.json").unlink()
 
     def test_budget_is_a_strict_positive_decimal(self):
         for amount in ("NaN", "Infinity", "0", "-1", "broken"):
