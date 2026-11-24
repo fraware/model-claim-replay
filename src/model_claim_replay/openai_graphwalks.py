@@ -30,7 +30,8 @@ CONTEXT_LIMIT = 1_050_000
 # $5/M. Explicit-only caching with no breakpoints disables implicit writes.
 # Reserve the higher write rate for all input tokens as a precaution.
 INPUT_RATE = Decimal("5")
-OUTPUT_RATE = Decimal("15")
+# Deliberate $20/M reserve margin above the documented $15/M long-context rate.
+OUTPUT_RATE = Decimal("20")
 APPROVAL = "AUTHORIZE_PAID_OPENAI"
 PREFLIGHT = "PREFLIGHT_ONLY"
 REDACTED_ONLY = "REDACTED_ONLY"
@@ -91,7 +92,7 @@ def _request(path: str, payload: dict[str, Any] | None, key: str) -> dict[str, A
     """Fixed HTTPS host, no redirects or retries; never surface error bodies."""
     if path not in ("/v1/models/" + MODEL, "/v1/responses/input_tokens", "/v1/responses"):
         raise ReplayError("Unapproved OpenAI endpoint")
-    conn = http.client.HTTPSConnection("api.openai.com", timeout=900 if path == "/v1/responses" else 90)
+    conn = http.client.HTTPSConnection("api.openai.com", timeout=2700 if path == "/v1/responses" else 90)
     try:
         headers = {"Authorization": "Bearer " + key, "Accept": "application/json"}
         body = None if payload is None else canonical_json(payload)

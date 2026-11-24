@@ -1,0 +1,15 @@
+{
+  "schema_version": "graphwalks-first-generation-authorization-v1",
+  "experiment_id": "openai-first-generation-2026-11-24",
+  "approval": "AUTHORIZE_PAID_OPENAI",
+  "model": "gpt-6.2-sol",
+  "task_id": "bfs-row-000100",
+  "max_spend_usd": "5",
+  "max_generation_requests": 1,
+  "publication": "PUBLISH_FINAL_LINE",
+  "dataset_revision": "be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7",
+  "prompt_sha256": "8dff8adf1268f8298451e4e5c17d5f911c2cf1e5e3dab1a17cbe5ed9348956e6",
+  "reasoning_effort": "xhigh",
+  "max_output_tokens": 65536,
+  "scope": "Single public benchmark diagnostic; no automatic retries, additional tasks or claim replication."
+}

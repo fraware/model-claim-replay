@@ -1,0 +1,71 @@
+name: OpenAI first generation (one-time authorized pilot)
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'evidence/graphwalks/openai-first-generation-authorization.json'
+permissions:
+  contents: read
+concurrency:
+  group: openai-graphwalks-paid
+  cancel-in-progress: false
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Validate newly introduced one-time authorization before credential access
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: python scripts/check_openai_first_generation.py
+      - name: Install source reader
+        run: python -m pip install -e '.[graphwalks]'
+      - name: Independently verify pinned public dataset
+        run: |
+          python scripts/graphwalks_data_audit.py \
+            --revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 \
+            --sha256 537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911 \
+            --size-bytes 296903814 --retain-parquet --out .runs/private/openai-source
+      - name: Execute one authorized diagnostic with fresh token count
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+        run: |
+          python -m model_claim_replay.openai_graphwalks \
+            --parquet .runs/private/openai-source/graphwalks_256k_to_1mil.parquet \
+            --index .runs/private/openai-source/graphwalks-bfs-reference-index.jsonl \
+            --out .runs/openai-diagnostic --approval AUTHORIZE_PAID_OPENAI \
+            --max-spend-usd 5 --publication PUBLISH_FINAL_LINE
+      - name: Recompute score from disclosed evidence without provider credentials
+        run: |
+          if test -f .runs/openai-diagnostic/public/scoring-evidence.json; then
+            python -m model_claim_replay.openai_graphwalks_verify \
+              --bundle .runs/openai-diagnostic/public \
+              --index .runs/private/openai-source/graphwalks-bfs-reference-index.jsonl \
+              > .runs/openai-diagnostic/public/verification.json
+            cat .runs/openai-diagnostic/public/verification.json
+          else
+            echo 'Canonical final line unavailable; external verification remains blocked.'
+          fi
+      - name: Retain explicitly authorized score evidence
+        if: ${{ !cancelled() && github.run_attempt == 1 }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: openai-first-generation-evidence
+          path: |
+            .runs/openai-diagnostic/public/plan.json
+            .runs/openai-diagnostic/public/intent.json
+            .runs/openai-diagnostic/public/outcome.json
+            .runs/openai-diagnostic/public/scoring-evidence.json
+            .runs/openai-diagnostic/public/verification.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 90
