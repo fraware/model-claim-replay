@@ -4,14 +4,14 @@
 
 Maintainer decision record; not the first-time user guide.
 
-Decision record, 23 November 2026. GitHub Trending Daily is an aspiration; never purchase stars, solicit reciprocal stars, or misrepresent evaluation findings. Updated 24 November 2026: one paid OpenAI diagnostic completed; external test sessions and third-party verification remain outstanding.
+Decision record, 23 November 2026. GitHub Trending Daily is an aspiration; never purchase stars, solicit reciprocal stars, or misrepresent evaluation findings. Updated 24 November 2026: the one-task OpenAI diagnostic and separate 16-task campaign completed; external test sessions and third-party verification remain outstanding.
 
 ## Six release gates
 
 | Gate | Acceptance criterion | Current evidence |
 | --- | --- | --- |
 | Real-model experiment | At least one independently initiated successful generation on a prespecified source-bound task, with model ID, protocol, usage, finish state and original grader recorded. A single task is a diagnostic, never a population estimate. | Passed for one diagnostic: [actual OpenAI generation](https://github.com/fraware/model-claim-replay/actions/runs/45398852989), F1 1.0 on one prespecified task. |
-| Independent scoring and inspectability | A third party recomputes the diagnostic score from permitted original responses and references. If raw responses are unavailable, document the access restriction and keep this gate open until authorized independent rescoring occurs; redacted consistency checks alone do not qualify. Every task outcome and exclusion is accounted for. | Partial: exact disclosed final-line score recomputed in the workflow and separately from downloaded artifacts; full-answer extraction and external third-party verification outstanding. |
+| Independent scoring and inspectability | A third party recomputes the diagnostic score from permitted original responses and references. If raw responses are unavailable, document the access restriction and keep this gate open until authorized independent rescoring occurs; redacted consistency checks alone do not qualify. Every task outcome and exclusion is accounted for. | Partial: exact disclosed final-line score recomputed in the workflow and separately from downloaded artifacts; seven of eight graded campaign scores independently recomputed from disclosed lines. The withheld parser failure, full-answer extraction and external third-party verification remain outstanding. |
 | Installation | Wheel and clean-environment installation, offline CLI demonstration, desktop/mobile website tests; at least four of five independent users complete onboarding in five minutes or less, with no private credentials needed. | Automated coverage exists; external sessions not yet performed. |
 | External testing | Five independent developers or evaluation researchers, recruited for task-relevant expertise. Record all attempts including failures, time to first report, usability issues, and whether they would use the tool on another claim. No reward tied to stars or positive feedback. | Not started. |
 | Differentiation | Review existing execution frameworks and claim databases; at least three external testers identify a task they would use this workflow for, with a specific reason. No blanket novelty claim. | Initial desk review below; user validation outstanding. |
