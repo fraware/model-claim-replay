@@ -34,6 +34,21 @@ class WorkflowRuntimeTests(unittest.TestCase):
                     seen.add(name)
         self.assertEqual(seen, set(NODE24_VERSIONS))
 
+    def test_superseded_test_runs_are_cancelled_by_branch_or_pr(self) -> None:
+        workflow = (WORKFLOWS / "ci.yml").read_text(encoding="utf-8")
+        self.assertIn("concurrency:\n", workflow)
+        self.assertIn(
+            "group: tests-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}",
+            workflow,
+        )
+        self.assertIn("  cancel-in-progress: true\n", workflow)
+        self.assertIn("  push:\n", workflow)
+        self.assertIn("  pull_request:\n", workflow)
+        # The billing and source audit jobs never inherit this workflow-local
+        # cancellation policy; interrupts there could leave unknown charges.
+        paid = (WORKFLOWS / "graphwalks-paid-pilot.yml").read_text()
+        self.assertNotIn("cancel-in-progress: true", paid)
+
     def test_paid_generation_remains_manual_after_action_upgrades(self) -> None:
         paid = (WORKFLOWS / "graphwalks-paid-pilot.yml").read_text()
         self.assertIn("workflow_dispatch:", paid)
