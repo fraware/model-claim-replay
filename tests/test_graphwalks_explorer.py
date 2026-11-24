@@ -67,9 +67,11 @@ class PublicGraphWalksExplorerTests(unittest.TestCase):
         self.assertNotIn("Final Answer:", raw.decode())
         self.assertNotIn("answer_nodes", raw.decode())
         html = (ROOT / "website" / "graphwalks.html").read_text()
-        self.assertIn("INDEPENDENT MODEL RESULT", html)
+        self.assertIn("OPENAI DIAGNOSTIC · ONE TASK", html)
         self.assertIn("ALGORITHMIC CONTROL", html)
-        self.assertIn("No model inference run performed", html)
+        self.assertIn("No publisher claim reproduced", html)
+        self.assertIn("does not reproduce or invalidate the publisher", html)
+        self.assertIn("One original task. All 9 reference nodes recovered.", html)
         self.assertIn("graphwalks-control.json", (ROOT / "website" / "graphwalks.js").read_text())
 
     def test_provenance_hashes_and_claim_status(self):
@@ -80,7 +82,9 @@ class PublicGraphWalksExplorerTests(unittest.TestCase):
         self.assertEqual(src["reference_index_sha256"], "250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee")
         self.assertIn("No model inference", d["disclaimer"])
         html = (ROOT / "website" / "graphwalks.html").read_text()
-        self.assertIn("No model inference run performed", html)
+        self.assertIn("No publisher claim reproduced", html)
+        self.assertIn("does not reproduce or invalidate the publisher", html)
+        self.assertIn("One original task. All 9 reference nodes recovered.", html)
         self.assertIn("graphwalks-audit.json", (ROOT / "website" / "graphwalks.js").read_text())
 
 

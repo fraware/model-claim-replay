@@ -95,7 +95,12 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 assert "255,598" in openai.inner_text()
                                 assert "355,124" in openai.inner_text()
                                 assert "$2.26103" in openai.inner_text()
-                                assert "No OpenAI model answer or score exists yet" in openai.inner_text()
+                                assert "historical preflight was non-generative" in openai.inner_text()
+                                first_result = page.locator("#openai-result")
+                                for phrase in ("All 9 reference nodes recovered", "255,598", "572", "$1.28943", "does not estimate model-wide accuracy"):
+                                    assert phrase in first_result.inner_text()
+                                assert first_result.get_by_text("Read result summary (JSON)").get_attribute("href") == "./graphwalks-openai-result.json"
+                                assert first_result.get_by_text("Original Actions run").get_attribute("href") == "https://github.com/fraware/model-claim-replay/actions/runs/45398852989"
                                 assert openai.get_by_text("Read log-derived receipt (JSON)").get_attribute("href") == "./graphwalks-openai-preflight.json"
                                 figure = page.locator(".evidence-figure img")
                                 assert figure.is_visible()
@@ -178,6 +183,9 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 assert "100 of 200 public candidate prompts exceed" in featured.inner_text()
                                 assert "1,048,576 tokens" in featured.inner_text()
                                 assert "No model generation" in featured.inner_text()
+                                first_result = page.locator("#openai-evidence")
+                                assert "9 / 9 nodes" in first_result.inner_text()
+                                assert first_result.get_by_text("Inspect the model result").get_attribute("href") == "./graphwalks.html#openai-result"
                                 assert "publisher-selected cohort is unverified" in featured.inner_text()
                                 receipt_url = featured.get_by_text("Download measurements (JSON)").get_attribute("href")
                                 assert receipt_url == "./graphwalks-gemini-feasibility.json"

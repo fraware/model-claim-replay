@@ -28,10 +28,27 @@
     </section>
     <section class="score-band"><div class="wrap score-grid">
       <div class="score"><span>01 / PUBLISHER-REPORTED</span><strong>95.2<small>% F1</small></strong><p>Gemini 4 Neon, reported by Google</p></div>
-      <div class="score unresolved"><span>02 / INDEPENDENT MODEL RESULT</span><strong>—</strong><p>No model inference run performed</p></div>
+      <div class="score"><span>02 / OPENAI DIAGNOSTIC · ONE TASK</span><strong>1.000<small> F1</small></strong><p>GPT-6.2 Sol; separate model and task</p></div>
       <div class="score"><span>03 / ALGORITHMIC CONTROL</span><strong>100<small>% F1</small></strong><p>Deterministic BFS; zero model inference calls</p></div>
       <div class="score"><span>04 / SOURCE TASKS VERIFIED</span><strong>200<small> / 200</small></strong><p>Public candidate BFS reference records</p></div>
     </div></section>
+    <section class="provider-panel wrap" id="openai-result" aria-labelledby="openai-result-heading">
+      <div class="control-header"><span>LIVE MODEL GENERATION / 24 NOVEMBER 2026 UTC</span><span class="control-flag">ONE PRESPECIFIED SOURCE TASK</span></div>
+      <div class="provider-layout">
+        <div class="provider-story">
+          <div class="eyebrow">GPT-6.2 SOL / GRAPHWALKS BFS</div>
+          <h2 id="openai-result-heading">One original task. All 9 reference nodes recovered.</h2>
+          <p>GPT-6.2 Sol answered <a href="?task=bfs-row-000100#audit"><code>bfs-row-000100</code></a> at xhigh reasoning effort. The actual API usage was 255,598 input tokens and 572 output tokens. The released final answer line scores F1 = 1.0 against the pinned reference. Both the workflow and a separate offline calculation agree.</p>
+          <p class="provider-caveat">The estimated conservative usage cost is $1.28943, not an invoice. The disclosed answer line is available for rescoring; full-answer extraction fidelity, independent provider authentication and external third-party review remain unverified. This single task does not estimate model-wide accuracy or reproduce Google's 95.2%.</p>
+          <div class="provider-links"><a href="./graphwalks-openai-result.json">Read result summary (JSON)</a><a href="https://github.com/fraware/model-claim-replay/blob/main/evidence/graphwalks/openai-first-generation-2026-11-24/original-actions-artifact.zip">Download original evidence archive</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/45398852989">Original Actions run</a><a href="https://github.com/fraware/model-claim-replay/blob/main/evidence/graphwalks/openai-first-generation-2026-11-24/README.md">Recompute the score offline</a></div>
+        </div>
+        <div class="provider-figures" aria-label="One-task OpenAI generation measurements">
+          <div class="provider-figure"><span>NODE-SET F1 / DISCLOSED FINAL LINE</span><strong>1.000</strong><p>Precision 1.000 · recall 1.000 · 9 / 9 reference nodes</p></div>
+          <div class="provider-figure"><span>ACTUAL API TOKEN USAGE</span><strong>255,598</strong><p>Input tokens · 572 output tokens</p></div>
+          <div class="provider-method"><span>CONSERVATIVE ESTIMATED USAGE COST</span><strong>$1.28943</strong><p>$2.58871 reserved · $5 authorized ceiling</p></div>
+        </div>
+      </div>
+    </section>
     <section class="provider-panel wrap" id="provider" aria-labelledby="provider-title">
       <div class="control-header"><span>LIVE GOOGLE TOKEN COUNTS / 23 NOVEMBER 2026</span><span class="control-flag">200 SOURCE-BOUND INPUTS · NO GENERATION</span></div>
       <div class="provider-layout">
@@ -61,7 +78,7 @@
           <div class="eyebrow">SAME PUBLIC CANDIDATE PROMPT / DIFFERENT TOKENIZERS</div>
           <h2 id="openai-preflight-heading">The first OpenAI preflight passed.</h2>
           <p>GPT-6.2 Sol counted <strong>255,598 input tokens</strong> on the same original task for which Gemini 4 Neon reported 355,124. Both fit their respective input limits. The source prompt is <a href="?task=bfs-row-000100#audit"><code>bfs-row-000100</code></a>.</p>
-          <p class="provider-caveat">These are model-specific API input-token counts for one prompt, not a performance comparison. The $2.26103 figure is a conservative hypothetical OpenAI generation reservation with 65,536 output tokens, not a billed charge. No OpenAI model answer or score exists yet.</p>
+          <p class="provider-caveat">These are model-specific API input-token counts for one prompt, not a performance comparison. The $2.26103 figure is a conservative hypothetical OpenAI generation reservation with 65,536 output tokens, not a billed charge. This historical preflight was non-generative; see the separately executed OpenAI diagnostic above.</p>
           <div class="provider-links"><a href="./graphwalks-openai-preflight.json">Read log-derived receipt (JSON)</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/45337852354">Original run and artifact</a></div>
         </div>
         <div class="provider-figures" aria-label="Input token counts for the same candidate source task">
@@ -104,15 +121,15 @@
       </div>
     </section>
     
-    <section class="provenance"><div class="wrap provenance-grid"><div><span class="section-index light">THE RECORD / 002</span><h2>Source provenance</h2><p>Original Parquet bytes were downloaded and hashed independently in GitHub Actions. Task answers and original prompts are omitted from this public explorer. Its data is derived deterministically from the verified source index.</p></div><div class="receipt">
+    <section class="provenance"><div class="wrap provenance-grid"><div><span class="section-index light">THE RECORD / 002</span><h2>Source provenance</h2><p>Original Parquet bytes were downloaded and hashed independently in GitHub Actions. Original prompts and reference answers are omitted from the task explorer; the separately authorized model final-line evidence is linked above. Its data is derived deterministically from the verified source index.</p></div><div class="receipt">
       <div class="receipt-row"><span>ORIGINAL DATASET</span><strong>openai/graphwalks</strong></div>
       <div class="receipt-row"><span>PARQUET SOURCE REVISION</span><code>be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7</code></div>
       <div class="receipt-row"><span>PARQUET SHA-256 (VERIFIED)</span><code>537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911</code></div>
       <div class="receipt-row"><span>200-TASK REFERENCE INDEX SHA-256</span><code>250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee</code></div>
       <div class="receipt-links"><a href="https://github.com/fraware/model-claim-replay/actions/runs/44746523023">Verified GitHub Actions run ↗</a><a href="https://huggingface.co/datasets/openai/graphwalks">Original MIT-licensed dataset ↗</a></div>
     </div></div></section>
-    <section class="next wrap"><div class="section-index"><span>THE NEXT EXPERIMENT / 003</span><span>GENERATIVE MODEL TEST PENDING</span></div><h2>Pending model experiment</h2><div class="next-grid"><p>All 200 public candidate inputs have been counted by Gemini. OpenAI is the default for new general-purpose investigations; its first source-bound token-count preflight has succeeded. A separately authorized GPT-6.2 Sol generation is pending. Its score would be a one-task OpenAI diagnostic, not evidence of reproducing Google's 95.2% claim.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
+    <section class="next wrap"><div class="section-index"><span>THE NEXT EXPERIMENT / 003</span><span>FOLLOW-UP COHORT PRESPECIFIED</span></div><h2>Next model experiment</h2><div class="next-grid"><p>All 200 public candidate inputs have been counted by Gemini. OpenAI is the default for new general-purpose investigations; its first source-bound token-count preflight has succeeded. A one-task GPT-6.2 Sol generation has completed and the disclosed final line scores F1 = 1.0. The <a href="https://github.com/fraware/model-claim-replay/issues/42">prespecified 16-task follow-up</a> awaits separate execution authorization. No Gemini reproduction is asserted.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
   </main>
-  <footer><div class="wrap footer"><strong>MODEL CLAIM REPLAY</strong><span>Real source data and algorithmic controls. No independently reproduced model score.</span><a href="./index.html">Back to registry ↑</a></div></footer>
+  <footer><div class="wrap footer"><strong>MODEL CLAIM REPLAY</strong><span>Real source data, algorithmic controls and one OpenAI diagnostic. No publisher claim reproduced.</span><a href="./index.html">Back to registry ↑</a></div></footer>
 </body>
 </html>
