@@ -135,7 +135,7 @@ class GraphWalksPilotGateTests(unittest.TestCase):
         paid = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
         preflight = (ROOT / ".github/workflows/graphwalks-token-preflight.yml").read_text()
         selector = "scripts/graphwalks_select_gemini_secret.py --alias-only"
-        self.assertLess(paid.index("--approval \\"$APPROVAL\\""), paid.index(selector))
+        self.assertLess(paid.index('--approval "$APPROVAL"'), paid.index(selector))
         for workflow, expected_uses, download in (
             (paid, 2, "Independently download and verify"),
             (preflight, 1, "Verify complete public source"),
