@@ -36,8 +36,11 @@ We will optimize for independent usefulness and extraordinary execution quality.
 A [manual, explicitly budgeted Gemini diagnostic workflow](../.github/workflows/graphwalks-paid-pilot.yml)
 is implemented and guarded by adversarial consent, budget, context
 and artifact-privacy tests. It has not been launched against the
-provider. The default two-task selection includes one shorter and
-one longer public BFS prompt; completed task-level results would be
+provider. The default one-task selection uses a shorter public BFS prompt. The
+alternative two-task selection includes a longer input already shown to
+exceed the provider-reported limit and is blocked by the context gate.
+GitHub job reruns are rejected; a fresh dispatch needs a new explicit
+budget approval after review of prior outcomes. Completed task-level results would be
 labeled self-reported diagnostic evidence, with full-cohort and
 publisher-protocol comparability withheld. A future launch requires
 authorized API access, the real token-count receipt, deliberate

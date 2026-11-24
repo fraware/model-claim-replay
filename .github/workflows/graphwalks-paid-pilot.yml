@@ -47,6 +47,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
+      - name: Refuse reuse of paid authorization on a rerun
+        shell: bash
+        run: |
+          if [[ "${GITHUB_RUN_ATTEMPT:-}" != "1" ]]; then
+            echo "::error::Paid workflow reruns are disabled. Review prior charges and evidence, then dispatch a new explicitly authorized run."
+            exit 1
+          fi
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
@@ -157,7 +164,7 @@ jobs:
             --out .runs/private/pilot-public-report.html
           mv .runs/private/pilot-scores-pending.json .runs/private/pilot-scores.json
       - name: Upload only score-free plan, redacted audit and verified task-level grades
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && github.run_attempt == 1 }}
         uses: actions/upload-artifact@v6
         with:
           name: graphwalks-pilot-redacted-self-reported-evidence

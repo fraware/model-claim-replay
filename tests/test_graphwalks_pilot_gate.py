@@ -5,6 +5,9 @@ No provider credentials, HTTP requests, or paid generation are used.
 
 from __future__ import annotations
 
+import os
+import shutil
+import subprocess
 import sys
 import unittest
 from decimal import Decimal
@@ -78,6 +81,32 @@ class GraphWalksPilotGateTests(unittest.TestCase):
         self.assertLess(workflow.index("Refuse partial-coverage"),
                         workflow.index("Perform explicitly authorized"))
 
+    def test_paid_rerun_guard_precedes_checkout_and_credentials(self) -> None:
+        workflow = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
+        guard = "Refuse reuse of paid authorization on a rerun"
+        self.assertLess(workflow.index(guard), workflow.index("actions/checkout@"))
+        self.assertLess(workflow.index(guard), workflow.index("secrets.GEMINI_API_KEY"))
+        self.assertIn('"${GITHUB_RUN_ATTEMPT:-}" != "1"', workflow)
+        self.assertIn("!cancelled() && github.run_attempt == 1", workflow)
+
+    @unittest.skipUnless(shutil.which("bash"), "Bash is needed to exercise Actions guard")
+    def test_paid_rerun_guard_rejects_reused_or_missing_attempt(self) -> None:
+        workflow = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
+        guard = workflow.split("Refuse reuse of paid authorization on a rerun", 1)[1]
+        body = guard.split("        run: |\n", 1)[1].split("      - uses:", 1)[0]
+        script = "\n".join(line[10:] for line in body.splitlines())
+        for attempt in (None, "", "0", "1", "2", "3", "01", "invalid"):
+            with self.subTest(attempt=attempt):
+                env = dict(os.environ)
+                env.pop("GITHUB_RUN_ATTEMPT", None)
+                if attempt is not None:
+                    env["GITHUB_RUN_ATTEMPT"] = attempt
+                result = subprocess.run(
+                    ["bash", "-c", script], env=env, capture_output=True,
+                    text=True, check=False, timeout=5,
+                )
+                self.assertEqual(result.returncode, 0 if attempt == "1" else 1)
+
     def test_interrupted_paid_step_preserves_audit_and_limits_output(self) -> None:
         workflow = (ROOT / ".github/workflows/graphwalks-paid-pilot.yml").read_text()
         self.assertIn('          - "65536"', workflow)
@@ -100,7 +129,7 @@ class GraphWalksPilotGateTests(unittest.TestCase):
             workflow.index("id: private_audit"),
             workflow.index("Upload only score-free plan"),
         )
-        self.assertIn("if: ${{ !cancelled() }}", workflow)
+        self.assertIn("if: ${{ !cancelled() && github.run_attempt == 1 }}", workflow)
 
     def test_non_generating_preflight_covers_paid_pilot_settings(self) -> None:
         """Avoid UI/runner drift at the exact pilot cohort and output limit."""

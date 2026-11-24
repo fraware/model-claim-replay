@@ -106,8 +106,16 @@ blocking billable requests. To authorize one run, set a **positive
 finite USD ceiling no greater than $100** and type the exact phrase
 `AUTHORIZE_PAID_GEMINI`. Choose 1, 2, 5, or 20 tasks and a
 per-task output allowance of 8,192, 16,384, 32,768, or 65,536 tokens. The default remains 16,384 for a lower-cost diagnostic; the 65,536-token choice is the published foreground limit, not evidence that Google used that exact allowance.
-Two tasks is the recommended first diagnostic: one from each
-verified source-length cohort.
+One short-context task is the recommended first diagnostic. The two-task
+selection includes a long-context input already shown to exceed the
+provider-reported limit; the gate rejects that full selection before generation.
+
+GitHub Actions job reruns are deliberately rejected before checkout, even
+if the original attempt failed before inference. A hosted runner loses the
+prior private journal, and a rerun reuses the original dispatch inputs.
+Review prior evidence and potential charges, then initiate a new manual
+dispatch with a new explicit budget approval if another attempt is justified.
+A rejected rerun does not upload a replacement evidence artifact.
 
 The first check rejects missing consent, invalid budgets and missing
 credentials *before downloading the approximately 297 MB public source*.
