@@ -122,6 +122,21 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 page.wait_for_function(
                                     "document.querySelectorAll('.claim-row').length === 3"
                                 )
+                                featured = page.locator(".evidence-plate")
+                                assert featured.is_visible()
+                                assert "100 of 200 public candidate prompts exceed" in featured.inner_text()
+                                assert "1,048,576 tokens" in featured.inner_text()
+                                assert "No model generation" in featured.inner_text()
+                                assert "publisher-selected cohort is unverified" in featured.inner_text()
+                                receipt_url = featured.get_by_text("Download measurements (JSON)").get_attribute("href")
+                                assert receipt_url == "./graphwalks-gemini-feasibility.json"
+                                receipt_response = page.request.get(f"{origin}/{receipt_url}")
+                                assert receipt_response.ok
+                                receipt = receipt_response.json()
+                                assert receipt["exceeds_provider_input_limit"] == 100
+                                assert receipt["candidate_source_task_count"] == 200
+                                assert receipt["model_generation_performed"] is False
+                                assert featured.get_by_text("Original Actions run").get_attribute("href") == receipt["provider_run"]
                                 page.locator(".claim-row").nth(1).click()
                                 assert page.locator("#claim-detail").is_visible()
                                 page.locator(".filter[data-filter='published']").click()

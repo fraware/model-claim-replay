@@ -79,6 +79,21 @@ class CompleteGeminiFeasibilityTests(unittest.TestCase):
         self.assertEqual(Decimal(plan["maximum_reserved_cost_usd"]), total)
         self.assertEqual(str(total), "556.982841")
 
+    def test_featured_public_finding_matches_pinned_receipt(self) -> None:
+        receipt = json.loads(SUMMARY.read_text())
+        page = (ROOT / "website" / "index.html").read_text()
+        feature = page.split('<article class="hero-plate evidence-plate"', 1)[1].split("</article>", 1)[0]
+        exceeds = receipt["exceeds_provider_input_limit"]
+        total = receipt["candidate_source_task_count"]
+        self.assertIn(f"{exceeds} of {total} public candidate prompts exceed", feature)
+        self.assertIn(f'{receipt["provider_input_token_limit"]:,} tokens', feature)
+        self.assertIn(receipt["provider_run"], feature)
+        self.assertIn('href="./graphwalks-gemini-feasibility.json"', feature)
+        self.assertIn("No model generation", feature)
+        self.assertIn("publisher-selected cohort is unverified", feature)
+        self.assertFalse(receipt["model_generation_performed"])
+        self.assertFalse(receipt["published_claim_reproduced"])
+
     def test_group_bounds_and_no_unredacted_benchmark_content(self) -> None:
         receipt = json.loads(SUMMARY.read_text())
         values = receipt["input_token_counts_in_pinned_index_order"]
