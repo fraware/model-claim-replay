@@ -457,11 +457,13 @@ class RuntimeTests(unittest.TestCase):
                 status="completed", output_text="Final Answer: [node-100]",
                 usage=SimpleNamespace(total_input_tokens=100, total_output_tokens=9),
             )
-        resumed = self._run(plan, next_task_only)
-        self.assertEqual(resumed["new_requests"], 1)
-        self.assertEqual(len(calls), 1)
-        self.assertEqual(calls[0], "Synthetic GraphWalks task 100")
-        self.assertEqual(resumed["unresolved_attempts_without_results"], 1)
+        with self.assertRaisesRegex(ReplayError, "request remains unresolved"):
+            self._run(plan, next_task_only)
+        self.assertEqual(calls, [])
+        self.assertFalse(
+            (self.root / "private-run" / "attempts" /
+             "bfs-row-000100.intent.json").exists()
+        )
 
     def test_provider_usage_overrun_stops_paid_run_and_blocks_resume(self):
         """Answer + thinking tokens exceeding the cap stop the run durably."""
@@ -592,9 +594,12 @@ class RuntimeTests(unittest.TestCase):
         prior.unlink()  # Simulates process interruption after provider received request.
         def fail(*_):
             raise AssertionError("Duplicate paid call attempted")
-        result = self._run(plan, fail)
-        self.assertEqual(result["new_requests"], 0)
-        self.assertEqual(result["unresolved_attempts_without_results"], 1)
+        with self.assertRaisesRegex(ReplayError, "request remains unresolved"):
+            self._run(plan, fail)
+        self.assertFalse(
+            (self.root / "private-run" / "attempts" /
+             "bfs-row-000000.result.json").exists()
+        )
 
     def test_errors_consume_budget_and_remain_unscored(self):
         plan = self._plan(max_tasks=1)
