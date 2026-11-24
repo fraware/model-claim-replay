@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import sys
+import time
 import zipfile
 from collections import Counter
 from decimal import Decimal
@@ -154,6 +155,7 @@ def run_campaign(manifest: dict[str, Any], prompts: dict[str, str],
                  out: Path, *, approval: str, budget: str, publication: str,
                  environ: dict[str, str], request: Callable = _request) -> dict[str, Any]:
     authorize(approval, budget, publication)
+    deadline = time.monotonic() + 290 * 60
     if out.exists() or out.is_symlink():
         raise ReplayError("Output exists; never resume a paid campaign")
     if set(references) != {r["id"] for r in manifest["tasks"]}:
@@ -184,10 +186,14 @@ def run_campaign(manifest: dict[str, Any], prompts: dict[str, str],
                  and Decimal(fresh["total_feasible_reservation_usd"]) <= CEILING)
     rows = []
     stopped = not permitted
+    time_limit_reached = False
     for number, source in enumerate(fresh_rows, 1):
         row = {**source, "generation_attempted": False, "plan_sha256": digest}
         prefix = f"task-{number:02d}"
         if source["status"] == "feasible":
+            if not stopped and time.monotonic() >= deadline:
+                stopped = True
+                time_limit_reached = True
             if stopped:
                 row["status"] = "unattempted"
             else:
@@ -214,7 +220,7 @@ def run_campaign(manifest: dict[str, Any], prompts: dict[str, str],
     report = {
         "schema_version": "graphwalks-openai-paid-campaign-result-v1",
         "status": "preflight_changed_or_over_budget" if not permitted else
-                  ("stopped_uncertain" if stopped else "finished"),
+                  ("stopped_time_limit" if time_limit_reached else ("stopped_uncertain" if stopped else "finished")),
         "plan_sha256": digest, "tasks": rows, **summarize(rows),
         "limitations": "Conditional scores on one fixed public candidate cohort; "
                        "no publisher reproduction, external authentication or invoice verification.",
