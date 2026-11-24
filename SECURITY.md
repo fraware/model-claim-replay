@@ -16,3 +16,5 @@ Use the repository's [private vulnerability reporting page](https://github.com/f
 For a suspected credential exposure, revoke the affected key with the provider promptly and review usage. Deleting a committed file does not remove it from Git history.
 
 See [methodology](docs/METHODOLOGY.md) and the [automation inventory](docs/WORKFLOWS.md) for the project's evidence and execution boundaries.
+
+Known third-party Python advisories are checked in a separate CI job, with a resolved version snapshot and JSON report. Weekly dependency-update proposals are subject to review. See the [dependency maintenance scope](docs/DEVELOPMENT.md#dependency-maintenance); this does not establish that every dependency or the application itself is vulnerability-free.

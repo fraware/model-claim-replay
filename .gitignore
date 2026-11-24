@@ -9,3 +9,14 @@ build/
 runs/
 *.log
 .DS_Store
+
+# Local credentials and machine-specific settings
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
