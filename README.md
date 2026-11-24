@@ -30,15 +30,15 @@ Our first investigation examines the public [GraphWalks](https://huggingface.co/
 | Experiment | Measured finding |
 |---|---|
 | [Gemini token counts](https://fraware.github.io/model-claim-replay/graphwalks.html#provider) | 100/200 public candidate inputs fit; 100/200 exceed the reported input limit. |
-| [OpenAI token counts](docs/OPENAI_CAMPAIGN.md) | 8/16 prespecified inputs fit; 8/16 exceed the declared input limit. |
+| [OpenAI campaign](docs/OPENAI_CAMPAIGN.md#observed-results) | 8/16 graded, 8 context-blocked; recorded mean F1 0.875 on graded tasks. |
 | [GPT-6.2 Sol generation](https://fraware.github.io/model-claim-replay/graphwalks.html#openai-result) | One original task, F1 = 1.0; 255,598 input tokens, 572 output tokens. |
 | [Deterministic BFS control](docs/GRAPHWALKS_CONTROL.md) | 200/200 tasks scored F1 = 1.0 using graph traversal, with zero model calls. |
 
 [![GraphWalks candidate input-token ranges, measured with Gemini 4 Neon](website/graphwalks-input-feasibility.svg)](https://fraware.github.io/model-claim-replay/graphwalks.html)
 
-The GPT-6.2 Sol result has an [original execution archive](evidence/graphwalks/openai-first-generation-2026-11-24/original-actions-artifact.zip) and [offline verification instructions](evidence/graphwalks/openai-first-generation-2026-11-24/README.md). Its disclosed final answer was rescored from the pinned reference. Full-answer extraction, provider execution and invoices are not independently authenticated. The separate [16-task campaign](docs/OPENAI_CAMPAIGN.md) retains all selected tasks in its feasibility denominator.
+The GPT-6.2 Sol result has an [original execution archive](evidence/graphwalks/openai-first-generation-2026-11-24/original-actions-artifact.zip) and [offline verification instructions](evidence/graphwalks/openai-first-generation-2026-11-24/README.md). Its disclosed final answer was rescored from the pinned reference. Full-answer extraction, provider execution and invoices are not independently authenticated. The separate [16-task campaign](docs/OPENAI_CAMPAIGN.md#observed-results) completed eight generations: seven disclosed scores were independently recomputed as F1 1.0; the recorded parser failure (F1 0) is withheld from rescoring. Eight longer tasks were blocked. No score is reported for the entire 16-task cohort.
 
-**No publisher aggregate has been reproduced.** The candidate data, model and protocol are insufficient to claim replication of Google's 95.2% Gemini score. The single OpenAI diagnostic is not an estimate of population accuracy.
+**No publisher aggregate has been reproduced.** The candidate data, model and protocol are insufficient to claim replication of Google's 95.2% Gemini score. Neither OpenAI diagnostic estimates population accuracy.
 
 ## What you get
 

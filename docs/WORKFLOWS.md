@@ -19,7 +19,7 @@ CI and site deployment are ordinary development operations. Provider metadata an
 | [graphwalks-openai-paid.yml](../.github/workflows/graphwalks-openai-paid.yml) | Manual OpenAI one-task diagnostic; default preflight-only. |
 | [graphwalks-openai-first-generation.yml](../.github/workflows/graphwalks-openai-first-generation.yml) | Historical one-time $5 pilot; authorization consumed. |
 | [graphwalks-openai-campaign-preflight.yml](../.github/workflows/graphwalks-openai-campaign-preflight.yml) | Frozen 16-task count-only preflight; completed. |
-| [graphwalks-openai-campaign-authorized.yml](../.github/workflows/graphwalks-openai-campaign-authorized.yml) | One-time $25 approved campaign; authorization consumed by main introduction. |
+| [graphwalks-openai-campaign-authorized.yml](../.github/workflows/graphwalks-openai-campaign-authorized.yml) | Completed one-time $25 campaign; authorization consumed. See [observed results](OPENAI_CAMPAIGN.md#observed-results). |
 | [graphwalks-openai-campaign-paid.yml](../.github/workflows/graphwalks-openai-campaign-paid.yml) | Retired manual dispatch for the frozen cohort; rejects execution. |
 
 Historical workflow files remain for traceability and regression checks. Never rerun a consumed paid authorization, including after an ambiguous failure or interruption. An intent lacking a terminal outcome is an unresolved request, not a zero score. Preserve original source and run commitments.

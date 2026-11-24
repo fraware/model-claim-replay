@@ -7,7 +7,7 @@ The package currently reports version 0.1.0. The entries below describe reposito
 ### 24 November 2026
 
 - Published the first source-bound GPT-6.2 Sol diagnostic: one GraphWalks BFS task, 9/9 reference nodes, disclosed-line F1 1.0. Preserved its original execution archive and offline verification instructions.
-- Froze a separate 16-task OpenAI campaign. Measured all inputs; eight feasible and eight context-blocked. Added the separately authorized campaign runner and independent offline journal verifier.
+- Completed the frozen 16-task OpenAI campaign: eight graded, eight context-blocked; recorded conditional F1 0.875. Seven disclosed scores were independently recomputed; one parser failure was withheld. Added the campaign journal verifier.
 - Simplified the documentation entry point and separated onboarding, usage, research dossiers and maintainer procedures.
 
 ### Earlier foundation

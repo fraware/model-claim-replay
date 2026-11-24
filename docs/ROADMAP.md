@@ -4,11 +4,11 @@
 
 ## Current implementation
 
-The pre-release CLI supports portable text evaluation, offline fixtures, Inspect log import and paired comparisons, local hash checking and report generation. The website exposes the pinned public GraphWalks audit, Gemini input feasibility and one real OpenAI diagnostic. A separate 16-task OpenAI campaign has completed preflight; the [execution record](https://github.com/fraware/model-claim-replay/actions/runs/45414635584) is authoritative for run status. The offline campaign journal verifier is implemented.
+The pre-release CLI supports portable text evaluation, offline fixtures, Inspect log import and paired comparisons, local hash checking and report generation. The website exposes the pinned public GraphWalks audit, Gemini input feasibility and one real OpenAI diagnostic. A separate [16-task OpenAI campaign](OPENAI_CAMPAIGN.md#observed-results) completed eight generations and recorded conditional F1 0.875, with eight context exclusions. Seven disclosed scores were independently recomputed; one malformed answer was withheld. The offline campaign journal verifier is implemented.
 
 ## Release candidate
 
-- Verify and preserve the original campaign outcomes, including exclusions and incomplete requests.
+- Preserve the original campaign ZIP permanently; its digest, observed outcomes and seven disclosed-score cross-checks are documented.
 - Review all user-facing documentation and install paths; collect five independent developer attempts.
 - Obtain external score review; explicitly record any inaccessible evidence.
 - Complete the [release acceptance gates](RELEASE_ACCEPTANCE.md), then publish the release candidate.
