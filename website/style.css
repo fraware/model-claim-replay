@@ -42,3 +42,20 @@
 .install-grid>div{min-width:0}
 .install-terminal pre{max-width:100%;overflow-x:auto}
 @media(max-width:750px){.install-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* The featured empirical result is the first thing a visitor sees. */
+.evidence-plate{transform:none;min-height:0;box-shadow:12px 12px 0 #e1e5db}
+.evidence-plate .plate-kicker{margin-top:26px}
+.finding-headline{font:600 clamp(20px,2vw,29px)/1.3 var(--sans);letter-spacing:-.025em;margin:12px 0 16px}
+.finding-number{font:normal clamp(52px,6.5vw,96px)/1.1 var(--serif);letter-spacing:-.065em;font-variant-numeric:tabular-nums;margin:0 0 18px}
+.finding-number span{font:normal .47em var(--mono);letter-spacing:-.04em;color:#526458}
+.finding-bar{display:flex;height:12px;gap:3px}
+.finding-bar span{flex:1;background:#416952}
+.finding-bar span+span{background:#aa694e}
+.finding-labels{display:flex;justify-content:space-between;gap:12px;font:11px/1.4 var(--mono);margin-top:9px}
+.finding-labels span+span{text-align:right}
+.finding-limit{font:12px/1.5 var(--sans);margin:19px 0 0}
+.evidence-plate .plate-note{margin:16px 0;font:12px/1.65 var(--sans);color:#405247}
+.finding-links{display:flex;flex-wrap:wrap;gap:10px 18px;font:600 12px/1.6 var(--sans)}
+.finding-links a{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:460px){.finding-labels{font-size:10px}.evidence-plate .plate-stamp{font-size:9px;padding:6px}.finding-links{font-size:11px}}

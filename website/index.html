@@ -10,7 +10,7 @@
   <meta property="og:url" content="https://fraware.github.io/model-claim-replay/">
   <meta name="twitter:card" content="summary">
   <meta property="og:title" content="Model Claim Replay — Show the experiment.">
-  <meta property="og:description" content="A public model benchmark claim should lead to a public experiment.">
+  <meta property="og:description" content="We counted all 200 original public GraphWalks BFS candidate prompts with Gemini. Half exceeded its reported input limit. Inspect every task and the original receipt.">
   <title>Model Claim Replay — Show the experiment.</title>
   <link rel="stylesheet" href="./style.css">
   <script src="./app.js" defer></script>
@@ -26,17 +26,20 @@
     <section class="hero wrap" id="top">
       <div class="hero-copy"><div class="section-label"><span class="rule"></span> AN OPEN LAB FOR MODEL CLAIMS</div>
         <h1>They published<br>the <em>score.</em><br>Show the <em>experiment.</em></h1>
-        <p class="intro">Every AI launch arrives with a number. We’re building the shortest path from a published benchmark claim to an independent, inspectable reproduction.</p>
-        <div class="hero-actions"><a class="button button-dark" href="./graphwalks.html">Explore 200 real Gemini token counts <span>↗</span></a><a class="button button-light" href="https://github.com/fraware/model-claim-replay" target="_blank" rel="noopener noreferrer">Explore the repository <span>↗</span></a></div>
+        <p class="intro">Investigate published model scores using pinned benchmark data, provider measurements and reproducible scoring. Start with our live GraphWalks input-feasibility audit.</p>
+        <div class="hero-actions"><a class="button button-dark" href="./graphwalks.html">Inspect all 200 tasks <span>↗</span></a><a class="button button-light" href="#install">Run the CLI locally <span>↓</span></a></div>
       </div>
-      <div class="hero-plate" aria-label="Illustration of an evidence record with a pending independent score">
-        <div class="plate-top"><span class="plate-index">EVIDENCE RECORD / 001</span><span class="plate-stamp">SOURCE VERIFIED</span></div>
-        <p class="plate-kicker">THE PUBLISHED CLAIM</p><p class="plate-model">Claude Fable 5.2 <span>/ Chartography</span></p>
-        <div class="plate-number">73<span>.4</span><sup>%</sup></div>
-        <div class="plate-underline"></div>
-        <div class="plate-bottom"><div><span class="plate-small">INDEPENDENT RESULT</span><strong>NOT YET TESTED</strong></div><span class="plate-pending">○</span></div>
-        <div class="plate-note">Source: Anthropic's published announcement.<br>No independent run has been performed.</div>
-      </div>
+      <article class="hero-plate evidence-plate" aria-labelledby="featured-finding">
+        <div class="plate-top"><span class="plate-index">FIELD NOTE / 23 NOV 2026</span><span class="plate-stamp">LIVE TOKEN COUNTS</span></div>
+        <p class="plate-kicker">GEMINI 4 NEON / GRAPHWALKS BFS</p>
+        <h2 id="featured-finding" class="finding-headline">100 of 200 public candidate prompts exceed the reported input limit.</h2>
+        <div class="finding-number" aria-hidden="true">100<span> / 200</span></div>
+        <div class="finding-bar" aria-hidden="true"><span></span><span></span></div>
+        <div class="finding-labels"><span>100 within input limit</span><span>100 exceed input limit</span></div>
+        <p class="finding-limit">Provider-reported input limit: <strong>1,048,576 tokens</strong></p>
+        <p class="plate-note">Original public candidate prompts, counted using the Gemini API. No model generation. Equivalence to Google's publisher-selected cohort is unverified.</p>
+        <div class="finding-links"><a href="./graphwalks-gemini-feasibility.json">Download measurements (JSON)</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/45159511810">Original Actions run</a></div>
+      </article>
     </section>
     <section class="manifesto" id="method"><div class="wrap manifesto-grid"><div class="section-label light-label">01 / THE PRINCIPLE</div><div><h2>A number is the beginning<br>of a question.</h2><p>Did the model receive the same tasks? Was the grader identical? How many failures were omitted? Was the comparison run under the stated conditions?</p><p>Make the methodology inspectable. Put the underlying evidence in developers’ hands. Publish inconclusive results as inconclusive.</p><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/METHODOLOGY.md" target="_blank" rel="noopener noreferrer">Read our evidence standard <span aria-hidden="true">↗</span></a></div></div></section>
     <section class="work wrap" id="claims"><div class="work-header"><div><div class="section-label"><span class="rule"></span> 02 / THE CLAIM REGISTRY</div><h2>Follow the evidence.</h2></div><p>Published claims and local demonstrations, separated by what has actually been established.</p></div>
