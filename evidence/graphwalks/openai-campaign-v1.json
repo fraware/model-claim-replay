@@ -1,0 +1,114 @@
+{
+  "schema_version": "graphwalks-openai-campaign-v1",
+  "protocol_issue": 42,
+  "selection_prefix": "model-claim-replay/openai-graphwalks-campaign-v1/2026-11-24:",
+  "excluded_pilot": "bfs-row-000100",
+  "source_dataset_revision": "be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7",
+  "source_parquet_sha256": "537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911",
+  "reference_index_sha256": "250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee",
+  "model": "gpt-6.2-sol",
+  "max_output_tokens": 65536,
+  "input_limit": 922000,
+  "context_limit": 1050000,
+  "planning_ceiling_usd": "100",
+  "input_usd_per_million_upper": "5",
+  "output_usd_per_million_upper": "20",
+  "tasks": [
+    {
+      "id": "bfs-row-000132",
+      "prompt_chars": 437588,
+      "prompt_sha256": "91bf0cf105d9d9721351691aae6688c91ef0410c04e7e17184ef64872288d3bc",
+      "band": "short"
+    },
+    {
+      "id": "bfs-row-000155",
+      "prompt_chars": 437638,
+      "prompt_sha256": "82e4f8b9532134515139d6919713028beb980864f2ed7c4fb3e3616b5c85afdf",
+      "band": "short"
+    },
+    {
+      "id": "bfs-row-000166",
+      "prompt_chars": 437588,
+      "prompt_sha256": "48e3bb7810eccdaf5dca820a732f2b4c271553bc377ec84fdb55a2a2263cc838",
+      "band": "short"
+    },
+    {
+      "id": "bfs-row-000190",
+      "prompt_chars": 437563,
+      "prompt_sha256": "8cd5b9211b3ca86096926be55baad2e005b4b9e3946e71c4a394c031e728dc6f",
+      "band": "short"
+    },
+    {
+      "id": "bfs-row-000115",
+      "prompt_chars": 437588,
+      "prompt_sha256": "161679ff5702c215fdaddea59e981010a80b9b56d41720b8830b4534475d55fe",
+      "band": "short"
+    },
+    {
+      "id": "bfs-row-000145",
+      "prompt_chars": 437588,
+      "prompt_sha256": "088f6cdd41556e6eea0ce9bba0e18ae7bbc5f7dde961d2ad0813b1db0836c0db",
+      "band": "short"
+    },
+    {
+      "id": "bfs-row-000178",
+      "prompt_chars": 437563,
+      "prompt_sha256": "e250fd6fabf5a1e1599d42f927d683ca6aadf5549bf273b068f7118bb5625dce",
+      "band": "short"
+    },
+    {
+      "id": "bfs-row-000124",
+      "prompt_chars": 437588,
+      "prompt_sha256": "d8a6cbfaad1bc9b509c429dd56da72b8437d2513f23a1f319e2afcc0def82924",
+      "band": "short"
+    },
+    {
+      "id": "bfs-row-000395",
+      "prompt_chars": 1748288,
+      "prompt_sha256": "dbc40c94087f070d0cee62a83343535fb7d6482c53ad214c7537c591d53c16a8",
+      "band": "long"
+    },
+    {
+      "id": "bfs-row-000311",
+      "prompt_chars": 1748363,
+      "prompt_sha256": "7b9f72e9dd3fe4b5345cdcbcf6b6a2fe0bf908f4e4f7e25a5e31f5c77001bc7d",
+      "band": "long"
+    },
+    {
+      "id": "bfs-row-000376",
+      "prompt_chars": 1748363,
+      "prompt_sha256": "07d21c22b93fe1e00e0ee2907ad1e4bae628616e2c93d0629be8cdaf94c8d831",
+      "band": "long"
+    },
+    {
+      "id": "bfs-row-000314",
+      "prompt_chars": 1748338,
+      "prompt_sha256": "b16b2b3a2e31f3bfd744df30071b2839736e0f4a6dfc2a0b2bb24d5b9b38ed04",
+      "band": "long"
+    },
+    {
+      "id": "bfs-row-000335",
+      "prompt_chars": 1748338,
+      "prompt_sha256": "1cecc8c5ad71c24acfe0a9fee18e4ba7d1d98e00718b28bc2ad7be78a955dae0",
+      "band": "long"
+    },
+    {
+      "id": "bfs-row-000363",
+      "prompt_chars": 1748288,
+      "prompt_sha256": "9fbc9ae4a61793775c230f52585598603844db815b805aedf0d0fabecc6dc1ce",
+      "band": "long"
+    },
+    {
+      "id": "bfs-row-000345",
+      "prompt_chars": 1748338,
+      "prompt_sha256": "d29387e5a95cbf41d44c28a8d8f4683b59e6dabb0b940b3113c1dc4f08c0de63",
+      "band": "long"
+    },
+    {
+      "id": "bfs-row-000334",
+      "prompt_chars": 1748363,
+      "prompt_sha256": "38203422270c7a8c6d705e3fbb1a5fec32f1372326c1a0fdca23964c8b724f0c",
+      "band": "long"
+    }
+  ]
+}
