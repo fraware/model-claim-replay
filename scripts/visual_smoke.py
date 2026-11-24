@@ -91,6 +91,12 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                             assert page.locator("h1 em, h2 em").count() == 0
 
                             if name == "graphwalks":
+                                openai = page.locator("#openai-preflight")
+                                assert "255,598" in openai.inner_text()
+                                assert "355,124" in openai.inner_text()
+                                assert "$2.26103" in openai.inner_text()
+                                assert "No OpenAI model answer or score exists yet" in openai.inner_text()
+                                assert openai.get_by_text("Read log-derived receipt (JSON)").get_attribute("href") == "./graphwalks-openai-preflight.json"
                                 figure = page.locator(".evidence-figure img")
                                 assert figure.is_visible()
                                 assert figure.evaluate("(img) => img.complete && img.naturalWidth === 1200")

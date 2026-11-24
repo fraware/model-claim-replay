@@ -56,6 +56,8 @@ The [OpenAI GraphWalks diagnostic workflow](https://github.com/fraware/model-cla
 
 The [automatic source-bound OpenAI preflight](.github/workflows/graphwalks-openai-preflight.yml) runs only when its own workflow changes on `main`. It verifies the original dataset and calls the metadata and input-token endpoints through a separate endpoint allowlist. Its $5 planning ceiling is hypothetical; it never authorizes or invokes generation, and only the score-free plan and outcome are retained. A successful preflight is not a model score.
 
+**Live result:** GPT-6.2 Sol counted 255,598 input tokens on the original pinned candidate `bfs-row-000100`. The estimated maximum generation reservation is $2.26103 under the declared conservative rate table. The [original run](https://github.com/fraware/model-claim-replay/actions/runs/45337852354) and [public log-derived summary](website/graphwalks-openai-preflight.json) retain the evidence. No generation, actual charge or model score is asserted.
+
 ## Score GraphWalks responses offline
 
 A dedicated `grade-graphwalks` CLI command follows the published GraphWalks final-line answer parser and node-set F1. It checks the supplied BFS reference-index SHA-256 and scores recorded model outputs **without making API calls**. Original dataset rows and prompt input fidelity still need separate verification, and the resulting report is never labeled a publisher reproduction.
