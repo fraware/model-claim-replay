@@ -482,7 +482,12 @@ def execute_token_plan(
             # Validate the entire prior journal, including result contents and
             # per-task budget reservations, before authorizing any new requests.
             from .graphwalks_audit import audit_graphwalks_run
-            audit_graphwalks_run(plan_path, index_path, out)
+            prior_audit = audit_graphwalks_run(plan_path, index_path, out)
+            if prior_audit["unresolved"]:
+                raise ReplayError(
+                    "A previous paid request remains unresolved; refusing "
+                    "additional paid requests from this run"
+                )
             # An earlier provider response that exceeded the approved
             # reservation is a terminal budget incident. Auditing its journal
             # does not authorize making another potentially billable request.
