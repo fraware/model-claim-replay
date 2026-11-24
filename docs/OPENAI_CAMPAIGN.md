@@ -15,3 +15,15 @@ Report conditional F1 only for graded tasks, separately by source band; an aggre
 Authorization is granted for this single campaign. No cohort result is claimed until the original execution evidence has been inspected. The model documentation was checked on 24 November 2026: 922,000 input-token limit, 1,050,000 total context and Standard long-context output rate $15/M; the frozen $20/M reserve remains an extra margin.
 
 The runner stops admitting new generation requests after 290 minutes from its start, allowing additional time for the final response and upload under the job limit. This is an admission bound, not a guaranteed wall-clock transport timeout; interruption can still prevent a terminal record.
+
+## Offline campaign journal verification
+
+After obtaining the original campaign artifact, extract its ZIP into an empty directory, and use the independently regenerated, pinned reference index:
+
+```bash
+python scripts/verify_openai_campaign.py \
+  --bundle /path/to/extracted-campaign \
+  --index /path/to/graphwalks-bfs-reference-index.jsonl
+```
+
+The verifier rejects incomplete terminal journals, changed preflight measurements, unexpected files, mismatched intent records, incorrect cost arithmetic and inconsistent scores. It recomputes disclosed canonical final-line grades using independent set arithmetic. Withheld noncanonical scores are explicitly counted as not recomputed. The conditional means still summarize recorded grades; this is not authentication of provider execution, full-answer extraction, invoices or external review. A changed preflight or interrupted journal needs a separate investigation, not automatic retry.
