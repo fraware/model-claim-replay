@@ -1,0 +1,16 @@
+{
+  "schema_version": "graphwalks-campaign-authorization-v1",
+  "experiment_id": "openai-campaign-v1-2026-11-24",
+  "protocol_issue": 42,
+  "approval": "AUTHORIZE_OPENAI_CAMPAIGN",
+  "model": "gpt-6.2-sol",
+  "manifest_sha256": "b5bedeaf9ba25f0f6321bd7fbe6995db7bdd706c881f3168ef03b10ee3d22efc",
+  "preflight_archive_sha256": "622dc133c231e7f14562037f4d2094916054aae991b43fd83ab31dcbf27ac853",
+  "max_spend_usd": "25",
+  "max_generation_requests": 8,
+  "selected_tasks": 16,
+  "publication": "PUBLISH_FINAL_LINE",
+  "reasoning_effort": "xhigh",
+  "max_output_tokens": 65536,
+  "scope": "One frozen campaign; exact preflight comparison; no retries, replacement tasks, or publisher replication."
+}
