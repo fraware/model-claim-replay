@@ -16,7 +16,7 @@ from typing import Any, Callable, Mapping
 from model_claim_replay.graphwalks_runtime import (
     CONTEXT_LIMIT, FOREGROUND_OUTPUT_LIMIT, MODEL,
 )
-from provider_readiness import (
+from graphwalks_gemini_metadata import (
     ProviderProbeError, _GEMINI_HOST, _GEMINI_PATH, _metadata_get,
 )
 

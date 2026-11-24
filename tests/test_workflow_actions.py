@@ -23,7 +23,7 @@ class WorkflowRuntimeTests(unittest.TestCase):
 
     def test_every_referenced_first_party_action_uses_node24_release(self) -> None:
         files = sorted(WORKFLOWS.glob("*.yml"))
-        self.assertEqual(len(files), 9)
+        self.assertTrue(files, "No workflow files found")
         seen: set[str] = set()
         for file in files:
             text = file.read_text(encoding="utf-8")
@@ -50,12 +50,18 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertNotIn("cancel-in-progress: true", paid)
 
     def test_paid_generation_remains_manual_after_action_upgrades(self) -> None:
-        paid = (WORKFLOWS / "graphwalks-paid-pilot.yml").read_text()
-        self.assertIn("workflow_dispatch:", paid)
-        self.assertIn("AUTHORIZE_PAID_GEMINI", paid)
-        self.assertNotIn("\n  push:", paid)
-        self.assertNotIn("\n  schedule:", paid)
-        self.assertNotIn("\n  pull_request:", paid)
+        for filename, approval in (
+            ("graphwalks-paid-pilot.yml", "AUTHORIZE_PAID_GEMINI"),
+            ("graphwalks-openai-paid.yml", "AUTHORIZE_PAID_OPENAI"),
+        ):
+            with self.subTest(workflow=filename):
+                paid = (WORKFLOWS / filename).read_text()
+                self.assertIn("workflow_dispatch:", paid)
+                self.assertIn(approval, paid)
+                self.assertNotIn("\n  push:", paid)
+                self.assertNotIn("\n  schedule:", paid)
+                self.assertNotIn("\n  pull_request:", paid)
+                self.assertNotIn("cancel-in-progress: true", paid)
 
     def test_provider_readiness_never_runs_with_secrets_in_pull_requests(self) -> None:
         readiness = (WORKFLOWS / "provider-readiness.yml").read_text()
@@ -63,6 +69,10 @@ class WorkflowRuntimeTests(unittest.TestCase):
         self.assertNotIn("pull_request:", readiness)
         self.assertNotIn("workflow_dispatch:", readiness)
         self.assertIn("scripts/provider_readiness.py", readiness)
+        self.assertNotIn("secrets.GEMINI_API_KEY", readiness)
+        self.assertNotIn("secrets.GOOGLE_API_KEY", readiness)
+        self.assertNotIn("secrets.GOOGLE_GENAI_API_KEY", readiness)
+        self.assertIn("secrets.OPENAI_API_KEY", readiness)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,64 @@
+name: OpenAI GraphWalks paid diagnostic
+on:
+  workflow_dispatch:
+    inputs:
+      approval:
+        description: "Type AUTHORIZE_PAID_OPENAI for a billable GPT-6.2 Sol diagnostic"
+        required: true
+        default: "NO"
+        type: string
+      max_spend_usd:
+        description: "Positive USD reservation ceiling, maximum 100"
+        required: true
+        default: "0"
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: openai-graphwalks-paid
+  cancel-in-progress: false
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Reject paid reruns and non-main execution
+        run: |
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_REF" = refs/heads/main
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[graphwalks]'
+      - name: Check explicit approval before source download or credential access
+        env:
+          APPROVAL: ${{ inputs.approval }}
+          BUDGET: ${{ inputs.max_spend_usd }}
+        run: |
+          python -c 'import os; from model_claim_replay.openai_graphwalks import authorization; authorization(os.environ["APPROVAL"], os.environ["BUDGET"])'
+      - name: Independently verify pinned public dataset
+        run: |
+          python scripts/graphwalks_data_audit.py \
+            --revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 \
+            --sha256 537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911 \
+            --size-bytes 296903814 --retain-parquet --out .runs/private/openai-source
+      - name: Count exact OpenAI tokens, reserve budget and execute once
+        env:
+          APPROVAL: ${{ inputs.approval }}
+          BUDGET: ${{ inputs.max_spend_usd }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+        run: |
+          python -m model_claim_replay.openai_graphwalks \
+            --parquet .runs/private/openai-source/graphwalks_256k_to_1mil.parquet \
+            --index .runs/private/openai-source/graphwalks-bfs-reference-index.jsonl \
+            --out .runs/openai-diagnostic --approval "$APPROVAL" --max-spend-usd "$BUDGET"
+      - name: Retain redacted evidence only
+        if: ${{ !cancelled() && github.run_attempt == 1 }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: openai-graphwalks-redacted-diagnostic
+          path: .runs/openai-diagnostic/public/
+          if-no-files-found: ignore
+          retention-days: 14

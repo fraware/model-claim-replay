@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from graphwalks_model_capabilities import main, read_model_capabilities  # noqa: E402
-from provider_readiness import GEMINI_CLAIM_MODEL, ProviderProbeError  # noqa: E402
+from graphwalks_gemini_metadata import GEMINI_CLAIM_MODEL, ProviderProbeError  # noqa: E402
 
 
 class ProviderCapabilityEvidenceTests(unittest.TestCase):

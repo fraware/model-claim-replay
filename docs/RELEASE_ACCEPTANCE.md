@@ -15,7 +15,9 @@ Decision record, 23 November 2026. GitHub Trending Daily is an aspiration; never
 
 The thresholds are predeclared operational targets, not statistically representative market evidence. A verified single-task result does not establish reproduction of a publisher aggregate. A public artifact must state whether scoring is independently recomputable.
 
-## First GraphWalks experiment
+## Provider policy and first GraphWalks experiment
+
+OpenAI is now the default provider. The separate GPT-6.2 Sol one-task diagnostic uses the OpenAI Responses API and requires `AUTHORIZE_PAID_OPENAI` with a positive USD ceiling. It does not substitute for the historical Gemini-specific investigation. See the README for the new workflow. No result has been produced.
 
 The [Google methodology PDF](https://deepmind.google/models/evals-methodology/gemini-4-neon/) (printed pp. 1, 3, 5) identifies a 200-problem long-context cohort, a high-thinking Gemini API protocol, and a 95.2% BFS F1 result. It does not enumerate the source-row identities or give an exact output/continuation configuration for GraphWalks. The [Epoch AI review](https://epoch.ai/benchmarks/graphwalks/review) independently flags public task/solution availability, version drift and long-context output constraints.
 
