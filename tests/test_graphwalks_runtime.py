@@ -608,7 +608,7 @@ class RuntimeTests(unittest.TestCase):
         result = json.loads((self.root / "private-run" / "attempts" / "bfs-row-000000.result.json").read_text())
         self.assertEqual(result["status"], "error")
         self.assertNotIn("output", result)
-        with self.assertRaisesRegex(ReplayError, "reservations exceed"):
+        with self.assertRaisesRegex(ReplayError, "Prior provider request ended with an uncertain error"):
             self._run(plan, lambda *_: 1/0, budget="0.000001")
 
     def test_transport_error_halts_before_next_paid_task_and_blocks_resume(self):
