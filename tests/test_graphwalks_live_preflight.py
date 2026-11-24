@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from graphwalks_select_gemini_secret import main, select_gemini_secret  # noqa: E402
-from provider_readiness import GEMINI_CLAIM_MODEL, ProviderProbeError  # noqa: E402
+from graphwalks_gemini_metadata import GEMINI_CLAIM_MODEL, ProviderProbeError  # noqa: E402
 
 
 class GeminiSecretSelectionTests(unittest.TestCase):

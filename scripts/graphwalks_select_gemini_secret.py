@@ -16,13 +16,12 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from provider_readiness import (
+from graphwalks_gemini_metadata import (
     GEMINI_CLAIM_MODEL,
     ProviderProbeError,
     _GEMINI_HOST,
     _GEMINI_PATH,
     _metadata_get,
-    probe_providers,
 )
 
 _METADATA = Callable[[str, str, Mapping[str, str]], tuple[int, Any]]
@@ -75,12 +74,9 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     candidate = select_gemini_secret(os.environ)
     if candidate is None:
-        # Different-provider metadata is useful for triage, never a substitute
-        # for the pinned Gemini model in this GraphWalks claim.
-        fallback = probe_providers(os.environ)
+        # Explicit historical Gemini investigations never substitute another provider.
         print(
-            "No Gemini claim-model credential passed metadata validation. "
-            "OpenAI metadata fallback: " + fallback["openai"]["status"],
+            "No Gemini claim-model credential passed metadata validation.",
             file=sys.stderr,
         )
         print(
