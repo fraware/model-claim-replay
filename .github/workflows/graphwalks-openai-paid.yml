@@ -21,6 +21,14 @@ on:
           - "25"
           - "50"
           - "100"
+      publication:
+        description: "Separate public disclosure consent: exact canonical final answer line only"
+        required: true
+        default: "REDACTED_ONLY"
+        type: choice
+        options:
+          - REDACTED_ONLY
+          - PUBLISH_FINAL_LINE
 permissions:
   contents: read
 concurrency:
@@ -44,8 +52,9 @@ jobs:
         env:
           APPROVAL: ${{ inputs.approval }}
           BUDGET: ${{ inputs.max_spend_usd }}
+          PUBLICATION: ${{ inputs.publication }}
         run: |
-          python -c 'import os; from model_claim_replay.openai_graphwalks import dispatch_mode; dispatch_mode(os.environ["APPROVAL"], os.environ["BUDGET"])'
+          python -c 'import os; from model_claim_replay.openai_graphwalks import dispatch_mode, validate_publication; dispatch_mode(os.environ["APPROVAL"], os.environ["BUDGET"]); validate_publication(os.environ["APPROVAL"], os.environ["PUBLICATION"])'
       - name: Independently verify pinned public dataset
         run: |
           python scripts/graphwalks_data_audit.py \
@@ -56,13 +65,15 @@ jobs:
         env:
           APPROVAL: ${{ inputs.approval }}
           BUDGET: ${{ inputs.max_spend_usd }}
+          PUBLICATION: ${{ inputs.publication }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
         run: |
           python -m model_claim_replay.openai_graphwalks \
             --parquet .runs/private/openai-source/graphwalks_256k_to_1mil.parquet \
             --index .runs/private/openai-source/graphwalks-bfs-reference-index.jsonl \
-            --out .runs/openai-diagnostic --approval "$APPROVAL" --max-spend-usd "$BUDGET"
+            --out .runs/openai-diagnostic --approval "$APPROVAL" --max-spend-usd "$BUDGET" \
+            --publication "$PUBLICATION"
       - name: Retain redacted evidence only
         if: ${{ !cancelled() && github.run_attempt == 1 }}
         uses: actions/upload-artifact@v6
@@ -72,6 +83,7 @@ jobs:
             .runs/openai-diagnostic/public/plan.json
             .runs/openai-diagnostic/public/intent.json
             .runs/openai-diagnostic/public/outcome.json
+            .runs/openai-diagnostic/public/scoring-evidence.json
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 14

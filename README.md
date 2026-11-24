@@ -52,11 +52,21 @@ Neither headline has been independently reproduced. [Our byte-verified 200-task 
 
 The generic CLI already uses the OpenAI endpoint. The protected-main readiness workflow now checks the exact `gpt-6.2-sol` model using `OPENAI_API_KEY` or `OPENAI_KEY`; it never probes Gemini or substitutes another provider. Metadata access is not proof of inference readiness.
 
-The [OpenAI GraphWalks diagnostic workflow](https://github.com/fraware/model-claim-replay/actions/workflows/graphwalks-openai-paid.yml) is a separate, single-task Responses API experiment on pinned public candidate task `bfs-row-000100`, at `xhigh` reasoning and 65,536 output tokens. In a new main-branch dispatch, the default `PREFLIGHT_ONLY` option measures input tokens and estimates the reservation, with no generation or spending authorization. To run the paid diagnostic, explicitly select `AUTHORIZE_PAID_OPENAI` from the approval dropdown and choose a ceiling (default $5). It obtains fresh OpenAI token counts, uses conservative standard long-context rates (including a 30-minute cache-write allowance, with implicit caching disabled), refuses infeasible or over-budget input, writes a durable intent, and never retries a billable generation. No raw response is uploaded. The result is not a reproduction of Google's Gemini claim. That historical investigation remains separate.
+The [OpenAI GraphWalks diagnostic workflow](https://github.com/fraware/model-claim-replay/actions/workflows/graphwalks-openai-paid.yml) is a separate, single-task Responses API experiment on pinned public candidate task `bfs-row-000100`, at `xhigh` reasoning and 65,536 output tokens. In a new main-branch dispatch, the default `PREFLIGHT_ONLY` option measures input tokens and estimates the reservation, with no generation or spending authorization. To run the paid diagnostic, explicitly select `AUTHORIZE_PAID_OPENAI` from the approval dropdown and choose a ceiling (default $5). It obtains fresh OpenAI token counts, uses conservative standard long-context rates (including a 30-minute cache-write allowance, with implicit caching disabled), refuses infeasible or over-budget input, writes a durable intent, and never retries a billable generation. Full provider responses and reasoning are never uploaded. The separate publication dropdown defaults to `REDACTED_ONLY`. Selecting `PUBLISH_FINAL_LINE` in paid mode authorizes public disclosure of the exact canonical GraphWalks final answer line (or an empty final line); noncanonical text is withheld. This allows offline score recomputation from the disclosed line while extraction fidelity to the full response remains unattested. The result is not a reproduction of Google's Gemini claim. That historical investigation remains separate.
 
 The [automatic source-bound OpenAI preflight](.github/workflows/graphwalks-openai-preflight.yml) runs only when its own workflow changes on `main`. It verifies the original dataset and calls the metadata and input-token endpoints through a separate endpoint allowlist. Its $5 planning ceiling is hypothetical; it never authorizes or invokes generation, and only the score-free plan and outcome are retained. A successful preflight is not a model score.
 
 **Live result:** GPT-6.2 Sol counted 255,598 input tokens on the original pinned candidate `bfs-row-000100`. The estimated maximum generation reservation is $2.26103 under the declared conservative rate table. The [original run](https://github.com/fraware/model-claim-replay/actions/runs/45337852354) and [public log-derived summary](website/graphwalks-openai-preflight.json) retain the evidence. No generation, actual charge or model score is asserted.
+
+After a paid run with a published final line, download the diagnostic artifact and obtain the independently generated pinned BFS reference index from the [source audit](https://github.com/fraware/model-claim-replay/actions/runs/44746523023). Verify the score offline:
+
+```bash
+python -m model_claim_replay.openai_graphwalks_verify \
+  --bundle /path/to/extracted/diagnostic \
+  --index /path/to/graphwalks-bfs-reference-index.jsonl
+```
+
+Use the directory containing `plan.json`, `intent.json`, `outcome.json` and `scoring-evidence.json`. Verification checks the reference-index hash, source task and prompt commitments, receipt digests and exact F1. It neither authenticates the provider response nor proves that the disclosed line was faithfully extracted from the full answer. External independent rescoring is still required.
 
 ## Score GraphWalks responses offline
 

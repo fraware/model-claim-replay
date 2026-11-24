@@ -12,6 +12,7 @@ import datetime as dt
 import http.client
 import json
 import os
+import re
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Callable
@@ -32,6 +33,10 @@ INPUT_RATE = Decimal("5")
 OUTPUT_RATE = Decimal("15")
 APPROVAL = "AUTHORIZE_PAID_OPENAI"
 PREFLIGHT = "PREFLIGHT_ONLY"
+REDACTED_ONLY = "REDACTED_ONLY"
+PUBLISH_FINAL_LINE = "PUBLISH_FINAL_LINE"
+# Limit export to the public GraphWalks answer syntax, not arbitrary model prose.
+_PUBLIC_LINE = re.compile(r"Final Answer: \[[ \t]*(?:[0-9a-f]{10}(?:[ \t]*,[ \t]*[0-9a-f]{10})*)?[ \t]*\]")
 MAX_BUDGET = Decimal("100")
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 PRICE_SOURCE = "https://developers.openai.com/api/docs/models/gpt-6.2-sol"
@@ -61,6 +66,25 @@ def dispatch_mode(approval: str, budget: str) -> tuple[bool, Decimal]:
     if approval == PREFLIGHT:
         return False, _budget(budget)
     return True, authorization(approval, budget)
+
+
+def validate_publication(approval: str, publication: str) -> None:
+    """Publication is separately authorized, never inferred from spending consent."""
+    if publication not in (REDACTED_ONLY, PUBLISH_FINAL_LINE):
+        raise ReplayError("Unknown scoring evidence publication mode")
+    if publication == PUBLISH_FINAL_LINE and approval != APPROVAL:
+        raise ReplayError("Final-line publication requires authorized paid mode")
+
+
+def public_final_line(text: str) -> str | None:
+    """Return the exact score-relevant final line if safe to disclose.
+
+    An empty final line is retained verbatim because the source parser treats
+    a trailing newline as a parse failure. Arbitrary text is withheld, never
+    normalized, rewritten, or silently substituted for the original line.
+    """
+    line = text.split("\n")[-1]
+    return line if line == "" or (len(line) <= 1_000_000 and _PUBLIC_LINE.fullmatch(line)) else None
 
 
 def _request(path: str, payload: dict[str, Any] | None, key: str) -> dict[str, Any]:
@@ -128,9 +152,11 @@ def choose_key(environ: dict[str, str], request: Request) -> str:
 def diagnostic(
     parquet: Path, index: Path, out: Path, *, approval: str, budget: str,
     environ: dict[str, str], request: Request = _request,
+    publication: str = REDACTED_ONLY,
     source_reader: Callable[..., dict[str, str]] = verified_prompts,
 ) -> dict[str, Any]:
     paid, ceiling = dispatch_mode(approval, budget)
+    validate_publication(approval, publication)
     if out.exists() or out.is_symlink():
         raise ReplayError("Output already exists; never resume a paid diagnostic")
     prompts = source_reader(parquet, index)
@@ -173,6 +199,7 @@ def diagnostic(
         "input_usd_per_million_upper": str(INPUT_RATE), "output_usd_per_million_upper": str(OUTPUT_RATE),
         "reservation_usd": str(reserved),
         "mode": "paid_diagnostic" if paid else "token_count_preflight",
+        "scoring_evidence_publication": publication,
         "planning_ceiling_usd": str(ceiling),
         "authorized_ceiling_usd": str(ceiling) if paid else None,
         "fits_context": fits, "within_planning_ceiling": affordable,
@@ -246,8 +273,31 @@ def diagnostic(
             "upper_usage_cost_usd": str(reservation(inp, output)),
             "grade": score, "comparison_status": "not_comparable",
             "published_claim_reproduced": False,
-            "limitations": "Single source-bound candidate task; self-reported execution. Raw response not published; external rescoring pending.",
+            "scoring_evidence_status": "withheld_by_policy",
+            "limitations": "Single source-bound candidate task; self-reported execution. Full response not published; external rescoring pending.",
         }
+        if publication == PUBLISH_FINAL_LINE:
+            line = public_final_line(texts[0])
+            if line is None:
+                result["scoring_evidence_status"] = "withheld_noncanonical_final_line"
+            else:
+                evidence = {
+                    "schema_version": "graphwalks-openai-final-line-v1",
+                    "task_id": TASK, "model": MODEL,
+                    "plan_sha256": result["plan_sha256"],
+                    "answer_sha256": result["answer_sha256"],
+                    "final_line": line,
+                    "final_line_sha256": sha256_bytes(line.encode("utf-8")),
+                }
+                _write(public / "scoring-evidence.json", evidence)
+                result["scoring_evidence_status"] = "final_line_exported"
+                result["scoring_evidence_sha256"] = sha256_bytes(
+                    (public / "scoring-evidence.json").read_bytes()
+                )
+                result["limitations"] += (
+                    " Final-line score recomputation is conditional on the reported "
+                    "extraction being faithful to the original answer."
+                )
     except (ReplayError, OSError, ValueError, TypeError, KeyError):
         _write(public / "outcome.json", {
             "status": "generation_or_accounting_uncertain", "task_id": TASK,
@@ -265,10 +315,13 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--approval", required=True)
     parser.add_argument("--max-spend-usd", required=True)
+    parser.add_argument("--publication", choices=(REDACTED_ONLY, PUBLISH_FINAL_LINE),
+                        default=REDACTED_ONLY, help="Optional public final-line evidence")
     args = parser.parse_args()
     try:
         result = diagnostic(args.parquet, args.index, args.out, approval=args.approval,
-                            budget=args.max_spend_usd, environ=dict(os.environ))
+                            budget=args.max_spend_usd, environ=dict(os.environ),
+                            publication=args.publication)
     except ReplayError as exc:
         parser.exit(2, f"OpenAI diagnostic: {exc}\n")
     if args.approval == PREFLIGHT:
