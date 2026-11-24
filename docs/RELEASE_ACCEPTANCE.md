@@ -1,13 +1,13 @@
 # Release acceptance and external validation
 
-Decision record, 23 November 2026. GitHub Trending Daily is an aspiration; never purchase stars, solicit reciprocal stars, or misrepresent evaluation findings. No external test sessions or paid model generations are claimed here.
+Decision record, 23 November 2026. GitHub Trending Daily is an aspiration; never purchase stars, solicit reciprocal stars, or misrepresent evaluation findings. Updated 24 November 2026: one paid OpenAI diagnostic completed; external test sessions and third-party verification remain outstanding.
 
 ## Six release gates
 
 | Gate | Acceptance criterion | Current evidence |
 | --- | --- | --- |
-| Real-model experiment | At least one independently initiated successful generation on a prespecified source-bound task, with model ID, protocol, usage, finish state and original grader recorded. A single task is a diagnostic, never a population estimate. | Pending: one-time $5 authorization record and its guarded main-push execution; no model result yet. |
-| Independent scoring and inspectability | A third party recomputes the diagnostic score from permitted original responses and references. If raw responses are unavailable, document the access restriction and keep this gate open until authorized independent rescoring occurs; redacted consistency checks alone do not qualify. Every task outcome and exclusion is accounted for. | Partial: 200-task algorithmic control, provider token counts, public receipts; no model scores. |
+| Real-model experiment | At least one independently initiated successful generation on a prespecified source-bound task, with model ID, protocol, usage, finish state and original grader recorded. A single task is a diagnostic, never a population estimate. | Passed for one diagnostic: [actual OpenAI generation](https://github.com/fraware/model-claim-replay/actions/runs/45398852989), F1 1.0 on one prespecified task. |
+| Independent scoring and inspectability | A third party recomputes the diagnostic score from permitted original responses and references. If raw responses are unavailable, document the access restriction and keep this gate open until authorized independent rescoring occurs; redacted consistency checks alone do not qualify. Every task outcome and exclusion is accounted for. | Partial: exact disclosed final-line score recomputed in the workflow and separately from downloaded artifacts; full-answer extraction and external third-party verification outstanding. |
 | Installation | Wheel and clean-environment installation, offline CLI demonstration, desktop/mobile website tests; at least four of five independent users complete onboarding in five minutes or less, with no private credentials needed. | Automated coverage exists; external sessions not yet performed. |
 | External testing | Five independent developers or evaluation researchers, recruited for task-relevant expertise. Record all attempts including failures, time to first report, usability issues, and whether they would use the tool on another claim. No reward tied to stars or positive feedback. | Not started. |
 | Differentiation | Review existing execution frameworks and claim databases; at least three external testers identify a task they would use this workflow for, with a specific reason. No blanket novelty claim. | Initial desk review below; user validation outstanding. |
@@ -17,7 +17,7 @@ The thresholds are predeclared operational targets, not statistically representa
 
 ## Provider policy and first GraphWalks experiment
 
-OpenAI is now the default provider. The separate GPT-6.2 Sol one-task diagnostic uses the OpenAI Responses API and uses a safe default `PREFLIGHT_ONLY` for token counting. Select `AUTHORIZE_PAID_OPENAI` explicitly in the workflow dropdown with a positive USD ceiling for actual generation. It does not substitute for the historical Gemini-specific investigation. See the README for the new workflow. The source-bound preflight has passed; no generative result has been produced. Separate `PUBLISH_FINAL_LINE` consent authorizes a restricted score-relevant final-line export for offline recomputation. Independent rescoring of the disclosed line remains conditional on extraction fidelity; if the full original answer is unavailable, the original-response verification gate stays open.
+OpenAI is now the default provider. The separate GPT-6.2 Sol one-task diagnostic uses the OpenAI Responses API and uses a safe default `PREFLIGHT_ONLY` for token counting. Select `AUTHORIZE_PAID_OPENAI` explicitly in the workflow dropdown with a positive USD ceiling for actual generation. It does not substitute for the historical Gemini-specific investigation. See the README for the new workflow. The source-bound preflight and first paid diagnostic have passed; one task scored F1 1.0 under the disclosed final-line calculation. Separate `PUBLISH_FINAL_LINE` consent authorizes a restricted score-relevant final-line export for offline recomputation. Independent rescoring of the disclosed line remains conditional on extraction fidelity; if the full original answer is unavailable, the original-response verification gate stays open.
 
 The [Google methodology PDF](https://deepmind.google/models/evals-methodology/gemini-4-neon/) (printed pp. 1, 3, 5) identifies a 200-problem long-context cohort, a high-thinking Gemini API protocol, and a 95.2% BFS F1 result. It does not enumerate the source-row identities or give an exact output/continuation configuration for GraphWalks. The [Epoch AI review](https://epoch.ai/benchmarks/graphwalks/review) independently flags public task/solution availability, version drift and long-context output constraints.
 
@@ -46,7 +46,7 @@ Use the deployed website and the installed wheel or Git checkout. Testers should
 
 Send the [onboarding feedback form](https://github.com/fraware/model-claim-replay/issues/new?template=developer-replay-feedback.yml) to five relevant independent testers. Ask them to start from the repository homepage, run the offline demo on their own machine, open its report, then inspect the public GraphWalks finding and identify its scope. Observe or request elapsed time, errors, and their own interpretation. Never request secrets, raw private logs, or positive public endorsements. Record unsuccessful sessions alongside successful ones.
 
-### Pilot dispatch checklist
+### Historical Gemini pilot dispatch checklist
 
 Open the [manual paid GraphWalks diagnostic workflow](https://github.com/fraware/model-claim-replay/actions/workflows/graphwalks-paid-pilot.yml) on main. An authorized maintainer must select these exact inputs:
 
