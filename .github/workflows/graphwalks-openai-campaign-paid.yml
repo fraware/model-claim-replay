@@ -1,0 +1,69 @@
+name: OpenAI GraphWalks 16-task paid campaign
+on:
+  workflow_dispatch:
+    inputs:
+      approval:
+        description: "Separate campaign authorization (one run, $25 reservation)"
+        required: true
+        default: "NO"
+        type: choice
+        options:
+          - "NO"
+          - AUTHORIZE_OPENAI_CAMPAIGN
+      publication:
+        description: "Public canonical final-line disclosure consent"
+        required: true
+        default: REDACTED_ONLY
+        type: choice
+        options:
+          - REDACTED_ONLY
+          - PUBLISH_FINAL_LINE
+permissions:
+  contents: read
+concurrency:
+  group: openai-graphwalks-paid
+  cancel-in-progress: false
+jobs:
+  campaign:
+    if: ${{ inputs.approval == 'AUTHORIZE_OPENAI_CAMPAIGN' && github.ref == 'refs/heads/main' && github.run_attempt == 1 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[graphwalks]'
+      - name: Verify pinned public source
+        run: |
+          python scripts/graphwalks_data_audit.py \
+            --revision be6cc6ecf9b4d495b07d1ff53d2a16598e90fed7 \
+            --sha256 537879431c72a42e3b500f80efc3047e7facb90390b6063d33679b4320985911 \
+            --size-bytes 296903814 --retain-parquet --out .runs/private/openai-source
+      - name: Recount and execute authorized campaign once
+        env:
+          APPROVAL: ${{ inputs.approval }}
+          PUBLICATION: ${{ inputs.publication }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+        run: |
+          python scripts/openai_graphwalks_campaign_paid.py \
+            --parquet .runs/private/openai-source/graphwalks_256k_to_1mil.parquet \
+            --index .runs/private/openai-source/graphwalks-bfs-reference-index.jsonl \
+            --out .runs/campaign-paid --approval "$APPROVAL" \
+            --budget 25 --publication "$PUBLICATION"
+      - name: Retain public plan and outcome journal
+        if: ${{ !cancelled() && github.run_attempt == 1 }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: openai-campaign-paid-evidence
+          path: |
+            .runs/campaign-paid/public/plan.json
+            .runs/campaign-paid/public/task-*-intent.json
+            .runs/campaign-paid/public/task-*-outcome.json
+            .runs/campaign-paid/public/summary.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 90
