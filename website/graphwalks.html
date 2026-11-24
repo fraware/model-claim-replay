@@ -54,6 +54,23 @@
       <div class="figure-header"><h2 id="figure-heading">Input-token ranges</h2><a href="./graphwalks-input-feasibility.svg" download>Download figure (SVG)</a></div>
       <figure class="evidence-figure"><img src="./graphwalks-input-feasibility.svg" width="1200" height="620" alt="100 original public candidate prompts contain 354,061–355,496 input tokens; 100 contain 1,419,001–1,420,682. The Gemini 4 Neon input limit is 1,048,576. Token counts only; no model generation."><figcaption>Linear token scale. Each marker represents a narrow observed group range. The source and methodological limitation are included in the downloadable figure.</figcaption></figure>
     </section>
+    <section class="provider-panel wrap" id="openai-preflight" aria-labelledby="openai-preflight-heading">
+      <div class="control-header"><span>LIVE OPENAI TOKEN COUNT / 24 NOVEMBER 2026 (UTC)</span><span class="control-flag">ONE SOURCE-BOUND INPUT · NO GENERATION</span></div>
+      <div class="provider-layout">
+        <div class="provider-story">
+          <div class="eyebrow">SAME PUBLIC CANDIDATE PROMPT / DIFFERENT TOKENIZERS</div>
+          <h2 id="openai-preflight-heading">The first OpenAI preflight passed.</h2>
+          <p>GPT-6.2 Sol counted <strong>255,598 input tokens</strong> on the same original task for which Gemini 4 Neon reported 355,124. Both fit their respective input limits. The source prompt is <a href="?task=bfs-row-000100#audit"><code>bfs-row-000100</code></a>.</p>
+          <p class="provider-caveat">These are model-specific API input-token counts for one prompt, not a performance comparison. The $2.26103 figure is a conservative hypothetical OpenAI generation reservation with 65,536 output tokens, not a billed charge. No OpenAI model answer or score exists yet.</p>
+          <div class="provider-links"><a href="./graphwalks-openai-preflight.json">Read log-derived receipt (JSON)</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/45337852354">Original run and artifact</a></div>
+        </div>
+        <div class="provider-figures" aria-label="Input token counts for the same candidate source task">
+          <div class="provider-figure"><span>OPENAI / GPT-6.2 SOL</span><strong>255,598</strong><p>922,000 input-token limit</p></div>
+          <div class="provider-figure"><span>GOOGLE / GEMINI 4 NEON</span><strong>355,124</strong><p>1,048,576 input-token limit</p></div>
+          <div class="provider-method"><span>OPENAI MAXIMUM ESTIMATED GENERATION RESERVATION</span><strong>$2.26103</strong><p>One task · hypothetical 65,536 output tokens</p></div>
+        </div>
+      </div>
+    </section>
     <section class="work wrap" id="audit">
       <div class="section-index"><span>THE SOURCE / 001</span><span>PINNED PUBLIC DATA</span></div>
       <div class="section-heading"><h2>Inspect the 200 tasks</h2><p>Choose any task to inspect its original prompt digest, deterministic BFS score and provider-reported input tokens. The matrix encodes character-length bands, not token counts.</p></div>
@@ -94,7 +111,7 @@
       <div class="receipt-row"><span>200-TASK REFERENCE INDEX SHA-256</span><code>250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee</code></div>
       <div class="receipt-links"><a href="https://github.com/fraware/model-claim-replay/actions/runs/44746523023">Verified GitHub Actions run ↗</a><a href="https://huggingface.co/datasets/openai/graphwalks">Original MIT-licensed dataset ↗</a></div>
     </div></div></section>
-    <section class="next wrap"><div class="section-index"><span>THE NEXT EXPERIMENT / 003</span><span>GENERATIVE MODEL TEST PENDING</span></div><h2>Pending model experiment</h2><div class="next-grid"><p>All 200 public candidate inputs have now been counted by the Gemini API: the shorter 100 fit, and the longer 100 exceed the reported input limit. The budget-controlled inference runner is restricted to context-feasible tasks and independently reviewed authorization. The published 95.2% remains unverified until a protocol-matched model experiment produces real evidence.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
+    <section class="next wrap"><div class="section-index"><span>THE NEXT EXPERIMENT / 003</span><span>GENERATIVE MODEL TEST PENDING</span></div><h2>Pending model experiment</h2><div class="next-grid"><p>All 200 public candidate inputs have been counted by Gemini. OpenAI is the default for new general-purpose investigations; its first source-bound token-count preflight has succeeded. A separately authorized GPT-6.2 Sol generation is pending. Its score would be a one-task OpenAI diagnostic, not evidence of reproducing Google's 95.2% claim.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
   </main>
   <footer><div class="wrap footer"><strong>MODEL CLAIM REPLAY</strong><span>Real source data and algorithmic controls. No independently reproduced model score.</span><a href="./index.html">Back to registry ↑</a></div></footer>
 </body>

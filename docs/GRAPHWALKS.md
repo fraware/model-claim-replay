@@ -172,3 +172,7 @@ evaluation**, does not reproduce the publisher's 95.2%, and does not
 establish equivalence to the publisher's dataset revision or inference
 conditions. An existing [FalkorDB graph/LLM proxy](https://github.com/FalkorDB/GraphWalks)
 is acknowledged as adjacent prior art.
+
+## Live OpenAI preflight — 24 November 2026 UTC
+
+The [successful original run](https://github.com/fraware/model-claim-replay/actions/runs/45337852354) verified the same pinned Parquet and reference-index bytes and counted the original candidate `bfs-row-000100` with GPT-6.2 Sol. OpenAI reported **255,598 input tokens**; the earlier Gemini receipt reports **355,124** for the same source task. With the 65,536 output-token allowance and conservative $5/M input and $15/M output reservation rates, the OpenAI estimated maximum generation reservation is **$2.26103**. The $5 planning ceiling was hypothetical and did not authorize generation. The [log-derived receipt](../website/graphwalks-openai-preflight.json) records the run, prompt commitment and GitHub-reported artifact digest. It is not a byte-identical archival copy of the artifact. These measurements establish neither model accuracy nor equivalence to Google's unpublished evaluation population. A separately authorized OpenAI generation is pending.
