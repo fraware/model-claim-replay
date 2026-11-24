@@ -4,8 +4,8 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from decimal import Decimal
 from pathlib import Path
-from unittest.mock import patch
 
 from model_claim_replay.core import ReplayError, sha256_bytes
 from model_claim_replay.openai_graphwalks import APPROVAL, MODEL, TASK, diagnostic, reservation, authorization
@@ -16,7 +16,7 @@ class OpenAIDiagnosticTests(unittest.TestCase):
         for approval,budget in [("NO","5"),(APPROVAL,"0"),(APPROVAL,"NaN"),(APPROVAL,"101")]:
             with self.assertRaises(ReplayError):
                 authorization(approval,budget)
-        self.assertEqual(str(reservation(355124,65536)), "2.758660")
+        self.assertEqual(reservation(355124, 65536), Decimal("2.758660"))
 
     def test_one_request_and_redacted_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:
