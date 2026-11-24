@@ -1,5 +1,9 @@
 # Chartography reproduction dossier
 
+[Documentation home](README.md) · [Inspect usage](USAGE.md#import-an-official-inspect-ai-evaluation-log)
+
+**Reproduction status:** blocked by unresolved publisher protocol and private evaluation access. Upstream CI uses dummy tasks and mock generation/judging only.
+
 **Status — unresolved access and publisher-protocol equivalence, as of 20 November 2026.** This dossier specifies a testable plan, not an independent reproduction of the claimed score.
 
 ## Published statement

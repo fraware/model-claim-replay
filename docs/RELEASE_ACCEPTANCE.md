@@ -1,5 +1,9 @@
 # Release acceptance and external validation
 
+[Documentation home](README.md) · [Roadmap](ROADMAP.md)
+
+Maintainer decision record; not the first-time user guide.
+
 Decision record, 23 November 2026. GitHub Trending Daily is an aspiration; never purchase stars, solicit reciprocal stars, or misrepresent evaluation findings. Updated 24 November 2026: one paid OpenAI diagnostic completed; external test sessions and third-party verification remain outstanding.
 
 ## Six release gates
@@ -17,11 +21,11 @@ The thresholds are predeclared operational targets, not statistically representa
 
 ## Provider policy and first GraphWalks experiment
 
-OpenAI is now the default provider. The separate GPT-6.2 Sol one-task diagnostic uses the OpenAI Responses API and uses a safe default `PREFLIGHT_ONLY` for token counting. Select `AUTHORIZE_PAID_OPENAI` explicitly in the workflow dropdown with a positive USD ceiling for actual generation. It does not substitute for the historical Gemini-specific investigation. See the README for the new workflow. The source-bound preflight and first paid diagnostic have passed; one task scored F1 1.0 under the disclosed final-line calculation. Separate `PUBLISH_FINAL_LINE` consent authorizes a restricted score-relevant final-line export for offline recomputation. Independent rescoring of the disclosed line remains conditional on extraction fidelity; if the full original answer is unavailable, the original-response verification gate stays open.
+OpenAI is now the default provider. The separate GPT-6.2 Sol one-task diagnostic uses the OpenAI Responses API and uses a safe default `PREFLIGHT_ONLY` for token counting. Select `AUTHORIZE_PAID_OPENAI` explicitly in the workflow dropdown with a positive USD ceiling for actual generation. It does not substitute for the historical Gemini-specific investigation. See [the automation inventory](WORKFLOWS.md) for the workflow lifecycle. The source-bound preflight and first paid diagnostic have passed; one task scored F1 1.0 under the disclosed final-line calculation. Separate `PUBLISH_FINAL_LINE` consent authorizes a restricted score-relevant final-line export for offline recomputation. Independent rescoring of the disclosed line remains conditional on extraction fidelity; if the full original answer is unavailable, the original-response verification gate stays open.
 
 The [Google methodology PDF](https://deepmind.google/models/evals-methodology/gemini-4-neon/) (printed pp. 1, 3, 5) identifies a 200-problem long-context cohort, a high-thinking Gemini API protocol, and a 95.2% BFS F1 result. It does not enumerate the source-row identities or give an exact output/continuation configuration for GraphWalks. The [Epoch AI review](https://epoch.ai/benchmarks/graphwalks/review) independently flags public task/solution availability, version drift and long-context output constraints.
 
-Preserve the existing pinned selection policy. Run one feasible shorter prompt at xhigh, with a 65,536 output-token allowance and a proposed $5 reservation ceiling, only after explicit financial authorization and fresh provider token counting. Do not rerun a failed paid job with reused approval. The separately recorded one-time first-generation exception is triggered only on the first introduction of its fixed authorization record on main. The reusable workflow remains manual; the exception cannot be reused by editing, removing/reintroducing or rerunning its record under ordinary Git history. Record incomplete, filtered, and uncertain outcomes as such. Do not extrapolate from one task or substitute another model for the Gemini claim. Resolve publisher dataset identities, prompt construction, decoding configuration and grading before a full claim replication.
+The historical first-diagnostic plan was to run one feasible shorter prompt at xhigh, with a 65,536 output-token allowance and a proposed $5 reservation ceiling, only after explicit financial authorization and fresh provider token counting. Do not rerun a failed paid job with reused approval. The separately recorded one-time first-generation exception is triggered only on the first introduction of its fixed authorization record on main. The reusable workflow remains manual; the exception cannot be reused by editing, removing/reintroducing or rerunning its record under ordinary Git history. Record incomplete, filtered, and uncertain outcomes as such. Do not extrapolate from one task or substitute another model for the Gemini claim. Resolve publisher dataset identities, prompt construction, decoding configuration and grading before a full claim replication.
 
 ## Prior-art and differentiation review
 

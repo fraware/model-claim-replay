@@ -5,13 +5,19 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "model-claim-replay"
 version = "0.1.0"
-description = "Reproduce published AI model claims with inspectable evidence."
+description = "Audit AI benchmark claims with pinned inputs and inspectable evidence."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [{name = "Model Claim Replay contributors"}]
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = []
+
+[project.urls]
+Homepage = "https://fraware.github.io/model-claim-replay/"
+Repository = "https://github.com/fraware/model-claim-replay"
+Documentation = "https://github.com/fraware/model-claim-replay/tree/main/docs"
+Issues = "https://github.com/fraware/model-claim-replay/issues"
 
 [project.optional-dependencies]
 inspect = ["inspect-ai>=0.3.244"]

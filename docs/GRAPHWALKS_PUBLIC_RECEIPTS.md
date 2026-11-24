@@ -1,4 +1,8 @@
-# Verify redacted GraphWalks public receipts
+# Verify redacted Gemini GraphWalks public receipts
+
+[Documentation home](README.md) · [OpenAI campaign journal verification](OPENAI_CAMPAIGN.md#offline-campaign-journal-verification)
+
+This contract applies to the Gemini-specific redacted receipt format. For the separately disclosed OpenAI answer lines, use the OpenAI verifier.
 
 ## Purpose
 
