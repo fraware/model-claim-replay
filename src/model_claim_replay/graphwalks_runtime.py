@@ -374,6 +374,33 @@ def _exclusive_paid_run(out: Path) -> Iterator[None]:
         os.close(fd)
 
 
+_USAGE_OVERRUN_ERROR = "ProviderUsageExceedsApprovedReservation"
+
+
+def _reported_usage_exceeds_reservation(
+    usage: dict[str, int | None], *, planned_input: int, output_allowance: int,
+) -> bool:
+    """Detect reported token usage above an authorized per-request reservation.
+
+    Interactions usage exposes answer output and thinking separately. Both
+    consume the reserved generation allowance. Cached tokens are a subset of
+    input usage and are not double-counted. Tool-use is disallowed by this
+    no-tools research protocol; unexpected positive tool usage is anomalous.
+
+    This detects inconsistent self-reported provider accounting; it does not
+    establish an invoice, prevent upstream charges or prove billing limits.
+    """
+    input_used = usage.get("total_input_tokens")
+    output_used = usage.get("total_output_tokens")
+    thought_used = usage.get("total_thought_tokens")
+    tool_used = usage.get("total_tool_use_tokens")
+    return (
+        (input_used is not None and input_used > planned_input)
+        or (output_used or 0) + (thought_used or 0) > output_allowance
+        or (tool_used is not None and tool_used > 0)
+    )
+
+
 def _run_status(response: Any) -> tuple[str, str | None, dict[str, int | None]]:
     status = getattr(response, "status", None)
     output = getattr(response, "output_text", None)
@@ -452,6 +479,24 @@ def execute_token_plan(
             # per-task budget reservations, before authorizing any new requests.
             from .graphwalks_audit import audit_graphwalks_run
             audit_graphwalks_run(plan_path, index_path, out)
+            # An earlier provider response that exceeded the approved
+            # reservation is a terminal budget incident. Auditing its journal
+            # does not authorize making another potentially billable request.
+            for previous in plan["planned_tasks"]:
+                result_file = attempts / f"{previous['id']}.result.json"
+                if not result_file.is_file():
+                    continue
+                recorded = read_json(result_file)
+                if (recorded.get("error_type") == _USAGE_OVERRUN_ERROR
+                        or _reported_usage_exceeds_reservation(
+                            recorded["usage"],
+                            planned_input=previous["input_tokens"],
+                            output_allowance=plan["max_output_tokens"],
+                        )):
+                    raise ReplayError(
+                        "Prior provider usage exceeded the approved reservation; "
+                        "refusing additional paid requests"
+                    )
         reserved = Decimal(0)
         completed = ambiguous = sent = 0
         for task in plan["planned_tasks"]:
@@ -500,12 +545,26 @@ def execute_token_plan(
                               else type(exc).__name__)
             else:
                 error_type = None
+            overrun = _reported_usage_exceeds_reservation(
+                usage, planned_input=task["input_tokens"],
+                output_allowance=plan["max_output_tokens"],
+            )
+            if overrun:
+                # The model was already contacted. Preserve the provider
+                # usage evidence, exclude the out-of-contract answer from
+                # scoring, and halt: continuing could compound an overrun.
+                status, output, error_type = "error", None, _USAGE_OVERRUN_ERROR
             data: dict[str, Any] = {"id": ident, "status": status, "usage": usage,
                                    "error_type": error_type}
             if status == "ok":
                 data["output"] = output
                 completed += 1
             _write_exclusive(result_path, data)
+            if overrun:
+                raise ReplayError(
+                    "Provider-reported usage exceeded the approved input/output "
+                    "reservation; no further paid requests were issued"
+                )
         return {
             "schema_version": "graphwalks-paid-run-summary-v1",
             "plan_sha256": plan_sha256,

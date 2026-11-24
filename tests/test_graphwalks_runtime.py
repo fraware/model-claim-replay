@@ -455,6 +455,100 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(calls[0], "Synthetic GraphWalks task 100")
         self.assertEqual(resumed["unresolved_attempts_without_results"], 1)
 
+    def test_provider_usage_overrun_stops_paid_run_and_blocks_resume(self):
+        """Answer + thinking tokens exceeding the cap stop the run durably."""
+        from model_claim_replay.graphwalks_audit import audit_graphwalks_run
+
+        cases = (
+            ("input", 101, 8, 0, 0),
+            ("combined_output", 100, 480, 40, 0),
+            ("unexpected_tool_usage", 100, 8, 0, 1),
+        )
+        for case, input_count, output_count, thought_count, tool_count in cases:
+            with self.subTest(case=case):
+                plan = self._plan(max_tasks=2, max_output_tokens=512)
+                calls = []
+
+                def generate(*args):
+                    calls.append(args)
+                    return SimpleNamespace(
+                        status="completed", output_text="Final Answer: [node-0]",
+                        usage=SimpleNamespace(
+                            total_input_tokens=input_count,
+                            total_output_tokens=output_count,
+                            total_thought_tokens=thought_count,
+                            total_tool_use_tokens=tool_count,
+                        ),
+                    )
+
+                with self.assertRaisesRegex(
+                    ReplayError, "usage exceeded the approved",
+                ):
+                    self._run(plan, generate)
+                self.assertEqual(len(calls), 1)
+
+                attempt = self.root / "private-run" / "attempts"
+                record = json.loads(
+                    (attempt / "bfs-row-000000.result.json").read_text()
+                )
+                self.assertEqual(record["status"], "error")
+                self.assertEqual(
+                    record["error_type"], rt._USAGE_OVERRUN_ERROR,
+                )
+                self.assertNotIn("output", record)
+                self.assertEqual(record["usage"]["total_input_tokens"], input_count)
+                self.assertFalse((attempt / "bfs-row-000100.intent.json").exists())
+
+                with self.assertRaisesRegex(
+                    ReplayError, "Prior provider usage exceeded",
+                ):
+                    self._run(
+                        plan,
+                        lambda *_: self.fail(
+                            "Resumed execution sent a second billable request"
+                        ),
+                    )
+                self.assertFalse((attempt / "bfs-row-000100.intent.json").exists())
+
+                with patch.object(rt, "INDEX_SHA256", self.index_sha), \
+                     patch.object(rt, "DATASET_SHA256", self.source_sha):
+                    audit = audit_graphwalks_run(
+                        self.root / "plan.json", self.index,
+                        self.root / "private-run",
+                    )
+                self.assertEqual(audit["failed"], 1)
+                self.assertEqual(audit["completed"], 0)
+                self.assertEqual(audit["not_attempted"], 1)
+                # Repeat with an empty journal and plan for the next case.
+                import shutil
+                shutil.rmtree(self.root / "private-run")
+                (self.root / "plan.json").unlink()
+
+    def test_provider_usage_at_exact_combined_token_ceiling_is_accepted(self):
+        """Separate output and thought counts share the reserved output cap."""
+        plan = self._plan(max_tasks=2, max_output_tokens=512)
+        report = self._run(
+            plan,
+            lambda *_: SimpleNamespace(
+                status="completed", output_text="Final Answer: [node-0]",
+                usage=SimpleNamespace(
+                    total_input_tokens=100,
+                    total_output_tokens=480,
+                    total_thought_tokens=32,
+                    total_tool_use_tokens=0,
+                    total_cached_tokens=100,
+                ),
+            ),
+        )
+        self.assertEqual(report["new_requests"], 2)
+        self.assertEqual(report["successful_attempts"], 2)
+        self.assertEqual(
+            json.loads(
+                (self.root / "private-run" / "attempts" /
+                 "bfs-row-000100.result.json").read_text()
+            )["status"], "ok",
+        )
+
     def test_budget_prevents_second_billable_request(self):
         plan = self._plan()
         per_task = float(plan["planned_tasks"][0]["maximum_reserved_cost_usd"])
