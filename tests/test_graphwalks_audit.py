@@ -135,6 +135,31 @@ class GraphWalksJournalAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayError, "unexpected attempt artifact"):
             self.audit()
 
+    def test_successful_result_with_excess_usage_is_rejected(self) -> None:
+        """A provider overrun cannot masquerade as a graded valid result."""
+        self.execute_fixture()
+        result_path = self.run_dir / "attempts" / "bfs-row-000000.result.json"
+        result = json.loads(result_path.read_text())
+        result["usage"]["total_output_tokens"] = 510
+        result["usage"]["total_thought_tokens"] = 10
+        result_path.write_bytes(canonical_json(result) + b"\n")
+        with self.assertRaisesRegex(ReplayError, "exceeds the approved reservation"):
+            self.audit()
+
+        # A properly marked terminal overrun retains usage for inspection but
+        # excludes the out-of-contract answer from the scoring pipeline.
+        result["status"] = "error"
+        result["error_type"] = rt._USAGE_OVERRUN_ERROR
+        del result["output"]
+        result_path.write_bytes(canonical_json(result) + b"\n")
+        self.assertEqual(self.audit()["failed"], 1)
+
+        result["usage"]["total_output_tokens"] = 10
+        result["usage"]["total_thought_tokens"] = 0
+        result_path.write_bytes(canonical_json(result) + b"\n")
+        with self.assertRaisesRegex(ReplayError, "Unsubstantiated provider usage"):
+            self.audit()
+
     def test_plan_tampering_is_detected(self) -> None:
         self.execute_fixture()
         plan = json.loads(self.plan_path.read_text())
