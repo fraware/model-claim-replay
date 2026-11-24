@@ -165,7 +165,7 @@ jobs:
           mv .runs/private/pilot-scores-pending.json .runs/private/pilot-scores.json
       - name: Upload only score-free plan, redacted audit and verified task-level grades
         if: ${{ !cancelled() && github.run_attempt == 1 }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: graphwalks-pilot-redacted-self-reported-evidence
           path: |

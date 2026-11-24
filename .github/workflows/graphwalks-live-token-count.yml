@@ -58,7 +58,7 @@ jobs:
             --out .runs/private/graphwalks-live/token-plan.json
       - name: Upload strictly redacted token-count evidence
         if: ${{ always() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: graphwalks-200-task-real-token-count-and-model-limits
           path: |

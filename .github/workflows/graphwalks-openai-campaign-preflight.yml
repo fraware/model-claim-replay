@@ -39,7 +39,7 @@ jobs:
             --index .runs/private/openai-source/graphwalks-bfs-reference-index.jsonl \
             --out .runs/campaign/preflight.json
       - name: Retain all measured counts and failures
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: openai-campaign-preflight
           path: .runs/campaign/preflight.json

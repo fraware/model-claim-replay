@@ -57,7 +57,7 @@ jobs:
           fi
       - name: Retain explicitly authorized score evidence
         if: ${{ !cancelled() && github.run_attempt == 1 }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: openai-first-generation-evidence
           path: |

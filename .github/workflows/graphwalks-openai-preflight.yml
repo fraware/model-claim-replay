@@ -39,7 +39,7 @@ jobs:
             --index .runs/private/openai-source/graphwalks-bfs-reference-index.jsonl \
             --out .runs/openai-preflight
       - name: Retain score-free preflight evidence
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: openai-graphwalks-live-preflight
           path: |

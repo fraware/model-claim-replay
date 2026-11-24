@@ -76,7 +76,7 @@ jobs:
             --publication "$PUBLICATION"
       - name: Retain redacted evidence only
         if: ${{ !cancelled() && github.run_attempt == 1 }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: openai-graphwalks-redacted-diagnostic
           path: |

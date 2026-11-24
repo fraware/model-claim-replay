@@ -45,7 +45,7 @@ jobs:
             --budget 25 --publication PUBLISH_FINAL_LINE
       - name: Retain public plan and outcome journal
         if: ${{ !cancelled() && github.run_attempt == 1 }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: openai-campaign-paid-evidence
           path: |
