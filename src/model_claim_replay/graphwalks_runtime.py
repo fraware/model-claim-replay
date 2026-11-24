@@ -411,12 +411,16 @@ def _run_status(response: Any) -> tuple[str, str | None, dict[str, int | None]]:
     for key, value in usage_values.items():
         if value is not None:
             _tokens(value, description=key)
-    if getattr(status, "value", status) == "completed" and isinstance(output, str):
-        # A completed task without provider input/output token accounting is
-        # not admissible as a fully recorded run result.
-        if (usage_values["total_input_tokens"] is None
+    if getattr(status, "value", status) == "completed":
+        # A provider-declared completion lacking answer text or mandatory
+        # token accounting has uncertain billing and protocol validity.
+        # It cannot safely authorize the next paid task.
+        if (not isinstance(output, str)
+                or usage_values["total_input_tokens"] is None
                 or usage_values["total_output_tokens"] is None):
-            return "error", None, usage_values
+            raise ReplayError(
+                "Completed provider interaction lacks text or token accounting"
+            )
         return "ok", output, usage_values
     return "error", None, usage_values
 
@@ -497,6 +501,11 @@ def execute_token_plan(
                         "Prior provider usage exceeded the approved reservation; "
                         "refusing additional paid requests"
                     )
+                if recorded.get("error_type") is not None:
+                    raise ReplayError(
+                        "Prior provider request ended with an uncertain error; "
+                        "refusing additional paid requests"
+                    )
         reserved = Decimal(0)
         completed = ambiguous = sent = 0
         for task in plan["planned_tasks"]:
@@ -533,13 +542,16 @@ def execute_token_plan(
                 "started_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
             })
             sent += 1
+            uncertain_response = False
             try:
                 response = generate(prompts[ident], MODEL, plan["max_output_tokens"], plan["thinking_level"])
                 status, output, usage = _run_status(response)
             except Exception as exc:
                 status, output, usage = "error", None, {}
-                # Never repeat a failed or uncertain request automatically. The
-                # provider may already have billed the attempt.
+                uncertain_response = True
+                # The request may have reached Google and incurred billing.
+                # Preserve a durable error record, never automatically retry
+                # this task, and block the rest of the paid run.
                 error_type = (f"ProviderHTTP_{exc.status_code}"
                               if isinstance(exc, ProviderStatusError)
                               else type(exc).__name__)
@@ -564,6 +576,11 @@ def execute_token_plan(
                 raise ReplayError(
                     "Provider-reported usage exceeded the approved input/output "
                     "reservation; no further paid requests were issued"
+                )
+            if uncertain_response:
+                raise ReplayError(
+                    "Provider request or token accounting failed after intent "
+                    "publication; no further paid requests were issued"
                 )
         return {
             "schema_version": "graphwalks-paid-run-summary-v1",
