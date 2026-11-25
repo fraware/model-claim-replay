@@ -36,6 +36,18 @@ class CampaignArchiveIntegrityTests(unittest.TestCase):
             self.assertIsNone(report["overall"]["full_selected_mean_f1"])
             self.assertEqual(report["known_usage_cost_estimate_usd"], derived["conservative_usage_cost_estimate_usd"])
             self.assertFalse(report["published_claim_reproduced"])
+            outcomes = [json.loads(z.read(f"task-{i:02d}-outcome.json")) for i in range(1, 17)]
+            self.assertEqual(len(outcomes), derived["selected"])
+
+        website = ROOT / "website" / "graphwalks-openai-campaign.json"
+        self.assertEqual(website.read_bytes(), SUMMARY.read_bytes())
+        page = (ROOT / "website" / "graphwalks.html").read_text()
+        self.assertNotIn("awaits separate execution authorization", page)
+        self.assertIn('id="openai-campaign"', page)
+        self.assertIn(derived["run"], page)
+        self.assertIn(derived["original_archive_path"], page)
+        for task in derived["tasks"]:
+            self.assertIn(f'?task={task["id"]}#audit', page)
 
 
 if __name__ == "__main__":

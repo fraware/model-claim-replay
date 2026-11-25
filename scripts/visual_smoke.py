@@ -96,6 +96,14 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 assert "355,124" in openai.inner_text()
                                 assert "$2.26103" in openai.inner_text()
                                 assert "historical preflight was non-generative" in openai.inner_text()
+                                campaign = page.locator("#openai-campaign")
+                                assert campaign.is_visible()
+                                for phrase in ("0.875", "8 graded / 16 selected", "8 context-blocked", "7 / 8", "$11.490975", "No full-cohort mean"):
+                                    assert phrase in campaign.inner_text()
+                                assert campaign.locator("tbody tr").count() == 8
+                                assert campaign.get_by_text("Parser failure; withheld").count() == 1
+                                assert campaign.get_by_text("Derived campaign summary (JSON)").get_attribute("href") == "./graphwalks-openai-campaign.json"
+                                assert campaign.get_by_text("Original campaign archive").get_attribute("href") == "https://github.com/fraware/model-claim-replay/blob/main/evidence/graphwalks/openai-campaign-paid-evidence-2026-11-24.zip"
                                 first_result = page.locator("#openai-result")
                                 for phrase in ("All 9 reference nodes recovered", "255,598", "572", "$1.28943", "does not estimate model-wide accuracy"):
                                     assert phrase in first_result.inner_text()
@@ -183,6 +191,10 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                 assert "100 of 200 public candidate prompts exceed" in featured.inner_text()
                                 assert "1,048,576 tokens" in featured.inner_text()
                                 assert "No model generation" in featured.inner_text()
+                                campaign = page.locator("#campaign-evidence")
+                                assert campaign.is_visible()
+                                assert "8 graded of 16 selected" in campaign.inner_text()
+                                assert campaign.get_by_text("Inspect campaign evidence").get_attribute("href") == "./graphwalks.html#openai-campaign"
                                 first_result = page.locator("#openai-evidence")
                                 assert "9 / 9 nodes" in first_result.inner_text()
                                 assert first_result.get_by_text("Inspect the model result").get_attribute("href") == "./graphwalks.html#openai-result"
