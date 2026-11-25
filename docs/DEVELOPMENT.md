@@ -61,3 +61,11 @@ The core CLI has no third-party runtime dependencies. The Inspect, GraphWalks an
 Known advisories and audit failures fail the job; no automatic fixes or ignored advisory IDs are configured. Download the `dependency-audit` artifact for the resolved package list and JSON findings. This is a point-in-time advisory scan on Linux/Python 3.12, not a hash-locked research environment, a source-code security review, an audit of every historical environment or a check of browser binaries, build-only dependencies and OS libraries. The separately pinned upstream Chartography checkout retains its own dependency graph. Record and review exact environment versions for research runs.
 
 Weekly Dependabot proposals cover Python manifests and Actions references. Review dependency changes against CI, supported Python versions and historical paid execution controls. Do not auto-merge upgrades. Existing Actions release tracks are version references, not immutable commit pins.
+
+## Release candidate packages
+
+The cross-platform CI job builds a source distribution and a wheel from that distribution on Linux, macOS and Windows. Each wheel is installed into a clean environment with `--no-index --no-deps`; the actual executable creates and verifies the synthetic demonstration. The artifact includes both packages and a SHA-256 receipt with the tested source revision, Python version, platform and automated timing.
+
+This is an automated maintainer check, not one of the five independent developer sessions. The artifacts are release candidates, not a published tag or PyPI release. Builds still resolve the build frontend/backend; byte-identical rebuilds are not claimed. The historical evidence verification command is a separate repository-checkout operation, not bundled into the base wheel.
+
+Git attributes enforce canonical LF checkout for text evidence and fixtures on every platform. ZIP archives are binary; their bytes are never normalized. Do not refresh pinned digests to accommodate platform line-ending conversion.

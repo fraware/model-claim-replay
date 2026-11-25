@@ -26,6 +26,6 @@ Start with the guide that matches your objective. Current user guides are separa
 
 ## Maintainer records
 
-[Roadmap](ROADMAP.md) · [Release acceptance](RELEASE_ACCEPTANCE.md) · [Automation lifecycle](WORKFLOWS.md) · [Changelog](../CHANGELOG.md)
+[Roadmap](ROADMAP.md) · [Release acceptance](RELEASE_ACCEPTANCE.md) · [Automation lifecycle](WORKFLOWS.md) · [Changelog](../CHANGELOG.md) · [Draft v0.1.0 release notes](RELEASE_NOTES_DRAFT.md)
 
 The evidence archives and authorization records are immutable historical records. Current instructions live in their corresponding guides. A successful technical check alone does not establish independent review or reproduction of a publisher score.

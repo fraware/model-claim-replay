@@ -1,0 +1,12 @@
+# Canonical text bytes are part of the evidence and fixture contracts.
+# In particular, Windows checkout must not rewrite LF to CRLF.
+* text=auto eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.txt text eol=lf
+*.svg text eol=lf
+*.zip binary
+*.png binary
+*.whl binary
+*.gz binary
+*.parquet binary
