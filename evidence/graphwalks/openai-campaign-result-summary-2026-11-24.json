@@ -6,7 +6,7 @@
   "artifact_id": 14933441865,
   "artifact_size_bytes": 37801,
   "artifact_sha256": "f6a2dc1af63a5f50be087f1db45de0145a7880ac527852ebf0be0d9ef8a3d113",
-  "original_archive_permanently_committed": false,
+  "original_archive_permanently_committed": true,
   "preflight_archive_sha256": "622dc133c231e7f14562037f4d2094916054aae991b43fd83ab31dcbf27ac853",
   "plan_sha256": "8ef51beca6c5688634f75a54f4a38b28c6e079d7ef331595ec144d3c50133511",
   "reference_index_sha256": "250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee",
@@ -102,5 +102,6 @@
       "estimated_usd": "1.2826",
       "score_recomputed_from_disclosed_line": true
     }
-  ]
+  ],
+  "original_archive_path": "evidence/graphwalks/openai-campaign-paid-evidence-2026-11-24.zip"
 }

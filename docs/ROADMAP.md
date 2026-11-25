@@ -8,7 +8,7 @@ The pre-release CLI supports portable text evaluation, offline fixtures, Inspect
 
 ## Release candidate
 
-- Preserve the original campaign ZIP permanently; its digest, observed outcomes and seven disclosed-score cross-checks are documented.
+- The original campaign ZIP is retained in Git; its digest, observed outcomes and seven disclosed-score cross-checks are documented.
 - Review all user-facing documentation and install paths; collect five independent developer attempts.
 - Obtain external score review; explicitly record any inaccessible evidence.
 - Complete the [release acceptance gates](RELEASE_ACCEPTANCE.md), then publish the release candidate.

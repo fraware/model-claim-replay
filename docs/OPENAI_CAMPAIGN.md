@@ -38,7 +38,7 @@ f6a2dc1af63a5f50be087f1db45de0145a7880ac527852ebf0be0d9ef8a3d113
 
 A separate local computation checked the downloaded artifact, reference-index bytes, source prompt commitments, exact fresh preflight, intent/outcome records, per-task usage and all disclosed final lines. Seven of eight graded answers independently score 1.0. The original runner recorded one noncanonical answer with parser failure and F1 0; its final line was withheld under the publication policy. The 0.875 mean includes that recorded zero and is not fully independently recomputed. No aggregate F1 exists for all 16 tasks. The estimate is not an invoice; full-answer extraction fidelity and provider origin are not authenticated. No third-party reviewer has reported a result.
 
-[Derived machine-readable summary](../evidence/graphwalks/openai-campaign-result-summary-2026-11-24.json) lists the task scores and usage. The original archive is currently retained by GitHub Actions; its permanent repository copy is outstanding. Preserve the original ZIP before expiry; do not reconstruct its bytes from the summary.
+[Derived machine-readable summary](../evidence/graphwalks/openai-campaign-result-summary-2026-11-24.json) lists the task scores and usage. The [original byte-identical campaign ZIP](../evidence/graphwalks/openai-campaign-paid-evidence-2026-11-24.zip) is retained in Git. Its SHA-256 matches the original Actions artifact; the summary is a derived record, not a reconstruction of the archive.
 
 ## Historical paid execution protocol
 
@@ -54,7 +54,7 @@ The runner stops admitting new generation requests after 290 minutes from its st
 
 ## Offline campaign journal verification
 
-After obtaining the original campaign artifact, extract its ZIP into an empty directory, and use the independently regenerated, pinned reference index:
+Download the [retained original campaign ZIP](../evidence/graphwalks/openai-campaign-paid-evidence-2026-11-24.zip) and extract it into an empty directory, and use the independently regenerated, pinned reference index:
 
 ```bash
 python scripts/verify_openai_campaign.py \
