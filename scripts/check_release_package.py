@@ -16,16 +16,68 @@ import re
 import subprocess
 import sys
 import tempfile
+import tarfile
 import time
 import venv
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def run_command(args: list[str], cwd: Path, env: dict[str, str]) -> None:
     subprocess.run(args, cwd=cwd, env=env, check=True, timeout=600)
+
+
+def extract_source_snapshot(sdist: Path, dest: Path, env: dict[str, str]) -> int:
+    """Verify every tracked repository file and extract regular members only.
+
+    CI builds from a clean Git checkout. Generated setuptools metadata is
+    the only allowed extra content. A changed or omitted tracked file fails.
+    """
+    tracked = set(subprocess.check_output(
+        ["git", "ls-files", "-z"], cwd=ROOT, env=env, timeout=60,
+    ).decode("utf-8").rstrip("\0").split("\0"))
+    if not tracked or "" in tracked:
+        raise RuntimeError("Empty tracked source inventory")
+    found: set[str] = set()
+    dest.mkdir()
+    with tarfile.open(sdist, "r:gz") as archive:
+        seen: set[str] = set()
+        for member in archive:
+            name = PurePosixPath(member.name)
+            parts = name.parts
+            if (not parts or name.is_absolute() or ".." in parts
+                    or "\\" in member.name or ":" in member.name
+                    or parts[0] != sdist.name.removesuffix(".tar.gz")):
+                raise RuntimeError(f"Unexpected source archive path: {member.name}")
+            if member.isdir():
+                continue
+            if not member.isfile() or len(parts) < 2:
+                raise RuntimeError(f"Unexpected source archive member: {member.name}")
+            relative = PurePosixPath(*parts[1:]).as_posix()
+            if relative in seen:
+                raise RuntimeError(f"Duplicate source archive member: {relative}")
+            seen.add(relative)
+            file = archive.extractfile(member)
+            if file is None:
+                raise RuntimeError(f"Unreadable source archive member: {relative}")
+            raw = file.read()
+            if relative in tracked:
+                if raw != (ROOT / relative).read_bytes():
+                    raise RuntimeError(f"Source archive bytes differ: {relative}")
+                found.add(relative)
+            elif relative not in {"PKG-INFO", "setup.cfg"} and not re.fullmatch(
+                r"src/model_claim_replay\.egg-info/(?:PKG-INFO|SOURCES\.txt|dependency_links\.txt|entry_points\.txt|requires\.txt|top_level\.txt)",
+                relative,
+            ):
+                raise RuntimeError(f"Unexpected untracked source member: {relative}")
+            target = dest.joinpath(*parts[1:])
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(raw)
+    if found != tracked:
+        raise RuntimeError(f"Source archive omitted tracked files: {sorted(tracked - found)}")
+    return len(found)
 
 
 def verify_package(out: Path, revision: str) -> None:
@@ -75,6 +127,9 @@ def verify_package(out: Path, revision: str) -> None:
         if not (work / "first-run" / "report.html").is_file():
             raise RuntimeError("Missing installed-demo report")
         elapsed = time.monotonic() - start
+        source = work / "source-snapshot"
+        tracked_count = extract_source_snapshot(sdist, source, env)
+        run_command([str(python), "scripts/verify_archived_evidence.py"], source, env)
     receipt = {
         "schema_version": "release-package-check-v1",
         "revision": revision,
@@ -86,6 +141,8 @@ def verify_package(out: Path, revision: str) -> None:
         },
         "offline_wheel_install_and_demo_verified": True,
         "automated_install_and_demo_seconds": round(elapsed, 3),
+        "source_snapshot_tracked_files_verified": tracked_count,
+        "source_snapshot_archived_evidence_verified": True,
         "demo_kind": "synthetic",
         "external_user_session": False,
         "public_release_published": False,

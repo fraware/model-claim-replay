@@ -1,0 +1,25 @@
+# Public repository source snapshot; keep wheels limited to package resources.
+include .gitattributes .gitignore CHANGELOG.md CONTRIBUTING.md SECURITY.md requirements-audit.txt
+recursive-include .github *.yml *.md
+recursive-include claims *.json
+recursive-include docs *.md
+recursive-include examples *.jsonl
+recursive-include scripts *.py
+recursive-include tests *.py
+recursive-include website *.html *.css *.js *.json *.svg *.xml *.txt
+# Explicit historical public evidence allowlist. Never include local journals.
+include evidence/graphwalks/REFERENCE_INDEX.md
+include evidence/graphwalks/gemini-4-neon-full-200-token-plan-2026-11-23.json
+include evidence/graphwalks/gemini-4-neon-two-task-token-plan-2026-11-23.json
+include evidence/graphwalks/openai-campaign-authorization-2026-11-24.json
+include evidence/graphwalks/openai-campaign-paid-evidence-2026-11-24.zip
+include evidence/graphwalks/openai-campaign-preflight-2026-11-24.zip
+include evidence/graphwalks/openai-campaign-result-summary-2026-11-24.json
+include evidence/graphwalks/openai-campaign-v1.json
+include evidence/graphwalks/openai-first-generation-authorization.json
+include evidence/graphwalks/openai-first-generation-2026-11-24/README.md
+include evidence/graphwalks/openai-first-generation-2026-11-24/original-actions-artifact.zip
+include evidence/graphwalks/verified-bfs-reference-index.zip
+global-exclude *.pyc *.pyo *.pem *.key .env .env.*
+prune .runs
+prune .venv
