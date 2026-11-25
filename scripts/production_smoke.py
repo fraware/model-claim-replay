@@ -16,11 +16,13 @@ from urllib.request import Request, urlopen
 ORIGIN = "https://fraware.github.io/model-claim-replay/"
 ASSETS = (
     "index.html", "graphwalks.html", "check.html",
-    "style.css", "app.js", "graphwalks.css", "graphwalks.js",
+    "base.css", "style.css", "app.js", "graphwalks.css", "graphwalks.js",
     "check.css", "check.js", "graphwalks-audit.json",
     "graphwalks-control.json", "graphwalks-gemini-feasibility.json",
     "graphwalks-openai-preflight.json", "graphwalks-openai-result.json",
     "graphwalks-openai-campaign.json", "graphwalks-input-feasibility.svg",
+    "fonts/IBMPlexSans-Regular.woff2", "fonts/IBMPlexSans-Medium.woff2", "fonts/IBMPlexSans-SemiBold.woff2", "fonts/IBMPlexSans-Bold.woff2", "fonts/IBMPlexMono-Regular.woff2", "fonts/IBMPlexMono-Bold.woff2",
+    "fonts/LICENSE.txt", "fonts/NOTICE.txt",
 )
 
 
@@ -86,6 +88,11 @@ def run(site: Path, out: Path, revision: str) -> None:
                                              wait_until="load", timeout=30_000)
                         assert response is not None and response.status == 200
                         page.locator(target).wait_for(state="visible")
+                        assert page.evaluate("""async () => {
+                            await document.fonts.ready;
+                            const faces = await document.fonts.load('400 16px "IBM Plex Sans"');
+                            return faces.length > 0 && faces.every(face => face.status === "loaded");
+                        }""")
                         if name == "graphwalks":
                             text = page.locator(target).inner_text()
                             assert "0.875" in text

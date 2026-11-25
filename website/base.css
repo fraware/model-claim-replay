@@ -1,0 +1,86 @@
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("./fonts/IBMPlexSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("./fonts/IBMPlexSans-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("./fonts/IBMPlexSans-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("./fonts/IBMPlexSans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./fonts/IBMPlexMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("./fonts/IBMPlexMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Shared interface tokens: neutral surfaces, blue actions, rust warnings.
+   IBM Plex Sans for reading; IBM Plex Mono for machine identifiers. */
+:root {
+  --ink: #17212d;
+  --muted: #526071;
+  --line: #d5dce5;
+  --surface: #f4f6f9;
+  --white: #ffffff;
+  --accent: #174ea6;
+  --accent-hover: #103b81;
+  --accent-soft: #eaf1fc;
+  --warning: #963b16;
+  --warning-soft: #fff1e8;
+  --sans: "IBM Plex Sans", Arial, Helvetica, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: auto; }
+body { margin: 0; background: var(--white); color: var(--ink); font: 16px/1.6 var(--sans); font-synthesis: none; }
+h1,h2,h3,p { margin: 0; }
+h1,h2,h3 { font-weight: 600; line-height: 1.18; letter-spacing: -.022em; }
+h1 { font-size: clamp(34px,4.3vw,52px); }
+h2 { font-size: clamp(25px,2.5vw,32px); }
+h3 { font-size: 20px; }
+code,pre,kbd,samp { font-family: var(--mono); }
+button,input,select,textarea { font-family: var(--sans); }
+em,i { font-style: normal; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+button,input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .55; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.wrap { max-width: 1180px; padding-left: 32px; padding-right: 32px; margin: 0 auto; }
+.skip { position: absolute; left: 10px; top: -70px; z-index: 20; padding: 10px; background: var(--white); }
+.skip:focus { top: 10px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 17px; font-weight: 600; white-space: nowrap; }
+.brand-mark { font: 700 17px var(--mono); color: var(--accent); }
+.brand:hover { text-decoration: none; }
+@media (max-width: 700px) {
+  .wrap { padding-left: 20px; padding-right: 20px; }
+}
+
