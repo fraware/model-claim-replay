@@ -21,4 +21,6 @@ Install from the repository with Python 3.10+ and Git; run `claim-replay demo`. 
 
 The narrow Inspect importer does not support arbitrary evaluators; private Chartography access and publisher protocols remain unresolved. External developer and score review have not been completed. See the [independent reviewer guide](REVIEWER_GUIDE.md). The release must not be represented as validated by independent users until that evidence is recorded.
 
+See the [technical candidate record](RELEASE_CANDIDATE_RECORD.md) for the validated baseline revision and exact package commitments.
+
 Before creating a tag, record the exact approved revision, successful CI and production runs, package hashes, and remaining release-gate decisions. Publish only the reviewed artifacts. Do not trigger any paid experiment in a release workflow.
