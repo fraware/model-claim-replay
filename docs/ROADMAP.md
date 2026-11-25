@@ -4,7 +4,7 @@
 
 ## Current implementation
 
-The pre-release CLI supports portable text evaluation, offline fixtures, Inspect log import and paired comparisons, local hash checking and report generation. The website exposes the pinned public GraphWalks audit, Gemini input feasibility and one real OpenAI diagnostic. A separate [16-task OpenAI campaign](OPENAI_CAMPAIGN.md#observed-results) completed eight generations and recorded conditional F1 0.875, with eight context exclusions. Seven disclosed scores were independently recomputed; one malformed answer was withheld. The offline campaign journal verifier is implemented.
+The pre-release CLI supports portable text evaluation, offline fixtures, Inspect log import and paired comparisons, local hash checking and report generation. The website exposes the pinned public GraphWalks audit, Gemini input feasibility, the original OpenAI pilot and the completed OpenAI campaign. A separate [16-task OpenAI campaign](OPENAI_CAMPAIGN.md#observed-results) completed eight generations and recorded conditional F1 0.875, with eight context exclusions. Seven disclosed scores were independently recomputed; one malformed answer was withheld. The offline campaign journal verifier is implemented.
 
 ## Release candidate
 

@@ -5,6 +5,7 @@ on:
     paths:
       - 'website/**'
       - '.github/workflows/pages.yml'
+      - 'scripts/production_smoke.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,3 +34,32 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  verify-public:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install browser
+        run: |
+          python -m pip install 'playwright>=1.56,<2'
+          python -m playwright install --with-deps chromium
+      - name: Verify actual public deployment
+        run: python scripts/production_smoke.py --site website --out .runs/production-smoke --revision "$GITHUB_SHA"
+      - name: Retain deployment verification and screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: production-smoke
+          path: .runs/production-smoke/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30
