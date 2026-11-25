@@ -1,0 +1,59 @@
+name: Stage original public reference index (temporary branch)
+on:
+  push:
+    branches:
+      - evidence/retain-pinned-source-index
+    paths:
+      - '.github/workflows/archive-source-index-once.yml'
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: stage-original-reference-index
+  cancel-in-progress: false
+jobs:
+  stage:
+    if: ${{ github.repository == 'fraware/model-claim-replay' && github.ref == 'refs/heads/evidence/retain-pinned-source-index' && github.event_name == 'push' && github.run_attempt == 1 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify original public source audit artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/fraware/model-claim-replay/actions/artifacts/14632384711/zip > "$RUNNER_TEMP/index.zip"
+          test "$(wc -c < "$RUNNER_TEMP/index.zip")" -eq 881178
+          printf '%s  %s\n' cf2d078035f3a4fe5a93aeaf8cf06f1c170751bc3e4fc2f2cd68a66a380bb9fe "$RUNNER_TEMP/index.zip" | sha256sum -c -
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import zipfile
+          with zipfile.ZipFile(Path(os.environ["RUNNER_TEMP"]) / "index.zip") as z:
+              names = z.namelist()
+              assert len(names) == 2 and set(names) == {"graphwalks-bfs-reference-index.jsonl", "manifest.json"}
+              raw = z.read("graphwalks-bfs-reference-index.jsonl")
+              assert hashlib.sha256(raw).hexdigest() == "250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee"
+              rows = [json.loads(line) for line in raw.splitlines()]
+              assert len(rows) == len({r["id"] for r in rows}) == 200
+              assert all(r["problem_type"] == "bfs" and "prompt" not in r for r in rows)
+          PY
+      - name: Commit only the verified original ZIP on staging branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(gh api 'repos/fraware/model-claim-replay/git/ref/heads/evidence/retain-pinned-source-index' --jq .object.sha)"
+          test "$current" = "$GITHUB_SHA"
+          python - <<'PY' > "$RUNNER_TEMP/payload.json"
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          print(json.dumps({"message": "Retain original pinned public BFS reference index", "branch": "evidence/retain-pinned-source-index", "content": base64.b64encode((Path(os.environ["RUNNER_TEMP"]) / "index.zip").read_bytes()).decode("ascii")}))
+          PY
+          gh api --method PUT 'repos/fraware/model-claim-replay/contents/evidence/graphwalks/verified-bfs-reference-index.zip' --input "$RUNNER_TEMP/payload.json" --jq '.commit.sha'
