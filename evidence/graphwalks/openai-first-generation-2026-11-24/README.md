@@ -20,6 +20,8 @@ The downloaded bytes were independently hashed and matched GitHub's digest. The 
 
 ## Recompute the disclosed-line score
 
+For a fully offline checkout, run `python scripts/verify_archived_evidence.py` after `python -m pip install -e .`. The [permanently retained source archive](../REFERENCE_INDEX.md) supplies the original reference index.
+
 Use the [source-audit artifact](https://github.com/fraware/model-claim-replay/actions/runs/44746523023), which contains the pinned 200-task BFS reference index. That downloaded source archive independently matched GitHub's SHA-256 `cf2d078035f3a4fe5a93aeaf8cf06f1c170751bc3e4fc2f2cd68a66a380bb9fe`. The index SHA-256 is `250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee`.
 
 If the source artifact expires, regenerate the index from the pinned public Parquet using the repository's source auditor:
@@ -40,4 +42,4 @@ Run from repository root. The ZIP extraction path must be a new directory. No Op
 
 ## Scope
 
-The workflow verifier agreed with a second calculation using separately downloaded, hash-checked artifacts in a separate environment. No external reviewer has yet reported a result. The full answer digest differs from the final-line digest, so extraction fidelity to the undisclosed answer is not proven by this archive. Provider execution and actual billed amount are not independently authenticated; cost is a conservative estimate. One public candidate task cannot establish population accuracy, absence of benchmark contamination, or equivalence to Google's evaluation. The [follow-up cohort](https://github.com/fraware/model-claim-replay/issues/42) is prespecified and not executed.
+The workflow verifier agreed with a second calculation using separately downloaded, hash-checked artifacts in a separate environment. No external reviewer has yet reported a result. The full answer digest differs from the final-line digest, so extraction fidelity to the undisclosed answer is not proven by this archive. Provider execution and actual billed amount are not independently authenticated; cost is a conservative estimate. One public candidate task cannot establish population accuracy, absence of benchmark contamination, or equivalence to Google's evaluation. The separate [follow-up cohort](../../../docs/OPENAI_CAMPAIGN.md#observed-results) completed eight generations; its results are reported separately.
