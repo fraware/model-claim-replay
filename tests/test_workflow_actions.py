@@ -8,9 +8,9 @@ from pathlib import Path
 
 WORKFLOWS = Path(__file__).resolve().parents[1] / ".github" / "workflows"
 NODE24_VERSIONS = {
-    "checkout": "v5",
-    "setup-python": "v6",
-    "upload-artifact": "v6",
+    "checkout": "v7",
+    "setup-python": "v7",
+    "upload-artifact": "v7",
     "configure-pages": "v6",
     "upload-pages-artifact": "v5",
     "deploy-pages": "v5",

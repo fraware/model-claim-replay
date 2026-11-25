@@ -1,5 +1,6 @@
 """Regression checks for non-generative CI dependency maintenance."""
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -8,7 +9,9 @@ ROOT = Path(__file__).resolve().parents[1]
 class DependencyHygieneTests(unittest.TestCase):
     def test_all_ordinary_checkouts_disable_credential_persistence(self):
         ci = (ROOT / ".github/workflows/ci.yml").read_text()
-        for checkout in ci.split("uses: actions/checkout@v5")[1:]:
+        checkouts = re.split(r"uses: actions/checkout@[^\s]+", ci)[1:]
+        self.assertTrue(checkouts, "No checkout steps found")
+        for checkout in checkouts:
             self.assertIn("persist-credentials: false", checkout.split("\n      - ", 1)[0])
 
     def test_audit_is_separate_and_not_suppressed(self):
