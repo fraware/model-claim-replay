@@ -37,15 +37,15 @@ claim-replay evaluate \
   --claim claims/demo-text-exact-match.json \
   --tasks examples/demo-tasks.jsonl \
   --responses examples/demo-responses.jsonl \
-  --model fixture-model --out .runs/demo
-claim-replay verify .runs/demo \
+  --model fixture-model --out .runs/imported-fixture
+claim-replay verify .runs/imported-fixture \
   --claim claims/demo-text-exact-match.json --tasks examples/demo-tasks.jsonl
-claim-replay report .runs/demo \
+claim-replay report .runs/imported-fixture \
   --claim claims/demo-text-exact-match.json --tasks examples/demo-tasks.jsonl \
-  --format html --output .runs/demo.html
+  --format html --output .runs/imported-fixture.html
 ```
 
-Open `.runs/demo.html` in any browser. The **2/3 score is synthetic**, and the output is explicitly marked self-reported. The report never presents the fixture as independent evidence of a real model's performance.
+Open `.runs/imported-fixture.html` in any browser. The **2/3 score is synthetic**, and the output is explicitly marked self-reported. The report never presents the fixture as independent evidence of a real model's performance.
 
 Run commands referring to `claims/` or `examples/` from the repository root. For the following optional integrations, install the relevant extras from that checkout.
 

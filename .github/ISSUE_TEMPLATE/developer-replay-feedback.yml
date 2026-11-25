@@ -12,6 +12,24 @@ body:
       placeholder: "e.g. Ubuntu 24.04, Python 3.12"
     validations:
       required: true
+  - type: input
+    id: revision
+    attributes:
+      label: Tested Git commit or package version
+      description: Record the commit from the checkout or the revision specified in the invitation. If unknown, enter unknown.
+    validations:
+      required: true
+  - type: dropdown
+    id: installation_path
+    attributes:
+      label: Installation path
+      options:
+        - Git checkout and editable install
+        - Git URL pip install
+        - Candidate wheel
+        - Other
+    validations:
+      required: true
   - type: dropdown
     id: result
     attributes:

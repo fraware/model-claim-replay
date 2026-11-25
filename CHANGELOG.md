@@ -10,6 +10,10 @@ The package currently reports version 0.1.0. The entries below describe reposito
 - Completed the frozen 16-task OpenAI campaign: eight graded, eight context-blocked; recorded conditional F1 0.875. Seven disclosed scores were independently recomputed; one parser failure was withheld. Added the campaign journal verifier.
 - Simplified the documentation entry point and separated onboarding, usage, research dossiers and maintainer procedures.
 
+- Retained the original source-index archive and added a unified offline verification command for both OpenAI experiments.
+- Added production website checks, dependency advisory scans, canonical checkout bytes and cross-platform package validation.
+- Prepared separate independent developer and research-review protocols.
+
 ### Earlier foundation
 
 - Dependency-free portable-text CLI, synthetic demo, evidence bundle verification and HTML/JSON reporting.

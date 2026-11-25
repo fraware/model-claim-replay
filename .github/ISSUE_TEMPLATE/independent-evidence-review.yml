@@ -1,0 +1,56 @@
+name: Independent evidence review
+description: Report your own offline verification of the archived OpenAI diagnostics.
+title: "[Evidence review]: "
+body:
+  - type: markdown
+    attributes:
+      value: "Review the public archives locally. No model calls, credentials, private answers, or positive endorsement requested. Report failures, discrepancies and inaccessible evidence."
+  - type: input
+    id: revision
+    attributes:
+      label: Exact tested Git revision
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system and Python version
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Review outcome
+      options:
+        - Both archive verifiers completed
+        - Verification failed
+        - Partial verification only
+        - Did not attempt
+    validations:
+      required: true
+  - type: textarea
+    id: observations
+    attributes:
+      label: Observed counts, scores and limitations
+      description: Record your actual observations and any disagreements. Distinguish disclosed-score recomputation from provider and full-answer authentication.
+    validations:
+      required: true
+  - type: textarea
+    id: method
+    attributes:
+      label: Verification method
+      description: Describe commands, independent calculations, code revision and evidence files used.
+    validations:
+      required: true
+  - type: textarea
+    id: relationship
+    attributes:
+      label: Relevant involvement or conflicts of interest
+      description: Disclose prior participation in this project or these experiments, or state none.
+    validations:
+      required: true
+  - type: textarea
+    id: blockers
+    attributes:
+      label: Errors, restrictions or unresolved questions
+      description: Do not include credentials, private data, or undisclosed full answers.

@@ -11,7 +11,7 @@ Model Claim Replay is an open-source CLI and static evidence explorer for auditi
 - Separate 16-task GPT-6.2 Sol campaign: eight graded, eight context-blocked. Recorded conditional mean F1 0.875. Seven disclosed scores recomputed, one parser failure withheld.
 - Deterministic BFS reference control: all 200 tasks F1 1.0, zero model calls.
 
-The original experiment archives are retained in Git. No publisher aggregate is reproduced, and provider origin, full-answer extraction and invoice accuracy are not independently authenticated. See [campaign evidence](OPENAI_CAMPAIGN.md) and [methodology](METHODOLOGY.md).
+The original experiment archives and pinned source reference index are retained in Git. From an installed source checkout, run `python scripts/verify_archived_evidence.py` to verify the disclosed scores offline. No publisher aggregate is reproduced, and provider origin, full-answer extraction and invoice accuracy are not independently authenticated. See [campaign evidence](OPENAI_CAMPAIGN.md) and [methodology](METHODOLOGY.md).
 
 ## Installation and validation
 
@@ -19,6 +19,6 @@ Install from the repository with Python 3.10+ and Git; run `claim-replay demo`. 
 
 ## Known limits
 
-The narrow Inspect importer does not support arbitrary evaluators; private Chartography access and publisher protocols remain unresolved. External developer and score review have not been completed. The release must not be represented as validated by independent users until that evidence is recorded.
+The narrow Inspect importer does not support arbitrary evaluators; private Chartography access and publisher protocols remain unresolved. External developer and score review have not been completed. See the [independent reviewer guide](REVIEWER_GUIDE.md). The release must not be represented as validated by independent users until that evidence is recorded.
 
 Before creating a tag, record the exact approved revision, successful CI and production runs, package hashes, and remaining release-gate decisions. Publish only the reviewed artifacts. Do not trigger any paid experiment in a release workflow.
