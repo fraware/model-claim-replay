@@ -37,7 +37,7 @@ python scripts/check_browser.py --site website
 python -m pip wheel . --no-deps --wheel-dir .runs/wheels
 ```
 
-CI installs the built wheel in an unrelated directory, executes the offline demo and verifies its bundle. The website is static HTML/CSS/JS; browser tests cover desktop/mobile layouts, interactions and local file checks. GitHub Pages deployment is separate from browser test success.
+CI installs the built wheel in an unrelated directory, executes the offline demo and verifies its bundle. The website is static HTML/CSS/JS; browser tests cover desktop/mobile layouts, interactions and local file checks. GitHub Pages deployment is separate from browser test success. Its read-only post-deployment job compares the actual public HTML, scripts, styles and evidence assets byte-for-byte with the checkout, then opens the three public pages in Chromium at desktop and mobile widths. The `production-smoke` artifact retains asset hashes and screenshots. This is a maintainer-run production check, not independent user testing.
 
 ## Repository layout
 
