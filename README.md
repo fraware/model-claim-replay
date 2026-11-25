@@ -38,6 +38,8 @@ Our first investigation examines the public [GraphWalks](https://huggingface.co/
 
 The GPT-6.2 Sol result has an [original execution archive](evidence/graphwalks/openai-first-generation-2026-11-24/original-actions-artifact.zip) and [offline verification instructions](evidence/graphwalks/openai-first-generation-2026-11-24/README.md). Its disclosed final answer was rescored from the pinned reference. Full-answer extraction, provider execution and invoices are not independently authenticated. The separate [16-task campaign](docs/OPENAI_CAMPAIGN.md#observed-results) completed eight generations: seven disclosed scores were independently recomputed as F1 1.0; the recorded parser failure (F1 0) is withheld from rescoring. Eight longer tasks were blocked. [Original campaign archive](evidence/graphwalks/openai-campaign-paid-evidence-2026-11-24.zip). No score is reported for the entire 16-task cohort.
 
+Recompute the disclosed scores offline from a repository checkout: `python -m pip install -e .` followed by `python scripts/verify_archived_evidence.py`. [Pinned source archive and verification scope](evidence/graphwalks/REFERENCE_INDEX.md).
+
 **No publisher aggregate has been reproduced.** The candidate data, model and protocol are insufficient to claim replication of Google's 95.2% Gemini score. Neither OpenAI diagnostic estimates population accuracy.
 
 ## What you get

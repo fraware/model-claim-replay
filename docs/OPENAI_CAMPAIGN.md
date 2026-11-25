@@ -54,6 +54,8 @@ The runner stops admitting new generation requests after 290 minutes from its st
 
 ## Offline campaign journal verification
 
+From the repository root, install the base package with `python -m pip install -e .`, then run `python scripts/verify_archived_evidence.py`. This checks both original experiment archives against the [retained reference index](../evidence/graphwalks/REFERENCE_INDEX.md) locally, with no source download or API key. The direct journal-verifier invocation below remains available for independently regenerated indices.
+
 Download the [retained original campaign ZIP](../evidence/graphwalks/openai-campaign-paid-evidence-2026-11-24.zip) and extract it into an empty directory, and use the independently regenerated, pinned reference index:
 
 ```bash
