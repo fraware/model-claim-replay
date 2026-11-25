@@ -28,10 +28,43 @@
     </section>
     <section class="score-band"><div class="wrap score-grid">
       <div class="score"><span>01 / PUBLISHER-REPORTED</span><strong>95.2<small>% F1</small></strong><p>Gemini 4 Neon, reported by Google</p></div>
-      <div class="score"><span>02 / OPENAI DIAGNOSTIC · ONE TASK</span><strong>1.000<small> F1</small></strong><p>GPT-6.2 Sol; separate model and task</p></div>
+      <div class="score"><span>02 / OPENAI CAMPAIGN · GRADED SUBSET</span><strong>0.875<small> F1</small></strong><p>GPT-6.2 Sol; 8 graded of 16 selected</p></div>
       <div class="score"><span>03 / ALGORITHMIC CONTROL</span><strong>100<small>% F1</small></strong><p>Deterministic BFS; zero model inference calls</p></div>
       <div class="score"><span>04 / SOURCE TASKS VERIFIED</span><strong>200<small> / 200</small></strong><p>Public candidate BFS reference records</p></div>
     </div></section>
+    <section class="provider-panel wrap" id="openai-campaign" aria-labelledby="openai-campaign-heading">
+      <div class="control-header"><span>COMPLETED CAMPAIGN / 24 NOVEMBER 2026 UTC</span><span class="control-flag">16 PRESPECIFIED TASKS</span></div>
+      <div class="provider-layout">
+        <div class="provider-story">
+          <div class="eyebrow">GPT-6.2 SOL / GRAPHWALKS BFS</div>
+          <h2 id="openai-campaign-heading">Eight graded tasks. Eight blocked by the input limit.</h2>
+          <p>The recorded mean F1 is <strong>0.875 over the eight graded tasks</strong>. All seven disclosed final lines independently recompute to F1 = 1.0 against the reference index. The remaining graded response failed parsing; its recorded F1 is zero and the final line is withheld.</p>
+          <p class="provider-caveat">No full-cohort mean is reported for all 16 selected tasks. Context-blocked tasks are ungraded. Full-answer extraction, provider authentication, independent third-party review and actual billed cost remain unverified. No publisher claim reproduced.</p>
+          <div class="provider-links"><a href="https://github.com/fraware/model-claim-replay/blob/main/evidence/graphwalks/openai-campaign-paid-evidence-2026-11-24.zip">Original campaign archive</a><a href="./graphwalks-openai-campaign.json">Derived campaign summary (JSON)</a><a href="https://github.com/fraware/model-claim-replay/actions/runs/45414635584">Campaign Actions run</a><a href="https://github.com/fraware/model-claim-replay/blob/main/docs/OPENAI_CAMPAIGN.md#observed-results">Protocol and verification</a></div>
+        </div>
+        <div class="provider-figures" aria-label="Completed campaign measurements">
+          <div class="provider-figure"><span>RECORDED F1 / GRADED TASKS ONLY</span><strong>0.875</strong><p>8 graded / 16 selected · 8 context-blocked</p></div>
+          <div class="provider-figure"><span>DISCLOSED SCORES RECOMPUTED</span><strong>7 / 8</strong><p>One withheld parser failure</p></div>
+          <div class="provider-method"><span>CONSERVATIVE ESTIMATED USAGE COST</span><strong>$11.490975</strong><p>2,042,715 input · 63,870 output tokens</p></div>
+        </div>
+      </div>
+      <div class="campaign-table-wrap">
+        <table class="campaign-table">
+          <caption>Graded tasks in prespecified order. The eight blocked tasks are recorded in the original archive.</caption>
+          <thead><tr><th scope="col">Task</th><th scope="col">Recorded F1</th><th scope="col">Score evidence</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><a href="?task=bfs-row-000132#audit"><code>bfs-row-000132</code></a></th><td>1.000</td><td>Recomputed</td></tr>
+            <tr><th scope="row"><a href="?task=bfs-row-000155#audit"><code>bfs-row-000155</code></a></th><td>1.000</td><td>Recomputed</td></tr>
+            <tr><th scope="row"><a href="?task=bfs-row-000166#audit"><code>bfs-row-000166</code></a></th><td>1.000</td><td>Recomputed</td></tr>
+            <tr><th scope="row"><a href="?task=bfs-row-000190#audit"><code>bfs-row-000190</code></a></th><td>1.000</td><td>Recomputed</td></tr>
+            <tr><th scope="row"><a href="?task=bfs-row-000115#audit"><code>bfs-row-000115</code></a></th><td>0.000</td><td>Parser failure; withheld</td></tr>
+            <tr><th scope="row"><a href="?task=bfs-row-000145#audit"><code>bfs-row-000145</code></a></th><td>1.000</td><td>Recomputed</td></tr>
+            <tr><th scope="row"><a href="?task=bfs-row-000178#audit"><code>bfs-row-000178</code></a></th><td>1.000</td><td>Recomputed</td></tr>
+            <tr><th scope="row"><a href="?task=bfs-row-000124#audit"><code>bfs-row-000124</code></a></th><td>1.000</td><td>Recomputed</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section class="provider-panel wrap" id="openai-result" aria-labelledby="openai-result-heading">
       <div class="control-header"><span>LIVE MODEL GENERATION / 24 NOVEMBER 2026 UTC</span><span class="control-flag">ONE PRESPECIFIED SOURCE TASK</span></div>
       <div class="provider-layout">
@@ -128,8 +161,8 @@
       <div class="receipt-row"><span>200-TASK REFERENCE INDEX SHA-256</span><code>250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee</code></div>
       <div class="receipt-links"><a href="https://github.com/fraware/model-claim-replay/actions/runs/44746523023">Verified GitHub Actions run ↗</a><a href="https://huggingface.co/datasets/openai/graphwalks">Original MIT-licensed dataset ↗</a></div>
     </div></div></section>
-    <section class="next wrap"><div class="section-index"><span>THE NEXT EXPERIMENT / 003</span><span>FOLLOW-UP COHORT PRESPECIFIED</span></div><h2>Next model experiment</h2><div class="next-grid"><p>All 200 public candidate inputs have been counted by Gemini. OpenAI is the default for new general-purpose investigations; its first source-bound token-count preflight has succeeded. A one-task GPT-6.2 Sol generation has completed and the disclosed final line scores F1 = 1.0. The <a href="https://github.com/fraware/model-claim-replay/issues/42">prespecified 16-task follow-up</a> awaits separate execution authorization. No Gemini reproduction is asserted.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
+    <section class="next wrap"><div class="section-index"><span>RESEARCH STATUS / 003</span><span>FOLLOW-UP CAMPAIGN COMPLETED</span></div><h2>What remains unresolved</h2><div class="next-grid"><p>All 200 public candidate inputs have been counted by Gemini. OpenAI is the default for new general-purpose investigations; its first source-bound token-count preflight has succeeded. A one-task GPT-6.2 Sol generation has completed and the disclosed final line scores F1 = 1.0. The <a href="#openai-campaign">prespecified 16-task follow-up</a> completed eight generations; eight inputs exceeded the context limit. External review and the original publisher protocol remain unresolved. No Gemini reproduction is asserted.</p><div class="next-actions"><a class="primary" href="https://github.com/fraware/model-claim-replay/blob/main/docs/GRAPHWALKS_EXECUTION.md">See execution protocol <span>↗</span></a><a class="secondary" href="https://github.com/fraware/model-claim-replay">Explore the code <span>↗</span></a></div></div></section>
   </main>
-  <footer><div class="wrap footer"><strong>MODEL CLAIM REPLAY</strong><span>Real source data, algorithmic controls and one OpenAI diagnostic. No publisher claim reproduced.</span><a href="./index.html">Back to registry ↑</a></div></footer>
+  <footer><div class="wrap footer"><strong>MODEL CLAIM REPLAY</strong><span>Real source data, algorithmic controls and completed OpenAI diagnostics. No publisher claim reproduced.</span><a href="./index.html">Back to registry ↑</a></div></footer>
 </body>
 </html>

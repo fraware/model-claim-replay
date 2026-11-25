@@ -1,0 +1,107 @@
+{
+  "schema_version": "graphwalks-openai-campaign-derived-summary-v1",
+  "model": "gpt-6.2-sol",
+  "execution_commit": "494109df95d458e85654b3bdd0b662b0f502ee8c",
+  "run": "https://github.com/fraware/model-claim-replay/actions/runs/45414635584",
+  "artifact_id": 14933441865,
+  "artifact_size_bytes": 37801,
+  "artifact_sha256": "f6a2dc1af63a5f50be087f1db45de0145a7880ac527852ebf0be0d9ef8a3d113",
+  "original_archive_permanently_committed": true,
+  "preflight_archive_sha256": "622dc133c231e7f14562037f4d2094916054aae991b43fd83ab31dcbf27ac853",
+  "plan_sha256": "8ef51beca6c5688634f75a54f4a38b28c6e079d7ef331595ec144d3c50133511",
+  "reference_index_sha256": "250d80874ad9bc8edf278cf3bf7aa145da3f2b34967c5504b8fa8703358480ee",
+  "reference_archive_sha256": "cf2d078035f3a4fe5a93aeaf8cf06f1c170751bc3e4fc2f2cd68a66a380bb9fe",
+  "selected": 16,
+  "graded": 8,
+  "context_blocked": 8,
+  "parse_failures": 1,
+  "recorded_conditional_mean_f1": 0.875,
+  "full_selected_mean_f1": null,
+  "disclosed_scores_recomputed": 7,
+  "withheld_scores_not_recomputed": 1,
+  "input_tokens": 2042715,
+  "output_tokens": 63870,
+  "reserved_usd": "20.699335",
+  "conservative_usage_cost_estimate_usd": "11.490975",
+  "all_attempted_usage_accounted": true,
+  "provider_execution_authenticated": false,
+  "full_answer_extraction_verified": false,
+  "actual_invoice_verified": false,
+  "external_third_party_review": false,
+  "published_claim_reproduced": false,
+  "tasks": [
+    {
+      "id": "bfs-row-000132",
+      "input_tokens": 255158,
+      "output_tokens": 2099,
+      "reference_nodes": 63,
+      "f1": 1,
+      "estimated_usd": "1.31777",
+      "score_recomputed_from_disclosed_line": true
+    },
+    {
+      "id": "bfs-row-000155",
+      "input_tokens": 255652,
+      "output_tokens": 214,
+      "reference_nodes": 1,
+      "f1": 1,
+      "estimated_usd": "1.28254",
+      "score_recomputed_from_disclosed_line": true
+    },
+    {
+      "id": "bfs-row-000166",
+      "input_tokens": 255394,
+      "output_tokens": 9053,
+      "reference_nodes": 244,
+      "f1": 1,
+      "estimated_usd": "1.45803",
+      "score_recomputed_from_disclosed_line": true
+    },
+    {
+      "id": "bfs-row-000190",
+      "input_tokens": 255305,
+      "output_tokens": 43607,
+      "reference_nodes": 1507,
+      "f1": 1,
+      "estimated_usd": "2.148665",
+      "score_recomputed_from_disclosed_line": true
+    },
+    {
+      "id": "bfs-row-000115",
+      "input_tokens": 255255,
+      "output_tokens": 1913,
+      "reference_nodes": 1103,
+      "f1": 0,
+      "estimated_usd": "1.314535",
+      "score_recomputed_from_disclosed_line": false
+    },
+    {
+      "id": "bfs-row-000145",
+      "input_tokens": 255149,
+      "output_tokens": 299,
+      "reference_nodes": 4,
+      "f1": 1,
+      "estimated_usd": "1.281725",
+      "score_recomputed_from_disclosed_line": true
+    },
+    {
+      "id": "bfs-row-000178",
+      "input_tokens": 255522,
+      "output_tokens": 6375,
+      "reference_nodes": 0,
+      "f1": 1,
+      "estimated_usd": "1.40511",
+      "score_recomputed_from_disclosed_line": true
+    },
+    {
+      "id": "bfs-row-000124",
+      "input_tokens": 255280,
+      "output_tokens": 310,
+      "reference_nodes": 4,
+      "f1": 1,
+      "estimated_usd": "1.2826",
+      "score_recomputed_from_disclosed_line": true
+    }
+  ],
+  "original_archive_path": "evidence/graphwalks/openai-campaign-paid-evidence-2026-11-24.zip"
+}
