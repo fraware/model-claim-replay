@@ -10,6 +10,7 @@ Start with the guide that matches your objective. Current user guides are separa
 | [Methodology](METHODOLOGY.md) | Evidence schema, statistical interpretation and trust boundaries. |
 | [Development](DEVELOPMENT.md) | Local tests, package checks, browser tests and repository structure. |
 | [Contributing](../CONTRIBUTING.md) | Claim proposals, corrections, changes and feedback. |
+| [Independent reviewer guide](REVIEWER_GUIDE.md) | Pinned onboarding and evidence-review procedures. |
 | [Security](../SECURITY.md) | Secrets, untrusted evidence and vulnerability reporting. |
 
 ## Research dossiers

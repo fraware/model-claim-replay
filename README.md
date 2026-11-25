@@ -60,6 +60,7 @@ The CLI complements evaluation harnesses such as [Inspect AI](https://inspect.ai
 | Check a local bundle in your browser | [Evidence checker](https://fraware.github.io/model-claim-replay/check.html) |
 | Understand the trust boundary and scoring rules | [Methodology](docs/METHODOLOGY.md) |
 | Investigate the registered Chartography claim | [Chartography dossier](docs/CHARTOGRAPHY.md) |
+| Independently review the evidence or test onboarding | [Reviewer guide](docs/REVIEWER_GUIDE.md) |
 | Add a claim, fix a bug or improve onboarding | [Contributing](CONTRIBUTING.md) |
 
 ## Development
