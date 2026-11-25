@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Install pinned-source reader
@@ -37,7 +37,7 @@ jobs:
             --index .runs/private/algorithmic-control/graphwalks-bfs-reference-index.jsonl \
             --out .runs/graphwalks-algorithmic-control.json
       - name: Publish algorithmic control evidence (no raw prompts or answers)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: graphwalks-algorithmic-control
           path: .runs/graphwalks-algorithmic-control.json

@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Validate metadata parser with offline fixtures
@@ -23,7 +23,7 @@ jobs:
       - name: Retrieve current public metadata only
         run: python scripts/graphwalks_preflight.py --out .runs/graphwalks-metadata.json
       - name: Upload source metadata receipt
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: graphwalks-public-metadata
           path: .runs/graphwalks-metadata.json

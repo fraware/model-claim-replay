@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Install the dependency-free provider probe
@@ -35,7 +35,7 @@ jobs:
             --out .runs/provider-readiness.json
       - name: Retain only key-free provider metadata receipt
         if: ${{ always() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: provider-readiness-metadata-only
           path: .runs/provider-readiness.json
