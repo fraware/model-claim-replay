@@ -22,8 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Install pinned-source reader and Gemini token-count SDK
@@ -58,7 +58,7 @@ jobs:
             --out .runs/private/graphwalks-live/token-plan.json
       - name: Upload strictly redacted token-count evidence
         if: ${{ always() }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: graphwalks-200-task-real-token-count-and-model-limits
           path: |

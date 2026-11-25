@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Install Parquet reader
@@ -29,7 +29,7 @@ jobs:
             --size-bytes 296903814 \
             --out .runs/graphwalks-verified-source
       - name: Upload verified reference index and manifest only
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: graphwalks-verified-bfs-index
           path: .runs/graphwalks-verified-source/
