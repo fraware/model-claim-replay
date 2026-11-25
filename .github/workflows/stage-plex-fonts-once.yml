@@ -1,0 +1,45 @@
+name: Stage pinned IBM Plex fonts (temporary branch)
+on:
+  push:
+    branches: [design/ibm-plex-typography]
+    paths: ['.github/workflows/stage-plex-fonts-once.yml']
+permissions:
+  contents: write
+jobs:
+  stage:
+    if: ${{ github.repository == 'fraware/model-claim-replay' && github.ref == 'refs/heads/design/ibm-plex-typography' && github.run_attempt == 1 }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve and verify official font bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64, hashlib, json, os, subprocess, urllib.request
+          repo = "fraware/model-claim-replay"
+          branch = "design/ibm-plex-typography"
+          source = "https://raw.githubusercontent.com/IBM/plex/ba3013d72a8419a22c758cc51c44e04ac7ea565b/"
+          def api(endpoint, payload=None):
+              args = ["gh", "api", endpoint]
+              if payload is not None:
+                  args += ["--method", "POST", "--input", "-"]
+              return json.loads(subprocess.check_output(args, input=None if payload is None else json.dumps(payload).encode()))
+          head = api(f"repos/{repo}/git/ref/heads/{branch}")["object"]["sha"]
+          assert head == os.environ["GITHUB_SHA"]
+          parent = api(f"repos/{repo}/git/commits/{head}")
+          items = []
+          for family, name, expected, size in [["sans","IBMPlexSans-Regular.woff2","9c75d2e7111a534ec1f22efec30395beb4e28c45",65080],["sans","IBMPlexSans-Medium.woff2","97b0b37efbb6495f3505259eac417b30334084d3",69148],["sans","IBMPlexSans-SemiBold.woff2","6061208a78b93261b143f6fea70ed4b92f4b4742",69388],["sans","IBMPlexSans-Bold.woff2","c4beccb1551dc4510d5e1f3a7e62b723cc9f625c",65012],["mono","IBMPlexMono-Regular.woff2","8bdb4c4b3f8fae88cc2e3c9c744952dccf89b15a",49248],["mono","IBMPlexMono-Bold.woff2","6200c4928ec25283ed6f4d1e3fa847d736e4fb03",50380]]:
+              with urllib.request.urlopen(source + f"packages/plex-{family}/fonts/complete/woff2/{name}", timeout=30) as response:
+                  raw = response.read(size + 1)
+              assert len(raw) == size and raw[:4] == b"wOF2"
+              assert hashlib.sha1(f"blob {len(raw)}\0".encode() + raw).hexdigest() == expected
+              blob = api(f"repos/{repo}/git/blobs", {"content":base64.b64encode(raw).decode(), "encoding":"base64"})
+              assert blob["sha"] == expected
+              items.append({"path":f"website/fonts/{name}", "mode":"100644", "type":"blob", "sha":expected})
+              print(name, hashlib.sha256(raw).hexdigest())
+          tree = api(f"repos/{repo}/git/trees", {"base_tree":parent["tree"]["sha"], "tree":items})
+          commit = api(f"repos/{repo}/git/commits", {"message":"Vendor verified IBM Plex WOFF2 assets", "tree":tree["sha"], "parents":[head]})
+          assert api(f"repos/{repo}/git/ref/heads/{branch}")["object"]["sha"] == head
+          subprocess.run(["gh","api",f"repos/{repo}/git/refs/heads/{branch}","--method","PATCH","-f",f"sha={commit['sha']}","-F","force=false"], check=True)
+          PY

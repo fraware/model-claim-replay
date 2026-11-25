@@ -22,6 +22,8 @@ CI and site deployment are ordinary development operations. Provider metadata an
 | [graphwalks-openai-campaign-authorized.yml](../.github/workflows/graphwalks-openai-campaign-authorized.yml) | Completed one-time $25 campaign; authorization consumed. See [observed results](OPENAI_CAMPAIGN.md#observed-results). |
 | [graphwalks-openai-campaign-paid.yml](../.github/workflows/graphwalks-openai-campaign-paid.yml) | Retired manual dispatch for the frozen cohort; rejects execution. |
 
+| [stage-plex-fonts-once.yml](../.github/workflows/stage-plex-fonts-once.yml) | Temporary branch-only source asset transfer; remove before merge. |
+
 Historical workflow files remain for traceability and regression checks. Never rerun a consumed paid authorization, including after an ambiguous failure or interruption. An intent lacking a terminal outcome is an unresolved request, not a zero score. Preserve original source and run commitments.
 
 The canonical execution instructions are in [OpenAI campaign](OPENAI_CAMPAIGN.md), [the one-task evidence archive](../evidence/graphwalks/openai-first-generation-2026-11-24/README.md) and [Gemini execution](GRAPHWALKS_EXECUTION.md).
