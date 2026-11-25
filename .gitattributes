@@ -10,3 +10,5 @@
 *.whl binary
 *.gz binary
 *.parquet binary
+
+*.woff2 binary

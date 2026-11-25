@@ -1,0 +1,5 @@
+IBM Plex Sans and IBM Plex Mono — original upright WOFF2 files from IBM/plex.
+Upstream revision: ba3013d72a8419a22c758cc51c44e04ac7ea565b
+Source: https://github.com/IBM/plex/tree/ba3013d72a8419a22c758cc51c44e04ac7ea565b
+License: SIL Open Font License 1.1 (see LICENSE.txt).
+The font files are unmodified; the project MIT license does not replace their license.

@@ -67,6 +67,14 @@ def main() -> None:
                     page.on("request", lambda request: requests.append(request.url))
                     page.on("pageerror", lambda error: errors.append(str(error)))
                     page.goto(origin + "/check.html", wait_until="load")
+                    assert page.evaluate("""async () => {
+                        await document.fonts.ready;
+                        const faces = await document.fonts.load('400 16px "IBM Plex Sans"');
+                        return faces.length > 0 && faces.every(face => face.status === "loaded");
+                    }""")
+                    # Preload all local faces before file handling; no new requests after this.
+                    page.evaluate("""async () => { await Promise.all([...document.fonts].map(face => face.load())); }""")
+                    initial_requests = len(requests)
                     page.locator("#run-file").set_input_files(bundle / "run/run.json")
                     page.locator("#claim-file").set_input_files(bundle / "claim.json")
                     page.locator("#results-file").set_input_files(bundle / "run/results.jsonl")
@@ -116,7 +124,9 @@ def main() -> None:
                     # After page load the file-check workflow issues no network
                     # request. CSP additionally prohibits all fetch/XHR.
                     assert all(url.startswith(origin + "/") for url in requests), requests
-                    allowed = {"/check.html","/style.css","/check.css","/check.js","/favicon.ico"}
+                    allowed = {"/check.html","/base.css","/style.css","/check.css","/check.js","/favicon.ico",
+                               "/fonts/IBMPlexSans-Regular.woff2", "/fonts/IBMPlexSans-Medium.woff2", "/fonts/IBMPlexSans-SemiBold.woff2", "/fonts/IBMPlexSans-Bold.woff2", "/fonts/IBMPlexMono-Regular.woff2", "/fonts/IBMPlexMono-Bold.woff2"}
+                    assert len(requests) == initial_requests, requests[initial_requests:]
                     assert all(url[len(origin):] in allowed for url in requests), requests
                     page.close()
             finally:

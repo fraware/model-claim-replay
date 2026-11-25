@@ -6,7 +6,7 @@ recursive-include docs *.md
 recursive-include examples *.jsonl
 recursive-include scripts *.py
 recursive-include tests *.py
-recursive-include website *.html *.css *.js *.json *.svg *.xml *.txt
+recursive-include website *.html *.css *.js *.json *.svg *.xml *.txt *.woff2
 # Explicit historical public evidence allowlist. Never include local journals.
 include evidence/graphwalks/REFERENCE_INDEX.md
 include evidence/graphwalks/gemini-4-neon-full-200-token-plan-2026-11-23.json

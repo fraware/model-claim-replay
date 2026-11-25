@@ -38,7 +38,8 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
         "index.html", "app.js", "style.css", "graphwalks.html",
         "graphwalks.js", "graphwalks.css", "graphwalks-audit.json",
         "graphwalks-control.json", "graphwalks-gemini-feasibility.json",
-        "graphwalks-input-feasibility.svg", "check.html",
+        "graphwalks-input-feasibility.svg", "check.html", "base.css",
+        "fonts/IBMPlexSans-Regular.woff2", "fonts/IBMPlexSans-Medium.woff2", "fonts/IBMPlexSans-SemiBold.woff2", "fonts/IBMPlexSans-Bold.woff2", "fonts/IBMPlexMono-Regular.woff2", "fonts/IBMPlexMono-Bold.woff2",
     )
     for filename in required:
         if not (site / filename).is_file():
@@ -78,6 +79,14 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                             assert response is not None and response.status == 200
                             # Verify the shared neutral, sans-serif interface and
                             # reject regressions to decorative italic headings.
+                            # Require actual local font loading, not just a CSS fallback family.
+                            assert page.evaluate("""async () => {
+                                await document.fonts.ready;
+                                const sans = await document.fonts.load('400 16px "IBM Plex Sans"');
+                                const mono = await document.fonts.load('400 16px "IBM Plex Mono"');
+                                return sans.length > 0 && mono.length > 0 &&
+                                    [...sans, ...mono].every(face => face.status === 'loaded');
+                            }""")
                             typography = page.evaluate("""() => ({
                                 body: getComputedStyle(document.body).fontFamily,
                                 background: getComputedStyle(document.body).backgroundColor,
@@ -85,8 +94,8 @@ def run(site: Path, out: Path, browser_path: str | None = None) -> None:
                                     el => [getComputedStyle(el).fontFamily, getComputedStyle(el).fontStyle])
                             })""")
                             assert typography["background"] == "rgb(255, 255, 255)"
-                            assert typography["body"].startswith("Arial")
-                            assert all(family.startswith("Arial") and style == "normal"
+                            assert typography["body"].lstrip('"').startswith("IBM Plex Sans")
+                            assert all(family.lstrip('"').startswith("IBM Plex Sans") and style == "normal"
                                        for family, style in typography["headings"])
                             assert page.locator("h1 em, h2 em").count() == 0
 
