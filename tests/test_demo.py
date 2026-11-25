@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -34,6 +35,15 @@ class InstalledDemoTests(unittest.TestCase):
                     package.joinpath("demo_assets", name).read_bytes(),
                     original.read_bytes(),
                 )
+
+    def test_fixture_bytes_match_claim_on_every_platform(self) -> None:
+        package = resources.files("model_claim_replay").joinpath("demo_assets")
+        claim = json.loads(package.joinpath("claim.json").read_bytes())
+        tasks = package.joinpath("tasks.jsonl").read_bytes()
+        self.assertNotIn(b"\r", tasks)
+        self.assertEqual(hashlib.sha256(tasks).hexdigest(), claim["benchmark"]["sha256"])
+        self.assertNotEqual(hashlib.sha256(tasks.replace(b"\n", b"\r\n")).hexdigest(),
+                            claim["benchmark"]["sha256"])
 
     def test_complete_report_and_repeatability(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
